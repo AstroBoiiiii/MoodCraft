@@ -1,0 +1,89 @@
+rules_version = '2';
+
+// MoodCraft Firestore security rules (CLAUDE.md section 7).
+// A user reads/writes only their own record and the records of students they
+// are linked to. Students cannot read messages or other students' data.
+//
+// NOTE: validate these against the Firestore emulator before any real data
+// goes in (CLAUDE.md: "Lock this down before any real data goes in").
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function userData() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+
+    function role() {
+      return userData().role;
+    }
+
+    // A student's own studentId is included in their linkedStudentIds, so this
+    // single check also covers the child reading their own profile/records.
+    function isLinkedTo(studentId) {
+      return isSignedIn() && studentId in userData().linkedStudentIds;
+    }
+
+    // Account records — only the owner.
+    match /users/{uid} {
+      allow read, write: if isSignedIn() && request.auth.uid == uid;
+    }
+
+    // Student profiles — linked teacher/parent (and the child) read; teachers write.
+    match /students/{studentId} {
+      allow read: if isLinkedTo(studentId);
+      allow write: if isLinkedTo(studentId) && role() == 'teacher';
+    }
+
+    // Activity sessions — linked users read; linked users create.
+    match /sessions/{id} {
+      allow read: if isLinkedTo(resource.data.studentId);
+      allow create: if isLinkedTo(request.resource.data.studentId);
+      allow update, delete: if false;
+    }
+
+    // Journal entries — linked users read and create.
+    match /journalEntries/{id} {
+      allow read: if isLinkedTo(resource.data.studentId);
+      allow create: if isLinkedTo(request.resource.data.studentId);
+      allow update: if isLinkedTo(resource.data.studentId);
+      allow delete: if false;
+    }
+
+    // Messages — teacher/parent only (never students); sender or recipient.
+    match /messages/{id} {
+      allow read: if isSignedIn() && role() != 'student'
+        && (resource.data.fromUid == request.auth.uid
+            || resource.data.toUid == request.auth.uid);
+      allow create: if isSignedIn() && role() != 'student'
+        && request.resource.data.fromUid == request.auth.uid;
+      allow update: if isSignedIn()
+        && resource.data.toUid == request.auth.uid; // mark read
+      allow delete: if false;
+    }
+
+    // AI observation reports — linked users read; teachers create.
+    match /observationReports/{id} {
+      allow read: if isLinkedTo(resource.data.studentId);
+      allow create: if isLinkedTo(request.resource.data.studentId)
+        && role() == 'teacher';
+      allow update, delete: if false;
+    }
+
+    // Curated teaching content — any signed-in user reads; writes via console only.
+    match /emotionContent/{id} {
+      allow read: if isSignedIn();
+      allow write: if false;
+    }
+
+    // Visual schedules — linked users read; teachers write.
+    match /visualSchedules/{id} {
+      allow read: if isLinkedTo(resource.data.studentId);
+      allow write: if isLinkedTo(request.resource.data.studentId)
+        && role() == 'teacher';
+    }
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "326136494857",
+    "project_id": "moodcraft-d9930",
+    "storage_bucket": "moodcraft-d9930.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:326136494857:android:cc65e14b79bc220361b1d8",
+        "android_client_info": {
+          "package_name": "com.example.moodcraft"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAVDU4mMz0b11K8SyPopc_5mEI2k_Mvbo8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

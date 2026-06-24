@@ -1,4 +1,4 @@
-# moodcraft
+claude# moodcraft
 
 A new Flutter project.
 

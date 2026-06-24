@@ -1,30 +1,29 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
-import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-
-import 'package:moodcraft/main.dart';
+import 'package:moodcraft/app/app.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  testWidgets('boots to the dev role picker', (tester) async {
+    await tester.pumpWidget(const ProviderScope(child: MoodCraftApp()));
+    await tester.pumpAndSettle();
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+    // Signed out -> role picker is shown with all three roles.
+    expect(find.text('Who is using MoodCraft?'), findsOneWidget);
+    expect(find.text('I am a student'), findsOneWidget);
+    expect(find.text('I am a teacher'), findsOneWidget);
+    expect(find.text('I am a parent'), findsOneWidget);
+  });
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
+  testWidgets('signing in as a student lands on the student home', (tester) async {
+    await tester.pumpWidget(const ProviderScope(child: MoodCraftApp()));
+    await tester.pumpAndSettle();
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    await tester.tap(find.text('I am a student'));
+    await tester.pumpAndSettle();
+
+    // Student bottom-nav destination labels are present.
+    expect(find.text('Home'), findsWidgets);
+    expect(find.text('Journal'), findsWidgets);
+    expect(find.text('Rewards'), findsWidgets);
   });
 }
