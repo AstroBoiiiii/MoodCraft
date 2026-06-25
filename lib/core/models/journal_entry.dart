@@ -59,10 +59,18 @@ class JournalEntry {
   factory JournalEntry.fromJson(Map<String, dynamic> json) => JournalEntry(
     id: (json['id'] as String?) ?? '',
     studentId: (json['studentId'] as String?) ?? '',
-    emotionIcon: enumFromName(Emotion.values, json['emotionIcon'], Emotion.neutral),
+    emotionIcon: enumFromName(
+      Emotion.values,
+      json['emotionIcon'],
+      Emotion.neutral,
+    ),
     contextIcon: json['contextIcon'] as String?,
     note: json['note'] as String?,
     timestamp: dateTimeFromJson(json['timestamp']),
-    syncStatus: enumFromName(SyncStatus.values, json['syncStatus'], SyncStatus.pending),
+    syncStatus: enumFromName(
+      SyncStatus.values,
+      json['syncStatus'],
+      SyncStatus.pending,
+    ),
   );
 }

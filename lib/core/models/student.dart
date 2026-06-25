@@ -65,8 +65,9 @@ class Student {
     avatar: (json['avatar'] as String?) ?? '',
     teacherIds: stringListFromJson(json['teacherIds']),
     parentIds: stringListFromJson(json['parentIds']),
-    sensorySettings:
-        SensorySettings.fromJson(json['sensorySettings'] as Map<String, dynamic>?),
+    sensorySettings: SensorySettings.fromJson(
+      json['sensorySettings'] as Map<String, dynamic>?,
+    ),
     level: (json['level'] as num?)?.toInt() ?? 1,
     stars: (json['stars'] as num?)?.toInt() ?? 0,
   );

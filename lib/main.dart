@@ -6,7 +6,6 @@ import 'core/firebase/bootstrap.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  // Guarded: no-ops in dev stub mode until `flutterfire configure` is run.
   await bootstrapFirebase();
   runApp(const ProviderScope(child: MoodCraftApp()));
 }

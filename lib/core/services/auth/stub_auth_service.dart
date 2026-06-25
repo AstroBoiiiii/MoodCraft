@@ -23,6 +23,54 @@ class StubAuthService implements AuthService {
   }
 
   @override
+  Future<RegisterResult> register({
+    required String name,
+    required String username,
+    required String email,
+    required String password,
+    required UserRole role,
+    required AppLanguage language,
+    required String phone,
+    String? classCode,
+    String? parentEmail,
+    String? childEmail,
+    String? className,
+  }) async {
+    _current = AppUser(
+      uid: 'stub-${DateTime.now().millisecondsSinceEpoch}',
+      role: role,
+      name: name.trim(),
+      username: username.trim().toLowerCase(),
+      email: email.trim(),
+      phone: phone.trim(),
+      language: language,
+      linkedStudentIds:
+          role == UserRole.student ? const [DevSeed.studentId] : const [],
+    );
+    _controller.add(_current);
+    return RegisterResult(user: _current!);
+  }
+
+  @override
+  Future<AppUser> signIn({
+    required String emailOrUsername,
+    required String password,
+  }) async {
+    // Match by email, username prefix, or fall back to student.
+    final input = emailOrUsername.trim().toLowerCase();
+    final role =
+        (input.startsWith('teacher') || input == DevSeed.teacherUser.username)
+            ? UserRole.teacher
+            : (input.startsWith('parent') ||
+                    input == DevSeed.parentUser.username)
+            ? UserRole.parent
+            : UserRole.student;
+    _current = DevSeed.userForRole(role);
+    _controller.add(_current);
+    return _current!;
+  }
+
+  @override
   Future<void> signInAsRole(UserRole role) async {
     _current = DevSeed.userForRole(role);
     _controller.add(_current);

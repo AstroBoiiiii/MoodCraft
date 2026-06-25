@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:moodcraft/l10n/app_localizations.dart';
 
 import '../core/constants/app_constants.dart';
+import '../core/providers/repository_providers.dart';
 import '../core/providers/sensory_settings_provider.dart';
 import 'router.dart';
 import 'theme/app_theme.dart';
@@ -14,6 +15,7 @@ class MoodCraftApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    ref.watch(sensoryHydrationProvider);
     final settings = ref.watch(sensorySettingsProvider);
     final router = ref.watch(goRouterProvider);
 

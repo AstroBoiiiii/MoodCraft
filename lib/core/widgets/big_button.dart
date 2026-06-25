@@ -24,13 +24,14 @@ class BigButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final child = ConstrainedBox(
       constraints: const BoxConstraints(minHeight: AppConstants.minTapTarget),
-      child: icon == null
-          ? ElevatedButton(onPressed: onPressed, child: Text(label))
-          : ElevatedButton.icon(
-              onPressed: onPressed,
-              icon: Icon(icon, size: 28),
-              label: Text(label),
-            ),
+      child:
+          icon == null
+              ? ElevatedButton(onPressed: onPressed, child: Text(label))
+              : ElevatedButton.icon(
+                onPressed: onPressed,
+                icon: Icon(icon, size: 28),
+                label: Text(label),
+              ),
     );
     if (!expand) return child;
     return SizedBox(width: double.infinity, child: child);

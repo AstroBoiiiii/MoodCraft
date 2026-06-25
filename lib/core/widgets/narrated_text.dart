@@ -9,12 +9,7 @@ import '../../app/theme/tokens.dart';
 /// [onSpeak] is wired to TTS later (Phase 2). Until then the speaker button is
 /// present and consistent but inert when null.
 class NarratedText extends StatelessWidget {
-  const NarratedText(
-    this.text, {
-    this.onSpeak,
-    this.style,
-    super.key,
-  });
+  const NarratedText(this.text, {this.onSpeak, this.style, super.key});
 
   final String text;
   final VoidCallback? onSpeak;

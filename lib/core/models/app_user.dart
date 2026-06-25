@@ -8,6 +8,8 @@ class AppUser {
     required this.role,
     required this.name,
     required this.email,
+    this.username = '',
+    this.phone = '',
     this.language = AppLanguage.en,
     this.linkedStudentIds = const [],
   });
@@ -16,6 +18,14 @@ class AppUser {
   final UserRole role;
   final String name;
   final String email;
+
+  /// Unique handle chosen at registration. Used as an alternative sign-in
+  /// identifier (lowercase, letters/digits/underscores only).
+  final String username;
+
+  /// Contact phone captured at registration (FR1). Stored only — never
+  /// SMS-verified (that needs Blaze/release work, which is out of scope).
+  final String phone;
   final AppLanguage language;
 
   /// Students this user is linked to (for teacher/parent roles).
@@ -26,6 +36,8 @@ class AppUser {
     UserRole? role,
     String? name,
     String? email,
+    String? username,
+    String? phone,
     AppLanguage? language,
     List<String>? linkedStudentIds,
   }) {
@@ -34,6 +46,8 @@ class AppUser {
       role: role ?? this.role,
       name: name ?? this.name,
       email: email ?? this.email,
+      username: username ?? this.username,
+      phone: phone ?? this.phone,
       language: language ?? this.language,
       linkedStudentIds: linkedStudentIds ?? this.linkedStudentIds,
     );
@@ -44,6 +58,8 @@ class AppUser {
     'role': role.name,
     'name': name,
     'email': email,
+    'username': username,
+    'phone': phone,
     'language': language.name,
     'linkedStudentIds': linkedStudentIds,
   };
@@ -53,7 +69,13 @@ class AppUser {
     role: enumFromName(UserRole.values, json['role'], UserRole.student),
     name: (json['name'] as String?) ?? '',
     email: (json['email'] as String?) ?? '',
-    language: enumFromName(AppLanguage.values, json['language'], AppLanguage.en),
+    username: (json['username'] as String?) ?? '',
+    phone: (json['phone'] as String?) ?? '',
+    language: enumFromName(
+      AppLanguage.values,
+      json['language'],
+      AppLanguage.en,
+    ),
     linkedStudentIds: stringListFromJson(json['linkedStudentIds']),
   );
 }

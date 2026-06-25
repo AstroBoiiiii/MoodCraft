@@ -110,19 +110,19 @@ abstract class AppLocalizations {
   /// No description provided for @roleStudent.
   ///
   /// In en, this message translates to:
-  /// **'I am a student'**
+  /// **'Student'**
   String get roleStudent;
 
   /// No description provided for @roleTeacher.
   ///
   /// In en, this message translates to:
-  /// **'I am a teacher'**
+  /// **'Teacher'**
   String get roleTeacher;
 
   /// No description provided for @roleParent.
   ///
   /// In en, this message translates to:
-  /// **'I am a parent'**
+  /// **'Parent'**
   String get roleParent;
 
   /// No description provided for @signOut.
@@ -286,6 +286,282 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'AR placeholder — a 3D character will act out a feeling here.'**
   String get arPlaceholder;
+
+  /// No description provided for @signIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in'**
+  String get signIn;
+
+  /// No description provided for @registerTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Create account'**
+  String get registerTitle;
+
+  /// No description provided for @nameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Your name'**
+  String get nameLabel;
+
+  /// No description provided for @emailLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Email'**
+  String get emailLabel;
+
+  /// No description provided for @passwordLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Password'**
+  String get passwordLabel;
+
+  /// No description provided for @languageLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Language'**
+  String get languageLabel;
+
+  /// No description provided for @languageEnglish.
+  ///
+  /// In en, this message translates to:
+  /// **'English'**
+  String get languageEnglish;
+
+  /// No description provided for @languageMalay.
+  ///
+  /// In en, this message translates to:
+  /// **'Bahasa Melayu'**
+  String get languageMalay;
+
+  /// No description provided for @toRegister.
+  ///
+  /// In en, this message translates to:
+  /// **'New here? Create an account'**
+  String get toRegister;
+
+  /// No description provided for @toLogin.
+  ///
+  /// In en, this message translates to:
+  /// **'Already have an account? Sign in'**
+  String get toLogin;
+
+  /// No description provided for @errName.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter your name'**
+  String get errName;
+
+  /// No description provided for @errEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter a valid email'**
+  String get errEmail;
+
+  /// No description provided for @errPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Password must be at least 6 characters'**
+  String get errPassword;
+
+  /// No description provided for @devSignIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Developer quick sign-in'**
+  String get devSignIn;
+
+  /// No description provided for @phoneLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone number'**
+  String get phoneLabel;
+
+  /// No description provided for @errPhone.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter a valid phone number'**
+  String get errPhone;
+
+  /// No description provided for @classCodeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Class code'**
+  String get classCodeLabel;
+
+  /// No description provided for @errClassCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter the class code from your teacher'**
+  String get errClassCode;
+
+  /// No description provided for @parentEmailLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Parent\'s email'**
+  String get parentEmailLabel;
+
+  /// No description provided for @childEmailLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Child\'s email'**
+  String get childEmailLabel;
+
+  /// No description provided for @classNameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Class name (optional)'**
+  String get classNameLabel;
+
+  /// No description provided for @classCodeNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'We couldn\'t find that class code. Your teacher can add you later.'**
+  String get classCodeNotFound;
+
+  /// No description provided for @yourClassCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Your class code'**
+  String get yourClassCode;
+
+  /// No description provided for @webMobileOnlyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Mobile app'**
+  String get webMobileOnlyTitle;
+
+  /// No description provided for @webMobileOnlyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Please use the MoodCraft mobile app to continue. The web app is for teachers.'**
+  String get webMobileOnlyBody;
+
+  /// No description provided for @usernameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Username'**
+  String get usernameLabel;
+
+  /// No description provided for @errUsername.
+  ///
+  /// In en, this message translates to:
+  /// **'Letters, numbers and underscores only'**
+  String get errUsername;
+
+  /// No description provided for @emailOrUsername.
+  ///
+  /// In en, this message translates to:
+  /// **'Email or username'**
+  String get emailOrUsername;
+
+  /// No description provided for @editProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit'**
+  String get editProfile;
+
+  /// No description provided for @confirmEdit.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm'**
+  String get confirmEdit;
+
+  /// No description provided for @cancelEdit.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get cancelEdit;
+
+  /// No description provided for @contactsSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Contacts'**
+  String get contactsSection;
+
+  /// No description provided for @teacherLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Teacher'**
+  String get teacherLabel;
+
+  /// No description provided for @parentLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Parent'**
+  String get parentLabel;
+
+  /// No description provided for @profileTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'My Profile'**
+  String get profileTitle;
+
+  /// No description provided for @roleLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Role'**
+  String get roleLabel;
+
+  /// No description provided for @saveProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'Save changes'**
+  String get saveProfile;
+
+  /// No description provided for @levelStars.
+  ///
+  /// In en, this message translates to:
+  /// **'Level {level} · {stars} stars'**
+  String levelStars(int level, int stars);
+
+  /// No description provided for @noStudentsYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No students enrolled yet'**
+  String get noStudentsYet;
+
+  /// No description provided for @noChildLinked.
+  ///
+  /// In en, this message translates to:
+  /// **'No child linked yet'**
+  String get noChildLinked;
+
+  /// No description provided for @colourThemeCalmBlue.
+  ///
+  /// In en, this message translates to:
+  /// **'Calm Blue'**
+  String get colourThemeCalmBlue;
+
+  /// No description provided for @colourThemeSoftGreen.
+  ///
+  /// In en, this message translates to:
+  /// **'Soft Green'**
+  String get colourThemeSoftGreen;
+
+  /// No description provided for @colourThemeWarmNeutral.
+  ///
+  /// In en, this message translates to:
+  /// **'Warm'**
+  String get colourThemeWarmNeutral;
+
+  /// No description provided for @colourThemeLowStimGrey.
+  ///
+  /// In en, this message translates to:
+  /// **'Low Stim'**
+  String get colourThemeLowStimGrey;
+
+  /// No description provided for @studentProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'Student Profile'**
+  String get studentProfile;
+
+  /// No description provided for @childProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'Child Profile'**
+  String get childProfile;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

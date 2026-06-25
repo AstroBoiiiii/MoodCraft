@@ -1,17 +1,20 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../constants/app_constants.dart';
 import '../models/app_user.dart';
 import '../services/auth/auth_service.dart';
+import '../services/auth/firebase_auth_service.dart';
 import '../services/auth/stub_auth_service.dart';
 
-/// The active [AuthService]. Dev/stub mode for now.
-///
-/// TODO(firebase): after `flutterfire configure`, return
-/// `FirebaseAuthService()` here instead of `StubAuthService()`.
+/// The active [AuthService]. Real Firebase auth by default; the in-memory stub
+/// when [kUseStubAuth] is set (e.g. `--dart-define=USE_STUB_AUTH=true`).
 final authServiceProvider = Provider<AuthService>((ref) {
-  final service = StubAuthService();
-  ref.onDispose(service.dispose);
-  return service;
+  if (kUseStubAuth) {
+    final service = StubAuthService();
+    ref.onDispose(service.dispose);
+    return service;
+  }
+  return FirebaseAuthService();
 });
 
 /// Streams the signed-in user (with resolved role), or null. Drives routing.

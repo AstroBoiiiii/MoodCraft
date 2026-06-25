@@ -33,7 +33,11 @@ class EmotionContent {
   factory EmotionContent.fromJson(Map<String, dynamic> json) => EmotionContent(
     id: (json['id'] as String?) ?? '',
     emotion: enumFromName(Emotion.values, json['emotion'], Emotion.neutral),
-    language: enumFromName(AppLanguage.values, json['language'], AppLanguage.en),
+    language: enumFromName(
+      AppLanguage.values,
+      json['language'],
+      AppLanguage.en,
+    ),
     prompt: (json['prompt'] as String?) ?? '',
     options: stringListFromJson(json['options']),
     feedback: (json['feedback'] as String?) ?? '',

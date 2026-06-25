@@ -3,11 +3,16 @@
 Persistent context for this project. Read it before writing code; keep it current.
 
 ## Project context
-- **Final-year CS student project.** Graded by a **live demo**, not by shipping. Optimise for the demo.
+- **Final-year CS student project.** Graded by a **live demo on laptop + one Android phone.** Optimise for demo, not production.
 - **Do NOT publish, sign, or do store/release work.** Not now. Stop and ask if a task heads that way.
 - **Android (mobile) + Web only.** No iOS/macOS.
-- **Dev runs on Web/Chrome** by default (Windows Dev Mode off → native plugin builds can fail locally).
+- **Dev runs on Web/Chrome** by default.
 - **Firebase** is the backend — **configured** (project `moodcraft-d9930`, Auth + Firestore enabled, `firebase_options.dart` generated).
+- **Demo scope:** keep it simple and working. Do not over-engineer. If it works for the demo, ship it.
+- **Role labels:** "Student", "Teacher", "Parent" — never "I am a student" style copy.
+- **Profile editing:** all profile screens use view mode by default; user must tap Edit first, then Confirm or Cancel.
+- **Username:** every user registers a username (lowercase, letters/digits/underscores). Used as alternate sign-in (email OR username). Stored in `usernameDirectory/{username}` → `{uid, email}` for pre-auth lookup.
+- **DEMO-GRADE rules:** `users/{uid}` read is open to any signed-in user (so teacher/parent detail screens can show linked contacts). Tighten before any real data.
 
 ## What it is
 MoodCraft teaches **emotion recognition to primary-school children with ASD**, and keeps their **teachers and parents** connected to that learning. A special-needs tool, not a general kids' app. Filter every decision through: *is this calm, predictable, supportive for an autistic child?* If it adds stress, surprise, time pressure, or a sense of failure, it's wrong here.
@@ -29,7 +34,7 @@ Mobile = all roles. Web = teacher's classroom + office layer only.
 ## Functional requirements (grading checklist)
 | FR | Requirement | Feature | Roles |
 |---|---|---|---|
-| FR1 | Multi-role register/login; per-role UI; parent can share device at registration | Auth + role routing | S,T,P |
+| FR1 | ✓ Multi-role register/login; per-role UI; email-invite linking (auto-resolve + pending fallback); class code join; web teacher-only gate *(device-sharing deferred)* | Auth + role routing | S,T,P |
 | FR2 | Student profiles: details, age category, language, sensory settings (music, volume, theme, animation intensity) | Profiles | T,P |
 | FR3 | AI companion teaches emotion via face + body; always calm/patient/consistent; **BM + English** | AI Companion | S |
 | FR4 | AR emotion learning: camera + live 3D; **home mode** (1:1) and **classroom projection** | AR Emotion | S,T |
@@ -81,8 +86,11 @@ assets/  rive/  models/  images/  audio/
 
 ## Firestore model
 All activity/journal records carry `syncStatus` + `timestamp`.
-- `users/{uid}` — role, name, email, language, linkedStudentIds[]
+- `users/{uid}` — role, name, email, phone, language, linkedStudentIds[]
 - `students/{id}` — name, avatar, ageCategory, language, teacherIds[], parentIds[], sensorySettings, level, stars, badges[]
+- `classes/{id}` — name, classCode (6-char uppercase), teacherId *(FR1 — teacher created at registration)*
+- `pendingLinks/{id}` — studentEmail, parentEmail, initiatorUid, initiatorRole *(deleted on resolution)*
+- `emailDirectory/{email}` — uid, role *(written at registration; used for invite resolution)*
 - `sessions/{id}` — studentId, activityType, emotionsShown[], responses[], correctCount, retries, durationMs, timestamp, syncStatus
 - `journalEntries/{id}` — studentId, emotionIcon, contextIcon?, note?, timestamp, syncStatus
 - `messages/{id}` — fromUid, toUid, studentId, text, timestamp, read
@@ -104,13 +112,13 @@ Rules: a user reads/writes only their own record + linked students. Students can
 Build logic/layout now with stand-in art; swap real art later with no code change. Companion = enum-keyed expressions (`happy, sad, scared, angry, surprised, neutral`). AR = placeholder `.glb` via a config map of paths. Centralise every asset path in one constants file.
 
 ## Build order
-0. Foundation: scaffold, design system + sensory theming, role routing. ✓ Firebase done.
-1. Vertical slice: Emotion Journal end-to-end (student → Firestore → teacher).
+0. ✓ Foundation: scaffold, design system + sensory theming, role routing, FR1 auth + linking. Firebase configured.
+1. **Next — Vertical slice:** Emotion Journal end-to-end (student logs → Firestore → teacher/parent view).
 2. Signature features: AR → AI Companion → Story → Mix-and-Match → Quiz.
 3. Teacher portal + Parent monitoring/notifications.
 4. Offline polish, accessibility, demo prep.
 
-Don't jump ahead before Phase 0 is solid.
+**Deploy rules before real data:** `firebase deploy --only firestore:rules`
 
 ## Don't
 - No fail states, buzzers, red X, timers, punitive scoring.

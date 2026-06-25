@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import '../../models/app_user.dart';
 import '../../models/journal_entry.dart';
 import '../../models/message.dart';
 import '../../models/session.dart';
@@ -9,6 +10,24 @@ import 'repositories.dart';
 
 // In-memory repositories used in dev/stub mode. They persist for the life of
 // the app session so adding a journal entry shows up immediately.
+
+class StubUserRepository implements UserRepository {
+  final Map<String, AppUser> _users = {
+    DevSeed.studentUid: DevSeed.studentUser,
+    DevSeed.teacherUid: DevSeed.teacherUser,
+    DevSeed.parentUid: DevSeed.parentUser,
+  };
+
+  @override
+  Future<AppUser?> getUser(String uid) async => _users[uid];
+
+  @override
+  Future<List<AppUser>> getUsersFor(List<String> uids) async =>
+      uids.map((id) => _users[id]).whereType<AppUser>().toList();
+
+  @override
+  Future<void> upsert(AppUser user) async => _users[user.uid] = user;
+}
 
 class StubStudentRepository implements StudentRepository {
   final Map<String, Student> _students = {DevSeed.student.id: DevSeed.student};
@@ -21,8 +40,7 @@ class StubStudentRepository implements StudentRepository {
   Future<Student?> getStudent(String id) async => _students[id];
 
   @override
-  Future<void> upsert(Student student) async =>
-      _students[student.id] = student;
+  Future<void> upsert(Student student) async => _students[student.id] = student;
 }
 
 class StubJournalRepository implements JournalRepository {
@@ -35,8 +53,9 @@ class StubJournalRepository implements JournalRepository {
       StreamController<List<JournalEntry>>.broadcast();
 
   List<JournalEntry> _forStudent(String studentId) {
-    final list = _entries.where((e) => e.studentId == studentId).toList()
-      ..sort((a, b) => b.timestamp.compareTo(a.timestamp));
+    final list =
+        _entries.where((e) => e.studentId == studentId).toList()
+          ..sort((a, b) => b.timestamp.compareTo(a.timestamp));
     return List.unmodifiable(list);
   }
 

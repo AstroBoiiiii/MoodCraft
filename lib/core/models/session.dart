@@ -76,14 +76,19 @@ class Session {
       json['activityType'],
       ActivityType.quiz,
     ),
-    emotionsShown: (json['emotionsShown'] as List? ?? const [])
-        .map((e) => enumFromName(Emotion.values, e, Emotion.neutral))
-        .toList(),
+    emotionsShown:
+        (json['emotionsShown'] as List? ?? const [])
+            .map((e) => enumFromName(Emotion.values, e, Emotion.neutral))
+            .toList(),
     responses: stringListFromJson(json['responses']),
     correctCount: (json['correctCount'] as num?)?.toInt() ?? 0,
     retries: (json['retries'] as num?)?.toInt() ?? 0,
     durationMs: (json['durationMs'] as num?)?.toInt() ?? 0,
     timestamp: dateTimeFromJson(json['timestamp']),
-    syncStatus: enumFromName(SyncStatus.values, json['syncStatus'], SyncStatus.pending),
+    syncStatus: enumFromName(
+      SyncStatus.values,
+      json['syncStatus'],
+      SyncStatus.pending,
+    ),
   );
 }

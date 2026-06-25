@@ -15,13 +15,13 @@ class AppLocalizationsMs extends AppLocalizations {
   String get chooseRole => 'Siapa yang menggunakan MoodCraft?';
 
   @override
-  String get roleStudent => 'Saya pelajar';
+  String get roleStudent => 'Pelajar';
 
   @override
-  String get roleTeacher => 'Saya guru';
+  String get roleTeacher => 'Guru';
 
   @override
-  String get roleParent => 'Saya ibu bapa';
+  String get roleParent => 'Ibu Bapa';
 
   @override
   String get signOut => 'Log keluar';
@@ -105,4 +105,144 @@ class AppLocalizationsMs extends AppLocalizations {
 
   @override
   String get arPlaceholder => 'Ruang AR — watak 3D akan menunjukkan perasaan di sini.';
+
+  @override
+  String get signIn => 'Log masuk';
+
+  @override
+  String get registerTitle => 'Cipta akaun';
+
+  @override
+  String get nameLabel => 'Nama anda';
+
+  @override
+  String get emailLabel => 'E-mel';
+
+  @override
+  String get passwordLabel => 'Kata laluan';
+
+  @override
+  String get languageLabel => 'Bahasa';
+
+  @override
+  String get languageEnglish => 'English';
+
+  @override
+  String get languageMalay => 'Bahasa Melayu';
+
+  @override
+  String get toRegister => 'Baru di sini? Cipta akaun';
+
+  @override
+  String get toLogin => 'Sudah ada akaun? Log masuk';
+
+  @override
+  String get errName => 'Sila masukkan nama anda';
+
+  @override
+  String get errEmail => 'Sila masukkan e-mel yang sah';
+
+  @override
+  String get errPassword => 'Kata laluan mesti sekurang-kurangnya 6 aksara';
+
+  @override
+  String get devSignIn => 'Log masuk pantas pembangun';
+
+  @override
+  String get phoneLabel => 'Nombor telefon';
+
+  @override
+  String get errPhone => 'Sila masukkan nombor telefon yang sah';
+
+  @override
+  String get classCodeLabel => 'Kod kelas';
+
+  @override
+  String get errClassCode => 'Sila masukkan kod kelas daripada guru anda';
+
+  @override
+  String get parentEmailLabel => 'E-mel ibu bapa';
+
+  @override
+  String get childEmailLabel => 'E-mel anak';
+
+  @override
+  String get classNameLabel => 'Nama kelas (pilihan)';
+
+  @override
+  String get classCodeNotFound => 'Kami tidak menemui kod kelas itu. Guru anda boleh menambah anda kemudian.';
+
+  @override
+  String get yourClassCode => 'Kod kelas anda';
+
+  @override
+  String get webMobileOnlyTitle => 'Aplikasi mudah alih';
+
+  @override
+  String get webMobileOnlyBody => 'Sila gunakan aplikasi mudah alih MoodCraft untuk meneruskan. Aplikasi web adalah untuk guru.';
+
+  @override
+  String get usernameLabel => 'Nama pengguna';
+
+  @override
+  String get errUsername => 'Huruf, nombor dan garis bawah sahaja';
+
+  @override
+  String get emailOrUsername => 'E-mel atau nama pengguna';
+
+  @override
+  String get editProfile => 'Edit';
+
+  @override
+  String get confirmEdit => 'Sahkan';
+
+  @override
+  String get cancelEdit => 'Batal';
+
+  @override
+  String get contactsSection => 'Kenalan';
+
+  @override
+  String get teacherLabel => 'Guru';
+
+  @override
+  String get parentLabel => 'Ibu Bapa';
+
+  @override
+  String get profileTitle => 'Profil Saya';
+
+  @override
+  String get roleLabel => 'Peranan';
+
+  @override
+  String get saveProfile => 'Simpan perubahan';
+
+  @override
+  String levelStars(int level, int stars) {
+    return 'Tahap $level · $stars bintang';
+  }
+
+  @override
+  String get noStudentsYet => 'Belum ada pelajar berdaftar';
+
+  @override
+  String get noChildLinked => 'Belum ada anak dikaitkan';
+
+  @override
+  String get colourThemeCalmBlue => 'Biru Tenang';
+
+  @override
+  String get colourThemeSoftGreen => 'Hijau Lembut';
+
+  @override
+  String get colourThemeWarmNeutral => 'Hangat';
+
+  @override
+  String get colourThemeLowStimGrey => 'Kelabu Rendah';
+
+  @override
+  String get studentProfile => 'Profil Pelajar';
+
+  @override
+  String get childProfile => 'Profil Anak';
 }

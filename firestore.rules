@@ -27,15 +27,72 @@ service cloud.firestore {
       return isSignedIn() && studentId in userData().linkedStudentIds;
     }
 
-    // Account records — only the owner.
+    // Account records. The owner has full access. A non-owner may only ADD
+    // themselves to another user's linkedStudentIds and change nothing else —
+    // this is what lets a student join a teacher/parent and a parent/student
+    // link in either registration order, without a Cloud Function (FR1).
+    //
+    // DEMO-GRADE: any signed-in user can attach themselves to any account this
+    // way. Production should gate it with a signed invite token. (CLAUDE.md:
+    // "lock this down before any real data goes in".)
+    // True when the only change is to linkedStudentIds and that change keeps
+    // every existing id (hasAll => nothing removed) while adding nothing beyond
+    // the caller's own uid (hasOnly old+self => the only addition is self).
+    function onlyAddsSelfToLinks() {
+      return request.resource.data.diff(resource.data)
+                 .affectedKeys().hasOnly(['linkedStudentIds'])
+        && request.resource.data.linkedStudentIds
+             .hasAll(resource.data.linkedStudentIds)
+        && request.resource.data.linkedStudentIds
+             .hasOnly(resource.data.linkedStudentIds.concat([request.auth.uid]));
+    }
     match /users/{uid} {
-      allow read, write: if isSignedIn() && request.auth.uid == uid;
+      // DEMO-GRADE: any signed-in user can read any profile so the student
+      // detail screen can show linked teacher/parent username + phone without
+      // a Cloud Function. Tighten before real data goes in.
+      allow read: if isSignedIn();
+      allow create, delete: if isSignedIn() && request.auth.uid == uid;
+      allow update: if isSignedIn()
+        && (request.auth.uid == uid || onlyAddsSelfToLinks());
     }
 
-    // Student profiles — linked teacher/parent (and the child) read; teachers write.
+    // Student profiles — linked teacher/parent (and the child) read; any linked
+    // user writes (covers the child creating their own profile at registration
+    // and teachers/parents updating it).
     match /students/{studentId} {
       allow read: if isLinkedTo(studentId);
-      allow write: if isLinkedTo(studentId) && role() == 'teacher';
+      allow write: if isLinkedTo(studentId);
+    }
+
+    // Email -> {uid, role} directory, so a registrant can resolve a counterpart
+    // by email without reading their full account doc. Any signed-in user reads;
+    // each user writes their own entry (id = their normalised email).
+    match /emailDirectory/{email} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn();
+    }
+
+    // Username -> {uid, email} directory for username-based sign-in. Public
+    // read required because the lookup happens before the user is authenticated.
+    match /usernameDirectory/{username} {
+      allow read: if true;
+      allow write: if isSignedIn();
+    }
+
+    // Teacher classes. Anyone signed in may read (to resolve a class code at
+    // registration); only the owning teacher creates/updates their class.
+    match /classes/{id} {
+      allow read: if isSignedIn();
+      allow create, update: if isSignedIn() && role() == 'teacher'
+        && request.resource.data.teacherId == request.auth.uid;
+      allow delete: if false;
+    }
+
+    // Pending parent<->student invites awaiting the counterpart's registration.
+    // Signed-in users create them and delete them on resolution (demo scope).
+    match /pendingLinks/{id} {
+      allow read, create, delete: if isSignedIn();
+      allow update: if false;
     }
 
     // Activity sessions — linked users read; linked users create.

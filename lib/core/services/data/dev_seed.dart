@@ -30,7 +30,9 @@ class DevSeed {
     uid: studentUid,
     role: UserRole.student,
     name: 'Adam',
-    email: '',
+    email: 'adam@demo.com',
+    username: 'adam_student',
+    phone: '0123456789',
     linkedStudentIds: [studentId],
   );
 
@@ -38,15 +40,19 @@ class DevSeed {
     uid: teacherUid,
     role: UserRole.teacher,
     name: 'Ms Aida',
-    email: '',
+    email: 'teacher@demo.com',
+    username: 'ms_aida',
+    phone: '0111234567',
     linkedStudentIds: [studentId],
   );
 
   static const AppUser parentUser = AppUser(
     uid: parentUid,
     role: UserRole.parent,
-    name: "Adam's grown-up",
-    email: '',
+    name: "Adam's Parent",
+    email: 'parent@demo.com',
+    username: 'adams_parent',
+    phone: '0199876543',
     linkedStudentIds: [studentId],
   );
 

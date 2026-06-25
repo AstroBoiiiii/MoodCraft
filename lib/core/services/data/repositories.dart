@@ -2,10 +2,17 @@
 /// `Stub*` (in-memory) and `Firestore*` implementations sit behind them.
 library;
 
+import '../../models/app_user.dart';
 import '../../models/journal_entry.dart';
 import '../../models/message.dart';
 import '../../models/session.dart';
 import '../../models/student.dart';
+
+abstract interface class UserRepository {
+  Future<AppUser?> getUser(String uid);
+  Future<List<AppUser>> getUsersFor(List<String> uids);
+  Future<void> upsert(AppUser user);
+}
 
 abstract interface class StudentRepository {
   Future<List<Student>> studentsFor(List<String> ids);

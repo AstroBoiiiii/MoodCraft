@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:moodcraft/l10n/app_localizations.dart';
 
 import '../../app/theme/tokens.dart';
 import '../models/enums.dart';
 import '../providers/auth_provider.dart';
+import '../providers/repository_providers.dart';
 import '../providers/sensory_settings_provider.dart';
+import 'big_button.dart';
 
 /// Opens the sensory settings sheet. Changes apply live because the root
 /// MaterialApp watches [sensorySettingsProvider] and rebuilds the theme.
@@ -17,11 +20,16 @@ void showSensorySettings(BuildContext context) {
   );
 }
 
-/// Standard app-bar actions for the landing screens: sensory settings + sign
-/// out. Kept in one place so all three role homes stay consistent.
+/// Standard app-bar actions for the landing screens: profile + sensory settings
+/// + sign out. Kept in one place so all three role homes stay consistent.
 List<Widget> accountActions(BuildContext context, WidgetRef ref) {
   final l = AppLocalizations.of(context);
   return [
+    IconButton(
+      tooltip: l.profileTitle,
+      icon: const Icon(Icons.manage_accounts_rounded),
+      onPressed: () => context.push('/account/profile'),
+    ),
     IconButton(
       tooltip: l.sensorySettings,
       icon: const Icon(Icons.tune_rounded),
@@ -35,14 +43,24 @@ List<Widget> accountActions(BuildContext context, WidgetRef ref) {
   ];
 }
 
-class _SensorySettingsSheet extends ConsumerWidget {
+class _SensorySettingsSheet extends ConsumerStatefulWidget {
   const _SensorySettingsSheet();
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_SensorySettingsSheet> createState() =>
+      _SensorySettingsSheetState();
+}
+
+class _SensorySettingsSheetState extends ConsumerState<_SensorySettingsSheet> {
+  bool _saving = false;
+
+  @override
+  Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
     final settings = ref.watch(sensorySettingsProvider);
     final controller = ref.read(sensorySettingsProvider.notifier);
+    final user = ref.read(currentUserProvider);
+    final isStudent = user?.role == UserRole.student;
 
     return SafeArea(
       child: Padding(
@@ -56,7 +74,10 @@ class _SensorySettingsSheet extends ConsumerWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(l.sensorySettings, style: Theme.of(context).textTheme.titleLarge),
+            Text(
+              l.sensorySettings,
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
             const SizedBox(height: AppSpacing.lg),
             Text(l.colourTheme),
             const SizedBox(height: AppSpacing.sm),
@@ -66,7 +87,7 @@ class _SensorySettingsSheet extends ConsumerWidget {
               children: [
                 for (final theme in AppColorTheme.values)
                   ChoiceChip(
-                    label: Text(_themeLabel(theme)),
+                    label: Text(_themeLabel(theme, l)),
                     selected: settings.colorTheme == theme,
                     onSelected: (_) => controller.setColorTheme(theme),
                   ),
@@ -91,8 +112,8 @@ class _SensorySettingsSheet extends ConsumerWidget {
                 ),
               ],
               selected: {settings.animationIntensity},
-              onSelectionChanged: (s) =>
-                  controller.setAnimationIntensity(s.first),
+              onSelectionChanged:
+                  (s) => controller.setAnimationIntensity(s.first),
             ),
             const SizedBox(height: AppSpacing.sm),
             SwitchListTile(
@@ -101,16 +122,36 @@ class _SensorySettingsSheet extends ConsumerWidget {
               value: settings.musicEnabled,
               onChanged: controller.setMusicEnabled,
             ),
+            if (isStudent) ...[
+              const SizedBox(height: AppSpacing.lg),
+              BigButton(
+                label: l.saveProfile,
+                onPressed: _saving ? null : _save,
+              ),
+            ],
           ],
         ),
       ),
     );
   }
+
+  Future<void> _save() async {
+    final user = ref.read(currentUserProvider);
+    if (user == null || user.linkedStudentIds.isEmpty) return;
+    setState(() => _saving = true);
+    final repo = ref.read(studentRepositoryProvider);
+    await ref
+        .read(sensorySettingsProvider.notifier)
+        .saveToStudent(repo, user.linkedStudentIds.first);
+    if (mounted) {
+      Navigator.of(context).pop();
+    }
+  }
 }
 
-String _themeLabel(AppColorTheme theme) => switch (theme) {
-  AppColorTheme.calmBlue => 'Calm Blue',
-  AppColorTheme.softGreen => 'Soft Green',
-  AppColorTheme.warmNeutral => 'Warm',
-  AppColorTheme.lowStimGrey => 'Low Stim',
+String _themeLabel(AppColorTheme theme, AppLocalizations l) => switch (theme) {
+  AppColorTheme.calmBlue => l.colourThemeCalmBlue,
+  AppColorTheme.softGreen => l.colourThemeSoftGreen,
+  AppColorTheme.warmNeutral => l.colourThemeWarmNeutral,
+  AppColorTheme.lowStimGrey => l.colourThemeLowStimGrey,
 };

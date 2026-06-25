@@ -18,10 +18,11 @@ class TeacherShell extends StatelessWidget {
           NavigationRail(
             selectedIndex: navigationShell.currentIndex,
             labelType: NavigationRailLabelType.all,
-            onDestinationSelected: (index) => navigationShell.goBranch(
-              index,
-              initialLocation: index == navigationShell.currentIndex,
-            ),
+            onDestinationSelected:
+                (index) => navigationShell.goBranch(
+                  index,
+                  initialLocation: index == navigationShell.currentIndex,
+                ),
             destinations: [
               NavigationRailDestination(
                 icon: const Icon(Icons.dashboard_rounded),

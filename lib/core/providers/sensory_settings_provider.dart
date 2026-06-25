@@ -8,6 +8,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../models/enums.dart';
 import '../models/sensory_settings.dart';
+import '../services/data/repositories.dart';
 
 class SensorySettingsController extends Notifier<SensorySettings> {
   @override
@@ -27,12 +28,20 @@ class SensorySettingsController extends Notifier<SensorySettings> {
 
   /// Replace all settings at once — used when a student profile loads.
   void replace(SensorySettings settings) => state = settings;
+
+  /// Persist current settings back to the student's Firestore record.
+  /// Called from [SensorySettingsSheet] when the student taps Save.
+  Future<void> saveToStudent(StudentRepository repo, String studentId) async {
+    final student = await repo.getStudent(studentId);
+    if (student == null) return;
+    await repo.upsert(student.copyWith(sensorySettings: state));
+  }
 }
 
 final sensorySettingsProvider =
     NotifierProvider<SensorySettingsController, SensorySettings>(
-  SensorySettingsController.new,
-);
+      SensorySettingsController.new,
+    );
 
 /// Scales a base motion [Duration] by the current animation-intensity setting:
 /// full = unchanged, reduced = halved, off = zero (instant).

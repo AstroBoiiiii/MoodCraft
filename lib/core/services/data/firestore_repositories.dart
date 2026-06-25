@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../../constants/app_constants.dart';
+import '../../models/app_user.dart';
 import '../../models/journal_entry.dart';
 import '../../models/message.dart';
 import '../../models/session.dart';
@@ -13,9 +14,7 @@ import 'repositories.dart';
 // the doc id back in and convert any Firestore Timestamp to DateTime so the
 // model `fromJson` factories work unchanged.
 
-Map<String, dynamic> _decode(
-  DocumentSnapshot<Map<String, dynamic>> doc,
-) {
+Map<String, dynamic> _decode(DocumentSnapshot<Map<String, dynamic>> doc) {
   final data = Map<String, dynamic>.from(doc.data() ?? const {});
   data['id'] = doc.id;
   data.updateAll((key, value) => value is Timestamp ? value.toDate() : value);
@@ -24,6 +23,39 @@ Map<String, dynamic> _decode(
 
 Map<String, dynamic> _encode(Map<String, dynamic> json) =>
     Map<String, dynamic>.from(json)..remove('id');
+
+class FirestoreUserRepository implements UserRepository {
+  FirestoreUserRepository(this._db);
+  final FirebaseFirestore _db;
+
+  CollectionReference<Map<String, dynamic>> get _col =>
+      _db.collection(FirestoreCollections.users);
+
+  @override
+  Future<AppUser?> getUser(String uid) async {
+    final doc = await _col.doc(uid).get();
+    if (!doc.exists) return null;
+    final data = Map<String, dynamic>.from(doc.data()!);
+    data['uid'] = doc.id;
+    return AppUser.fromJson(data);
+  }
+
+  @override
+  Future<List<AppUser>> getUsersFor(List<String> uids) async {
+    final docs = await Future.wait(uids.map((id) => _col.doc(id).get()));
+    return docs.where((d) => d.exists).map((d) {
+      final data = Map<String, dynamic>.from(d.data()!);
+      data['uid'] = d.id;
+      return AppUser.fromJson(data);
+    }).toList();
+  }
+
+  @override
+  Future<void> upsert(AppUser user) {
+    final json = Map<String, dynamic>.from(user.toJson())..remove('uid');
+    return _col.doc(user.uid).set(json, SetOptions(merge: true));
+  }
+}
 
 class FirestoreStudentRepository implements StudentRepository {
   FirestoreStudentRepository(this._db);
@@ -64,7 +96,9 @@ class FirestoreJournalRepository implements JournalRepository {
       .where('studentId', isEqualTo: studentId)
       .orderBy('timestamp', descending: true)
       .snapshots()
-      .map((s) => s.docs.map((d) => JournalEntry.fromJson(_decode(d))).toList());
+      .map(
+        (s) => s.docs.map((d) => JournalEntry.fromJson(_decode(d))).toList(),
+      );
 
   @override
   Future<void> add(JournalEntry entry) =>

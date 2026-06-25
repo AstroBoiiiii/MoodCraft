@@ -52,7 +52,10 @@ ThemeData buildTheme(SensorySettings settings) {
         backgroundColor: p.primary,
         foregroundColor: p.onPrimary,
         elevation: 0,
-        minimumSize: const Size(AppConstants.minTapTarget, AppConstants.minTapTarget),
+        minimumSize: const Size(
+          AppConstants.minTapTarget,
+          AppConstants.minTapTarget,
+        ),
         padding: const EdgeInsets.symmetric(
           horizontal: AppSpacing.lg,
           vertical: AppSpacing.md,
@@ -76,31 +79,36 @@ ThemeData buildTheme(SensorySettings settings) {
       indicatorColor: p.accent,
       elevation: 0,
       labelTextStyle: WidgetStatePropertyAll(
-        TextStyle(fontSize: 14, color: p.onSurface, fontWeight: FontWeight.w600),
+        TextStyle(
+          fontSize: 14,
+          color: p.onSurface,
+          fontWeight: FontWeight.w600,
+        ),
       ),
     ),
     // When animation is switched off, route changes are instant (no transition).
-    pageTransitionsTheme: settings.animationIntensity == AnimationIntensity.off
-        ? const PageTransitionsTheme(
-            builders: {
-              TargetPlatform.android: _NoTransitionsBuilder(),
-              TargetPlatform.iOS: _NoTransitionsBuilder(),
-              TargetPlatform.linux: _NoTransitionsBuilder(),
-              TargetPlatform.macOS: _NoTransitionsBuilder(),
-              TargetPlatform.windows: _NoTransitionsBuilder(),
-              TargetPlatform.fuchsia: _NoTransitionsBuilder(),
-            },
-          )
-        : const PageTransitionsTheme(
-            builders: {
-              TargetPlatform.android: FadeUpwardsPageTransitionsBuilder(),
-              TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
-              TargetPlatform.linux: FadeUpwardsPageTransitionsBuilder(),
-              TargetPlatform.macOS: CupertinoPageTransitionsBuilder(),
-              TargetPlatform.windows: FadeUpwardsPageTransitionsBuilder(),
-              TargetPlatform.fuchsia: FadeUpwardsPageTransitionsBuilder(),
-            },
-          ),
+    pageTransitionsTheme:
+        settings.animationIntensity == AnimationIntensity.off
+            ? const PageTransitionsTheme(
+              builders: {
+                TargetPlatform.android: _NoTransitionsBuilder(),
+                TargetPlatform.iOS: _NoTransitionsBuilder(),
+                TargetPlatform.linux: _NoTransitionsBuilder(),
+                TargetPlatform.macOS: _NoTransitionsBuilder(),
+                TargetPlatform.windows: _NoTransitionsBuilder(),
+                TargetPlatform.fuchsia: _NoTransitionsBuilder(),
+              },
+            )
+            : const PageTransitionsTheme(
+              builders: {
+                TargetPlatform.android: FadeUpwardsPageTransitionsBuilder(),
+                TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
+                TargetPlatform.linux: FadeUpwardsPageTransitionsBuilder(),
+                TargetPlatform.macOS: CupertinoPageTransitionsBuilder(),
+                TargetPlatform.windows: FadeUpwardsPageTransitionsBuilder(),
+                TargetPlatform.fuchsia: FadeUpwardsPageTransitionsBuilder(),
+              },
+            ),
   );
 }
 
