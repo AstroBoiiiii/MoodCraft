@@ -8,6 +8,8 @@ import '../../core/models/student.dart';
 import '../../core/providers/repository_providers.dart';
 import '../../core/widgets/calm_scaffold.dart';
 import '../../core/widgets/sensory_read_only_view.dart';
+import '../journal/journal_section.dart';
+import '../schedule/schedule_section.dart';
 
 class _StudentDetail {
   const _StudentDetail({
@@ -20,15 +22,25 @@ class _StudentDetail {
   final List<AppUser> parents;
 }
 
-final _studentDetailProvider =
-    FutureProvider.family<_StudentDetail?, String>((ref, id) async {
+final _studentDetailProvider = StreamProvider.family<_StudentDetail?, String>((
+  ref,
+  id,
+) async* {
   final repo = ref.watch(studentRepositoryProvider);
   final userRepo = ref.watch(userRepositoryProvider);
-  final student = await repo.getStudent(id);
-  if (student == null) return null;
-  final teachers = await userRepo.getUsersFor(student.teacherIds);
-  final parents = await userRepo.getUsersFor(student.parentIds);
-  return _StudentDetail(student: student, teachers: teachers, parents: parents);
+  await for (final student in repo.watchStudent(id)) {
+    if (student == null) {
+      yield null;
+      continue;
+    }
+    final teachers = await userRepo.getUsersFor(student.teacherIds);
+    final parents = await userRepo.getUsersFor(student.parentIds);
+    yield _StudentDetail(
+      student: student,
+      teachers: teachers,
+      parents: parents,
+    );
+  }
 });
 
 class StudentProfileDetailScreen extends ConsumerWidget {
@@ -84,6 +96,16 @@ class _DetailBody extends StatelessWidget {
         ),
         const SizedBox(height: AppSpacing.md),
         Center(child: Text(student.name, style: theme.textTheme.titleLarge)),
+        const SizedBox(height: AppSpacing.sm),
+        if (student.age > 0)
+          Center(
+            child: Text(
+              l.ageYearsOld(student.age),
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ),
         const SizedBox(height: AppSpacing.md),
         Center(
           child: Chip(
@@ -113,6 +135,14 @@ class _DetailBody extends StatelessWidget {
           const SizedBox(height: AppSpacing.sm),
           for (final u in detail.parents) _ContactTile(user: u),
         ],
+        const SizedBox(height: AppSpacing.lg),
+        const Divider(),
+        const SizedBox(height: AppSpacing.sm),
+        StudentScheduleSection(studentId: student.id, canEdit: true),
+        const SizedBox(height: AppSpacing.lg),
+        const Divider(),
+        const SizedBox(height: AppSpacing.sm),
+        JournalHistorySection(studentId: student.id, canAnnotate: true),
       ],
     );
   }

@@ -77,6 +77,8 @@ void main() {
       fromUid: 't1',
       toUid: 'p1',
       studentId: 's1',
+      conversationId: Message.buildConversationId('s1', 't1', 'p1'),
+      participants: ['t1', 'p1'],
       text: 'Adam did great today.',
       timestamp: when,
       read: true,
@@ -112,14 +114,71 @@ void main() {
     expect(EmotionContent.fromJson(content.toJson()).toJson(), content.toJson());
   });
 
-  test('VisualSchedule round-trips', () {
+  test('VisualSchedule round-trips (time-ranged items, optional icon)', () {
     const schedule = VisualSchedule(
       id: 'v1',
       studentId: 's1',
-      items: ['arrive', 'circle_time', 'snack'],
+      items: [
+        ScheduleItem(
+          time: '08:30',
+          endTime: '09:00',
+          label: 'Arrive',
+          iconKey: 'breakfast',
+        ),
+        ScheduleItem(
+          time: '10:00',
+          endTime: '10:45',
+          label: 'Speech therapy',
+        ), // no icon
+        ScheduleItem(
+          time: '12:00',
+          endTime: '12:30',
+          label: 'Lunch',
+          iconKey: 'lunch',
+        ),
+      ],
       createdBy: 't1',
     );
-    expect(VisualSchedule.fromJson(schedule.toJson()).toJson(), schedule.toJson());
+    final restored = VisualSchedule.fromJson(schedule.toJson());
+    expect(restored.toJson(), schedule.toJson());
+    expect(restored, schedule);
+  });
+
+  test('VisualSchedule.sortedItems orders by start time; minutesOfDay parses', () {
+    const schedule = VisualSchedule(
+      id: 'v1',
+      studentId: 's1',
+      items: [
+        ScheduleItem(time: '12:00', endTime: '12:30', label: 'Lunch'),
+        ScheduleItem(time: '08:30', endTime: '09:00', label: 'Arrive'),
+        ScheduleItem(time: '', endTime: '', label: 'Whenever'), // sorts last
+      ],
+      createdBy: 't1',
+    );
+    expect(
+      schedule.sortedItems.map((e) => e.label).toList(),
+      ['Arrive', 'Lunch', 'Whenever'],
+    );
+    expect(
+      const ScheduleItem(time: '08:30', endTime: '09:00', label: 'x')
+          .minutesOfDay,
+      510,
+    );
+    expect(
+      const ScheduleItem(time: '', endTime: '', label: 'x').minutesOfDay,
+      greaterThan(24 * 60),
+    );
+  });
+
+  test('ScheduleItem.overlaps detects clashes but allows touching intervals', () {
+    const a = ScheduleItem(time: '09:00', endTime: '10:00', label: 'A');
+    const overlapping =
+        ScheduleItem(time: '09:30', endTime: '10:30', label: 'B');
+    const touching = ScheduleItem(time: '10:00', endTime: '11:00', label: 'C');
+    const separate = ScheduleItem(time: '11:00', endTime: '12:00', label: 'D');
+    expect(a.overlaps(overlapping), isTrue);
+    expect(a.overlaps(touching), isFalse); // back-to-back is fine
+    expect(a.overlaps(separate), isFalse);
   });
 
   test('enumFromName falls back on unknown value', () {

@@ -31,6 +31,7 @@ class StubAuthService implements AuthService {
     required UserRole role,
     required AppLanguage language,
     required String phone,
+    int age = 0,
     String? classCode,
     String? parentEmail,
     String? childEmail,
@@ -62,7 +63,7 @@ class StubAuthService implements AuthService {
         (input.startsWith('teacher') || input == DevSeed.teacherUser.username)
             ? UserRole.teacher
             : (input.startsWith('parent') ||
-                    input == DevSeed.parentUser.username)
+                input == DevSeed.parentUser.username)
             ? UserRole.parent
             : UserRole.student;
     _current = DevSeed.userForRole(role);

@@ -7,6 +7,7 @@ class Student {
   const Student({
     required this.id,
     required this.name,
+    this.age = 0,
     this.avatar = '',
     this.teacherIds = const [],
     this.parentIds = const [],
@@ -17,6 +18,9 @@ class Student {
 
   final String id;
   final String name;
+
+  /// Age in years. 0 means not set.
+  final int age;
 
   /// Placeholder avatar key/path; real art swaps in via [AppAssets].
   final String avatar;
@@ -29,6 +33,7 @@ class Student {
   Student copyWith({
     String? id,
     String? name,
+    int? age,
     String? avatar,
     List<String>? teacherIds,
     List<String>? parentIds,
@@ -39,6 +44,7 @@ class Student {
     return Student(
       id: id ?? this.id,
       name: name ?? this.name,
+      age: age ?? this.age,
       avatar: avatar ?? this.avatar,
       teacherIds: teacherIds ?? this.teacherIds,
       parentIds: parentIds ?? this.parentIds,
@@ -51,6 +57,7 @@ class Student {
   Map<String, dynamic> toJson() => {
     'id': id,
     'name': name,
+    'age': age,
     'avatar': avatar,
     'teacherIds': teacherIds,
     'parentIds': parentIds,
@@ -62,6 +69,7 @@ class Student {
   factory Student.fromJson(Map<String, dynamic> json) => Student(
     id: (json['id'] as String?) ?? '',
     name: (json['name'] as String?) ?? '',
+    age: (json['age'] as num?)?.toInt() ?? 0,
     avatar: (json['avatar'] as String?) ?? '',
     teacherIds: stringListFromJson(json['teacherIds']),
     parentIds: stringListFromJson(json['parentIds']),

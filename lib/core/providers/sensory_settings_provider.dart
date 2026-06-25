@@ -26,6 +26,9 @@ class SensorySettingsController extends Notifier<SensorySettings> {
   void setMasterVolume(double volume) =>
       state = state.copyWith(masterVolume: volume.clamp(0.0, 1.0));
 
+  void setBackgroundTrack(BackgroundTrack track) =>
+      state = state.copyWith(backgroundTrack: track);
+
   /// Replace all settings at once — used when a student profile loads.
   void replace(SensorySettings settings) => state = settings;
 

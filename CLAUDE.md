@@ -9,6 +9,7 @@ Persistent context for this project. Read it before writing code; keep it curren
 - **Dev runs on Web/Chrome** by default.
 - **Firebase** is the backend — **configured** (project `moodcraft-d9930`, Auth + Firestore enabled, `firebase_options.dart` generated).
 - **Demo scope:** keep it simple and working. Do not over-engineer. If it works for the demo, ship it.
+- **Language:** English only for now. BM (Malay) and full FR15 multi-language support are deferred — implement after core features are working. Do not add BM strings or arb entries until asked.
 - **Role labels:** "Student", "Teacher", "Parent" — never "I am a student" style copy.
 - **Profile editing:** all profile screens use view mode by default; user must tap Edit first, then Confirm or Cancel.
 - **Username:** every user registers a username (lowercase, letters/digits/underscores). Used as alternate sign-in (email OR username). Stored in `usernameDirectory/{username}` → `{uid, email}` for pre-auth lookup.
@@ -35,7 +36,7 @@ Mobile = all roles. Web = teacher's classroom + office layer only.
 | FR | Requirement | Feature | Roles |
 |---|---|---|---|
 | FR1 | ✓ Multi-role register/login; per-role UI; email-invite linking (auto-resolve + pending fallback); class code join; web teacher-only gate *(device-sharing deferred)* | Auth + role routing | S,T,P |
-| FR2 | Student profiles: details, age category, language, sensory settings (music, volume, theme, animation intensity) | Profiles | T,P |
+| FR2 | ✓ Student profiles: details, age category, language, sensory settings (music, volume, theme, animation intensity) | Profiles | T,P |
 | FR3 | AI companion teaches emotion via face + body; always calm/patient/consistent; **BM + English** | AI Companion | S |
 | FR4 | AR emotion learning: camera + live 3D; **home mode** (1:1) and **classroom projection** | AR Emotion | S,T |
 | FR5 | Cartoon story mode: pauses at emotional moments to ask feelings; levels unlock; teacher launches from web | Story Mode | S,T |
@@ -43,17 +44,19 @@ Mobile = all roles. Web = teacher's classroom + office layer only.
 | FR7 | Stress-free quiz: sound/image/audio prompts; always encouraging; no timer, no competitive score | Quiz | S,T |
 | FR8 | Teacher dashboard: assigned students' progress, difficulty areas, trends | Teacher dashboard | T |
 | FR9 | Parent dashboard + real-time notifications (task done, milestone, teacher update) | Parent monitoring + FCM | P |
-| FR10 | In-app teacher↔parent messaging: updates, recommendations, links; parents report home observations | Messaging | T,P |
+| FR10 | ✓ In-app teacher↔parent messaging: updates, recommendations, links; parents report home observations | Messaging | T,P |
 | FR11 | Rewards/levels: stars, badges, unlockables; digital only, non-food, non-competitive | Rewards | S |
-| FR12 | Emotion journal: log feelings with icons (no reading/writing); visible to teacher + parent | Journal | S,T,P |
-| FR13 | Visual schedule: predictable picture schedule of what's next; set by teacher/parent | Visual Schedule | S,T,P |
+| FR12 | ✓ Emotion journal: log feelings with icons (no reading/writing); visible to teacher + parent | Journal | S,T,P |
+| FR13 | ✓ Visual schedule: predictable picture schedule of what's next; set by teacher/parent | Visual Schedule | S,T,P |
 | FR14 | Offline: games, activities, journal, schedule work offline; auto-sync when back online | Firestore persistence | S,P |
 | FR15 | Dual language **BM + English** (UI, narration, content); pick at registration, change in settings | l10n (en + ms) | All |
+
+✓ = implemented and wired. Unmarked = calm placeholder or not built yet (FR3–FR9, FR11). FR14 offline persistence is on (Firestore cache) and already covers the built data features; FR15 is English-only for now (see Project context).
 
 ## Tech stack
 - **Flutter** (stable, null-safe), **Riverpod** for all state.
 - **Firebase**: Auth, Firestore, Cloud Messaging (FR9). Init via FlutterFire CLI (`firebase_options.dart`). **Storage excluded** — not on Blaze plan; use local assets instead.
-- **Offline (FR14):** Firestore offline persistence; add `syncStatus` (`pending`/`synced`) for an offline indicator. No hand-rolled cache.
+- **Offline (FR14):** Firestore offline persistence is **on** (`core/firebase/bootstrap.dart`); journal, schedule and messages already read/write through the local cache and sync when back online. `syncStatus` (`pending`/`synced`) is stored on records for a future offline indicator. No hand-rolled cache.
 - **AI (FR3, teacher reports):** Firebase AI Logic → Gemini `gemini-2.5-flash-lite`. Key stays server-side; needs Blaze. Keep model name a constant/Remote Config value.
 - **Voice:** `speech_to_text` + `flutter_tts` (device, free). Companion takes typed or spoken input.
 - **2D companion:** **Rive** state machine (face + body). **AR:** ARCore + 3D `.glb` on detected planes, Android 7+, with non-AR fallback.
@@ -84,6 +87,14 @@ lib/
 assets/  rive/  models/  images/  audio/
 ```
 
+## Where features live (built so far)
+- **FR1 auth/linking:** `core/services/auth/` + `data/linking_service.dart`; screens in `features/auth/`; redirects in `app/router.dart`.
+- **FR2 profiles + sensory:** `features/account/account_profile_screen.dart`, `features/teacher/student_profile_detail_screen.dart`, `core/widgets/sensory_settings_sheet.dart`; theming in `app/theme/`.
+- **FR10 messaging:** `features/teacher/messaging_thread_screen.dart`; conversation providers in `core/providers/repository_providers.dart`.
+- **FR12 journal:** `features/journal/journal_section.dart` — `JournalLogger` (child) + `JournalHistorySection` (shared, `canAnnotate` for teacher/parent). Embedded by the student tab and both detail screens, mirroring the schedule pattern.
+- **FR13 schedule:** `features/schedule/schedule_section.dart` (`StudentScheduleSection`, `canEdit`).
+- **Data + models:** interfaces in `core/services/data/repositories.dart`, all Firestore in `firestore_repositories.dart`; models in `core/models/` round-trip via `toJson`/`fromJson` (locked by `test/models_test.dart`). Rules in `firestore.rules`.
+
 ## Firestore model
 All activity/journal records carry `syncStatus` + `timestamp`.
 - `users/{uid}` — role, name, email, phone, language, linkedStudentIds[]
@@ -102,21 +113,22 @@ Rules: a user reads/writes only their own record + linked students. Students can
 
 ## Conventions
 - Riverpod everywhere; no global mutable singletons.
+- Data access goes through `core/services/data/repositories.dart`; every implementation is Firestore-backed. The `Stub*`/`DevSeed` path is **auth-only** (`--dart-define=USE_STUB_AUTH=true`), not a data backend.
 - Guard all AR/camera/AI-companion code behind `kIsWeb`; web build must reach zero ARCore/camera deps. Web AR = receive a stream from a connected mobile device, not native camera access.
-- All UI strings via `l10n` (en + ms); companion content supports both languages.
+- All UI strings via `l10n`. **English is the source of truth:** add keys to `lib/l10n/app_en.arb` only, then run `flutter gen-l10n`. `ms` auto-falls back to English until the deferred BM pass — don't hand-add `ms` strings yet.
 - Respect `sensorySettings` in every activity.
 - Gemini: system prompt = calm, patient, positive-only, child-safe, short sentences, emotions-only, gently redirect off-topic. Request structured JSON; parse defensively.
 - Round any number shown; never raw floats. No secrets/API keys in the repo.
 
 ## Asset strategy — placeholders first
-Build logic/layout now with stand-in art; swap real art later with no code change. Companion = enum-keyed expressions (`happy, sad, scared, angry, surprised, neutral`). AR = placeholder `.glb` via a config map of paths. Centralise every asset path in one constants file.
+Build logic/layout now with stand-in art; swap real art later with no code change. Companion = enum-keyed expressions (`happy, sad, scared, angry, surprised, neutral`). The journal + emotion pickers reuse that same set via `kEmotionIcon`/`kEmotionColor`; schedule pictures via `kScheduleIconCatalog` — all in `core/constants/app_constants.dart`. AR = placeholder `.glb` via a config map of paths. Centralise every asset path in one constants file.
 
 ## Build order
 0. ✓ Foundation: scaffold, design system + sensory theming, role routing, FR1 auth + linking. Firebase configured.
-1. **Next — Vertical slice:** Emotion Journal end-to-end (student logs → Firestore → teacher/parent view).
-2. Signature features: AR → AI Companion → Story → Mix-and-Match → Quiz.
-3. Teacher portal + Parent monitoring/notifications.
-4. Offline polish, accessibility, demo prep.
+1. ✓ Vertical slice — Emotion Journal (FR12) end-to-end: student logs → Firestore → teacher/parent view. Also done: FR13 visual schedule, FR10 teacher↔parent messaging, FR2 profiles + sensory settings.
+2. **Next — Signature features:** AR → AI Companion → Story → Mix-and-Match → Quiz (all currently calm placeholders behind the student home menu).
+3. Teacher portal (dashboard/reports, FR8) + Parent monitoring/notifications (FR9, FCM).
+4. Offline indicator polish, accessibility, demo prep; deferred BM (FR15) pass.
 
 **Deploy rules before real data:** `firebase deploy --only firestore:rules`
 

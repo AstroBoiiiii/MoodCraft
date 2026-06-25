@@ -7,9 +7,11 @@ import '../../core/models/app_user.dart';
 import '../../core/models/student.dart';
 import '../../core/providers/repository_providers.dart';
 import '../../core/widgets/calm_scaffold.dart';
-import '../../core/widgets/placeholder_screen.dart';
 import '../../core/widgets/sensory_read_only_view.dart';
 import '../../core/widgets/sensory_settings_sheet.dart';
+import '../journal/journal_section.dart';
+import '../schedule/schedule_section.dart';
+import '../teacher/messaging_thread_screen.dart';
 
 /// Parent monitoring — shows the linked child's profile and their teacher(s).
 class ParentMonitoringScreen extends ConsumerWidget {
@@ -63,6 +65,16 @@ class _ChildProfileView extends StatelessWidget {
         ),
         const SizedBox(height: AppSpacing.md),
         Center(child: Text(student.name, style: theme.textTheme.headlineSmall)),
+        const SizedBox(height: AppSpacing.sm),
+        if (student.age > 0)
+          Center(
+            child: Text(
+              l.ageYearsOld(student.age),
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ),
         const SizedBox(height: AppSpacing.md),
         Center(
           child: Chip(
@@ -84,6 +96,14 @@ class _ChildProfileView extends StatelessWidget {
           const SizedBox(height: AppSpacing.sm),
           for (final teacher in teachers) _ContactTile(user: teacher),
         ],
+        const SizedBox(height: AppSpacing.lg),
+        const Divider(),
+        const SizedBox(height: AppSpacing.sm),
+        StudentScheduleSection(studentId: student.id, canEdit: true),
+        const SizedBox(height: AppSpacing.lg),
+        const Divider(),
+        const SizedBox(height: AppSpacing.sm),
+        JournalHistorySection(studentId: student.id, canAnnotate: true),
       ],
     );
   }
@@ -115,11 +135,71 @@ class _ContactTile extends StatelessWidget {
   }
 }
 
-class ParentMessagesScreen extends StatelessWidget {
+class ParentMessagesScreen extends ConsumerWidget {
   const ParentMessagesScreen({super.key});
+
   @override
-  Widget build(BuildContext context) => PlaceholderScreen(
-    title: AppLocalizations.of(context).navMessages,
-    icon: Icons.message_rounded,
-  );
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l = AppLocalizations.of(context);
+    final theme = Theme.of(context);
+    final convAsync = ref.watch(parentConversationProvider);
+
+    return convAsync.when(
+      loading:
+          () =>
+              const Scaffold(body: Center(child: CircularProgressIndicator())),
+      error: (_, __) => Scaffold(body: Center(child: Text(l.comingSoon))),
+      data: (conv) {
+        if (conv == null) {
+          return Scaffold(
+            appBar: AppBar(title: Text(l.navMessages)),
+            body: Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.forum_outlined,
+                    size: 64,
+                    color: theme.colorScheme.outlineVariant,
+                  ),
+                  const SizedBox(height: AppSpacing.md),
+                  Text(
+                    l.msgNoLinkedTeacher,
+                    style: theme.textTheme.bodyLarge?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
+        return Scaffold(
+          appBar: AppBar(
+            title: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(conv.teacherName),
+                Text(
+                  l.msgAboutChild(
+                    ref.watch(activeStudentProvider).value?.name ?? '',
+                  ),
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          body: MessagingThreadScreen(
+            conversationId: conv.conversationId,
+            toUid: conv.teacherUid,
+            studentId: conv.studentId,
+            displayTitle: conv.teacherName,
+            showAppBar: false,
+          ),
+        );
+      },
+    );
+  }
 }

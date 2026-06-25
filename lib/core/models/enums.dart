@@ -15,6 +15,8 @@ enum AppColorTheme { calmBlue, softGreen, warmNeutral, lowStimGrey }
 
 enum AppLanguage { en, ms }
 
+enum BackgroundTrack { track1, track2, track3 }
+
 /// Resolves an enum value by its [Enum.name], falling back to [fallback] when
 /// the stored string is missing or unrecognised (defensive parsing per
 /// CLAUDE.md section 8).

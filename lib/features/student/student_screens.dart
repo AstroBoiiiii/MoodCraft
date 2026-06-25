@@ -9,6 +9,8 @@ import '../../core/widgets/big_button.dart';
 import '../../core/widgets/calm_scaffold.dart';
 import '../../core/widgets/placeholder_screen.dart';
 import '../../core/widgets/sensory_settings_sheet.dart';
+import '../journal/journal_section.dart';
+import '../schedule/schedule_section.dart';
 
 /// The student's home hub: a calm, icon-led menu of activities. One clear screen
 /// with large tap targets (CLAUDE.md section 4.5). Activities open full-screen.
@@ -49,13 +51,40 @@ class StudentHomeScreen extends ConsumerWidget {
   }
 }
 
-class StudentJournalScreen extends StatelessWidget {
+/// FR12 — the child's emotion journal: log a feeling with a picture (no reading
+/// or writing) and see the history below. Teacher and parent view the same
+/// entries from their child-detail screens.
+class StudentJournalScreen extends ConsumerWidget {
   const StudentJournalScreen({super.key});
+
   @override
-  Widget build(BuildContext context) => PlaceholderScreen(
-    title: AppLocalizations.of(context).navJournal,
-    icon: Icons.book_rounded,
-  );
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l = AppLocalizations.of(context);
+    return CalmScaffold(
+      title: l.navJournal,
+      icon: Icons.book_rounded,
+      actions: accountActions(context, ref),
+      body: ref
+          .watch(activeStudentProvider)
+          .when(
+            loading: () => const Center(child: CircularProgressIndicator()),
+            error: (_, __) => Center(child: Text(l.comingSoon)),
+            data:
+                (student) =>
+                    student == null
+                        ? Center(child: Text(l.comingSoon))
+                        : ListView(
+                          children: [
+                            JournalLogger(studentId: student.id),
+                            const SizedBox(height: AppSpacing.lg),
+                            const Divider(),
+                            const SizedBox(height: AppSpacing.md),
+                            JournalHistorySection(studentId: student.id),
+                          ],
+                        ),
+          ),
+    );
+  }
 }
 
 class StudentRewardsScreen extends StatelessWidget {
@@ -103,11 +132,35 @@ class QuizScreen extends StatelessWidget {
   );
 }
 
-class ScheduleScreen extends StatelessWidget {
+/// FR13 — the child's read-only "what's next" picture schedule. Set by the
+/// teacher/parent; the student only views it.
+class ScheduleScreen extends ConsumerWidget {
   const ScheduleScreen({super.key});
+
   @override
-  Widget build(BuildContext context) => PlaceholderScreen(
-    title: AppLocalizations.of(context).navSchedule,
-    icon: Icons.view_agenda_rounded,
-  );
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l = AppLocalizations.of(context);
+    final theme = Theme.of(context);
+    final student = ref.watch(activeStudentProvider).value;
+
+    return CalmScaffold(
+      title: l.scheduleTitle,
+      icon: Icons.view_agenda_rounded,
+      body:
+          student == null
+              ? Center(
+                child: Text(
+                  l.scheduleEmpty,
+                  style: theme.textTheme.bodyLarge?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              )
+              : ListView(
+                children: [
+                  StudentScheduleSection(studentId: student.id, canEdit: false),
+                ],
+              ),
+    );
+  }
 }

@@ -47,6 +47,7 @@ abstract interface class AuthService {
     required UserRole role,
     required AppLanguage language,
     required String phone,
+    int age = 0,
     String? classCode,
     String? parentEmail,
     String? childEmail,
@@ -54,7 +55,10 @@ abstract interface class AuthService {
   });
 
   /// Sign in with email or username + password. Throws [AuthException] on failure.
-  Future<AppUser> signIn({required String emailOrUsername, required String password});
+  Future<AppUser> signIn({
+    required String emailOrUsername,
+    required String password,
+  });
 
   /// Dev/demo shortcut that drops straight into a role's shell. Only meaningful
   /// for [StubAuthService]; the real implementation throws.

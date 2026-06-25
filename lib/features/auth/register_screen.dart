@@ -32,6 +32,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   final _childEmail = TextEditingController();
   final _classCode = TextEditingController();
   final _className = TextEditingController();
+  final _age = TextEditingController();
   UserRole _role = UserRole.student;
   AppLanguage _language = AppLanguage.en;
   bool _busy = false;
@@ -48,6 +49,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     _childEmail.dispose();
     _classCode.dispose();
     _className.dispose();
+    _age.dispose();
     super.dispose();
   }
 
@@ -68,6 +70,10 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
             role: _role,
             language: _language,
             phone: _phone.text,
+            age:
+                _role == UserRole.student
+                    ? (int.tryParse(_age.text.trim()) ?? 0)
+                    : 0,
             classCode: _role == UserRole.student ? _classCode.text : null,
             parentEmail: _role == UserRole.student ? _parentEmail.text : null,
             childEmail: _role == UserRole.parent ? _childEmail.text : null,
@@ -258,6 +264,20 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     switch (_role) {
       case UserRole.student:
         return [
+          const SizedBox(height: AppSpacing.md),
+          TextFormField(
+            controller: _age,
+            keyboardType: TextInputType.number,
+            textInputAction: TextInputAction.next,
+            decoration: InputDecoration(
+              labelText: l.ageLabel,
+              prefixIcon: const Icon(Icons.cake_rounded),
+            ),
+            validator: (v) {
+              final n = int.tryParse(v?.trim() ?? '');
+              return (n != null && n >= 3 && n <= 18) ? null : l.errAge;
+            },
+          ),
           const SizedBox(height: AppSpacing.md),
           TextFormField(
             controller: _classCode,

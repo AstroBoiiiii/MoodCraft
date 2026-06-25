@@ -13,6 +13,11 @@
   "animationReduced": "Reduced",
   "animationOff": "Off",
   "music": "Background music",
+  "musicTrack": "Choose a track",
+  "musicTrack1": "Calm Bells",
+  "musicTrack2": "Nature Sounds",
+  "musicTrack3": "Gentle Piano",
+  "musicVolume": "Volume",
   "comingSoon": "Coming soon",
   "greeting": "Hi, {name}!",
   "@greeting": {
@@ -59,7 +64,9 @@
   "childEmailLabel": "Child's email",
   "classNameLabel": "Class name (optional)",
   "classCodeNotFound": "We couldn't find that class code. Your teacher can add you later.",
-  "yourClassCode": "Your class code",
+  "yourClassCode": "Class code",
+  "showCode": "Show",
+  "hideCode": "Hide",
   "webMobileOnlyTitle": "Mobile app",
   "webMobileOnlyBody": "Please use the MoodCraft mobile app to continue. The web app is for teachers.",
   "usernameLabel": "Username",
@@ -88,5 +95,70 @@
   "colourThemeWarmNeutral": "Warm",
   "colourThemeLowStimGrey": "Low Stim",
   "studentProfile": "Student Profile",
-  "childProfile": "Child Profile"
+  "childProfile": "Child Profile",
+  "msgNoConversations": "No conversations yet",
+  "msgNoLinkedTeacher": "No teacher linked yet",
+  "msgTypeHere": "Type a message…",
+  "msgSend": "Send",
+  "msgYou": "You",
+  "msgAboutChild": "About {childName}",
+  "@msgAboutChild": {
+    "placeholders": {
+      "childName": { "type": "String" }
+    }
+  },
+  "msgConversationTitle": "{parentName} · {studentName}",
+  "@msgConversationTitle": {
+    "placeholders": {
+      "parentName": { "type": "String" },
+      "studentName": { "type": "String" }
+    }
+  },
+  "ageLabel": "Age",
+  "errAge": "Please enter a valid age (3–18)",
+  "ageYearsOld": "{age} years old",
+  "@ageYearsOld": {
+    "placeholders": {
+      "age": { "type": "int" }
+    }
+  },
+  "scheduleTitle": "Today's schedule",
+  "scheduleSectionTitle": "Daily routine",
+  "scheduleEmpty": "No routine set yet",
+  "scheduleAddActivity": "Add activity",
+  "scheduleActivityHint": "Activity name",
+  "schedulePictureOptional": "Picture (optional)",
+  "schedulePictureNone": "None",
+  "scheduleTimeLabel": "Start",
+  "scheduleEndTimeLabel": "End",
+  "scheduleNow": "Now",
+  "scheduleNext": "Next",
+  "scheduleClashError": "That time overlaps another activity",
+  "scheduleEndError": "End time must be after the start time",
+  "scheduleSaveError": "Couldn't save — please try again",
+  "scheduleUnavailable": "Schedule unavailable right now",
+  "journalHowAreYou": "How do you feel today?",
+  "journalContextPrompt": "Where are you? (optional)",
+  "journalSave": "Save how I feel",
+  "journalSaved": "Saved. Thank you for sharing.",
+  "journalSaveError": "Couldn't save — please try again",
+  "journalEmpty": "No feelings logged yet",
+  "journalUnavailable": "Journal unavailable right now",
+  "journalSectionTitle": "Feelings journal",
+  "journalToday": "Today",
+  "journalYesterday": "Yesterday",
+  "journalNoteTitle": "Add a note",
+  "journalNoteHint": "A short note about this feeling (optional)",
+  "emotionHappy": "Happy",
+  "emotionSad": "Sad",
+  "emotionScared": "Scared",
+  "emotionAngry": "Angry",
+  "emotionSurprised": "Surprised",
+  "emotionOkay": "Okay",
+  "journalCtxHome": "Home",
+  "journalCtxClass": "Class",
+  "journalCtxPlay": "Play",
+  "journalCtxOutside": "Outside",
+  "journalCtxMeal": "Mealtime",
+  "journalCtxFriends": "Friends"
 }

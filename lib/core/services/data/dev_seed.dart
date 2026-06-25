@@ -1,11 +1,9 @@
 import '../../models/app_user.dart';
 import '../../models/enums.dart';
-import '../../models/journal_entry.dart';
-import '../../models/student.dart';
 
-/// In-memory demo data used by the stub services so all three role shells have
-/// something to show before Firebase is configured. One student ("Adam") linked
-/// to one teacher and one parent.
+/// Canned accounts for dev mode. [StubAuthService] maps "sign in as a role" to
+/// one of these so role-based routing and all three shells can be exercised
+/// without a backend. One student ("Adam") linked to one teacher and one parent.
 class DevSeed {
   DevSeed._();
 
@@ -13,16 +11,6 @@ class DevSeed {
   static const String studentUid = 'dev-student';
   static const String teacherUid = 'dev-teacher';
   static const String parentUid = 'dev-parent';
-
-  static const Student student = Student(
-    id: studentId,
-    name: 'Adam',
-    avatar: 'avatar_01',
-    teacherIds: [teacherUid],
-    parentIds: [parentUid],
-    level: 2,
-    stars: 5,
-  );
 
   // A student's own profile id is included in linkedStudentIds so the same
   // "is linked to this student" check covers the child themselves.
@@ -61,23 +49,4 @@ class DevSeed {
     UserRole.teacher => teacherUser,
     UserRole.parent => parentUser,
   };
-
-  static List<JournalEntry> journalEntries() => [
-    JournalEntry(
-      id: 'j-seed-1',
-      studentId: studentId,
-      emotionIcon: Emotion.happy,
-      contextIcon: 'class',
-      timestamp: DateTime.now().subtract(const Duration(hours: 2)),
-      syncStatus: SyncStatus.synced,
-    ),
-    JournalEntry(
-      id: 'j-seed-2',
-      studentId: studentId,
-      emotionIcon: Emotion.neutral,
-      contextIcon: 'home',
-      timestamp: DateTime.now().subtract(const Duration(days: 1)),
-      syncStatus: SyncStatus.synced,
-    ),
-  ];
 }

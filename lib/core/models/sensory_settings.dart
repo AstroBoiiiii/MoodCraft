@@ -9,6 +9,7 @@ class SensorySettings {
     this.masterVolume = 0.6,
     this.colorTheme = AppColorTheme.calmBlue,
     this.animationIntensity = AnimationIntensity.full,
+    this.backgroundTrack = BackgroundTrack.track1,
   });
 
   /// Calm-by-default settings (music off, gentle volume).
@@ -21,17 +22,22 @@ class SensorySettings {
   final AppColorTheme colorTheme;
   final AnimationIntensity animationIntensity;
 
+  /// Which of the three background music tracks is selected.
+  final BackgroundTrack backgroundTrack;
+
   SensorySettings copyWith({
     bool? musicEnabled,
     double? masterVolume,
     AppColorTheme? colorTheme,
     AnimationIntensity? animationIntensity,
+    BackgroundTrack? backgroundTrack,
   }) {
     return SensorySettings(
       musicEnabled: musicEnabled ?? this.musicEnabled,
       masterVolume: masterVolume ?? this.masterVolume,
       colorTheme: colorTheme ?? this.colorTheme,
       animationIntensity: animationIntensity ?? this.animationIntensity,
+      backgroundTrack: backgroundTrack ?? this.backgroundTrack,
     );
   }
 
@@ -40,6 +46,7 @@ class SensorySettings {
     'masterVolume': masterVolume,
     'colorTheme': colorTheme.name,
     'animationIntensity': animationIntensity.name,
+    'backgroundTrack': backgroundTrack.name,
   };
 
   factory SensorySettings.fromJson(Map<String, dynamic>? json) {
@@ -57,6 +64,11 @@ class SensorySettings {
         json['animationIntensity'],
         AnimationIntensity.full,
       ),
+      backgroundTrack: enumFromName(
+        BackgroundTrack.values,
+        json['backgroundTrack'],
+        BackgroundTrack.track1,
+      ),
     );
   }
 
@@ -66,9 +78,15 @@ class SensorySettings {
       other.musicEnabled == musicEnabled &&
       other.masterVolume == masterVolume &&
       other.colorTheme == colorTheme &&
-      other.animationIntensity == animationIntensity;
+      other.animationIntensity == animationIntensity &&
+      other.backgroundTrack == backgroundTrack;
 
   @override
-  int get hashCode =>
-      Object.hash(musicEnabled, masterVolume, colorTheme, animationIntensity);
+  int get hashCode => Object.hash(
+    musicEnabled,
+    masterVolume,
+    colorTheme,
+    animationIntensity,
+    backgroundTrack,
+  );
 }

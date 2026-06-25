@@ -15,6 +15,7 @@ import '../features/parent/parent_shell.dart';
 import '../features/student/ar/ar_screen.dart';
 import '../features/student/student_screens.dart';
 import '../features/student/student_shell.dart';
+import '../features/teacher/messaging_thread_screen.dart';
 import '../features/teacher/student_profile_detail_screen.dart';
 import '../features/teacher/teacher_screens.dart';
 import '../features/teacher/teacher_shell.dart';
@@ -168,6 +169,22 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const ScheduleScreen(),
       ),
 
+      // Teacher messaging thread — pushed full-screen over the shell so the
+      // nav rail disappears while chatting (mirrors mobile DM conventions).
+      GoRoute(
+        path: '/teacher/messages/thread',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) {
+          final extra = state.extra as Map<String, String>;
+          return MessagingThreadScreen(
+            conversationId: extra['conversationId']!,
+            toUid: extra['toUid']!,
+            studentId: extra['studentId']!,
+            displayTitle: extra['title']!,
+          );
+        },
+      ),
+
       // ---- Teacher (nav rail, web portal) ----
       StatefulShellRoute.indexedStack(
         builder: (context, state, shell) => TeacherShell(shell),
@@ -184,7 +201,16 @@ final goRouterProvider = Provider<GoRouter>((ref) {
             routes: [
               GoRoute(
                 path: '/teacher/students',
-                builder: (context, state) => const TeacherProfilesScreen(),
+                builder: (context, state) => const TeacherClassroomScreen(),
+                routes: [
+                  GoRoute(
+                    path: 'student/:id',
+                    builder:
+                        (context, state) => StudentProfileDetailScreen(
+                          studentId: state.pathParameters['id']!,
+                        ),
+                  ),
+                ],
               ),
             ],
           ),
@@ -192,15 +218,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
             routes: [
               GoRoute(
                 path: '/teacher/classroom',
-                builder: (context, state) => const TeacherClassroomScreen(),
-                routes: [
-                  GoRoute(
-                    path: 'student/:id',
-                    builder: (context, state) => StudentProfileDetailScreen(
-                      studentId: state.pathParameters['id']!,
-                    ),
-                  ),
-                ],
+                builder: (context, state) => const TeacherProfilesScreen(),
               ),
             ],
           ),

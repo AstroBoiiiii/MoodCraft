@@ -173,6 +173,36 @@ abstract class AppLocalizations {
   /// **'Background music'**
   String get music;
 
+  /// No description provided for @musicTrack.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a track'**
+  String get musicTrack;
+
+  /// No description provided for @musicTrack1.
+  ///
+  /// In en, this message translates to:
+  /// **'Calm Bells'**
+  String get musicTrack1;
+
+  /// No description provided for @musicTrack2.
+  ///
+  /// In en, this message translates to:
+  /// **'Nature Sounds'**
+  String get musicTrack2;
+
+  /// No description provided for @musicTrack3.
+  ///
+  /// In en, this message translates to:
+  /// **'Gentle Piano'**
+  String get musicTrack3;
+
+  /// No description provided for @musicVolume.
+  ///
+  /// In en, this message translates to:
+  /// **'Volume'**
+  String get musicVolume;
+
   /// No description provided for @comingSoon.
   ///
   /// In en, this message translates to:
@@ -422,8 +452,20 @@ abstract class AppLocalizations {
   /// No description provided for @yourClassCode.
   ///
   /// In en, this message translates to:
-  /// **'Your class code'**
+  /// **'Class code'**
   String get yourClassCode;
+
+  /// No description provided for @showCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Show'**
+  String get showCode;
+
+  /// No description provided for @hideCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide'**
+  String get hideCode;
 
   /// No description provided for @webMobileOnlyTitle.
   ///
@@ -562,6 +604,300 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Child Profile'**
   String get childProfile;
+
+  /// No description provided for @msgNoConversations.
+  ///
+  /// In en, this message translates to:
+  /// **'No conversations yet'**
+  String get msgNoConversations;
+
+  /// No description provided for @msgNoLinkedTeacher.
+  ///
+  /// In en, this message translates to:
+  /// **'No teacher linked yet'**
+  String get msgNoLinkedTeacher;
+
+  /// No description provided for @msgTypeHere.
+  ///
+  /// In en, this message translates to:
+  /// **'Type a message…'**
+  String get msgTypeHere;
+
+  /// No description provided for @msgSend.
+  ///
+  /// In en, this message translates to:
+  /// **'Send'**
+  String get msgSend;
+
+  /// No description provided for @msgYou.
+  ///
+  /// In en, this message translates to:
+  /// **'You'**
+  String get msgYou;
+
+  /// No description provided for @msgAboutChild.
+  ///
+  /// In en, this message translates to:
+  /// **'About {childName}'**
+  String msgAboutChild(String childName);
+
+  /// No description provided for @msgConversationTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{parentName} · {studentName}'**
+  String msgConversationTitle(String parentName, String studentName);
+
+  /// No description provided for @ageLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Age'**
+  String get ageLabel;
+
+  /// No description provided for @errAge.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter a valid age (3–18)'**
+  String get errAge;
+
+  /// No description provided for @ageYearsOld.
+  ///
+  /// In en, this message translates to:
+  /// **'{age} years old'**
+  String ageYearsOld(int age);
+
+  /// No description provided for @scheduleTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Today\'s schedule'**
+  String get scheduleTitle;
+
+  /// No description provided for @scheduleSectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily routine'**
+  String get scheduleSectionTitle;
+
+  /// No description provided for @scheduleEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No routine set yet'**
+  String get scheduleEmpty;
+
+  /// No description provided for @scheduleAddActivity.
+  ///
+  /// In en, this message translates to:
+  /// **'Add activity'**
+  String get scheduleAddActivity;
+
+  /// No description provided for @scheduleActivityHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Activity name'**
+  String get scheduleActivityHint;
+
+  /// No description provided for @schedulePictureOptional.
+  ///
+  /// In en, this message translates to:
+  /// **'Picture (optional)'**
+  String get schedulePictureOptional;
+
+  /// No description provided for @schedulePictureNone.
+  ///
+  /// In en, this message translates to:
+  /// **'None'**
+  String get schedulePictureNone;
+
+  /// No description provided for @scheduleTimeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Start'**
+  String get scheduleTimeLabel;
+
+  /// No description provided for @scheduleEndTimeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'End'**
+  String get scheduleEndTimeLabel;
+
+  /// No description provided for @scheduleNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Now'**
+  String get scheduleNow;
+
+  /// No description provided for @scheduleNext.
+  ///
+  /// In en, this message translates to:
+  /// **'Next'**
+  String get scheduleNext;
+
+  /// No description provided for @scheduleClashError.
+  ///
+  /// In en, this message translates to:
+  /// **'That time overlaps another activity'**
+  String get scheduleClashError;
+
+  /// No description provided for @scheduleEndError.
+  ///
+  /// In en, this message translates to:
+  /// **'End time must be after the start time'**
+  String get scheduleEndError;
+
+  /// No description provided for @scheduleSaveError.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t save — please try again'**
+  String get scheduleSaveError;
+
+  /// No description provided for @scheduleUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Schedule unavailable right now'**
+  String get scheduleUnavailable;
+
+  /// No description provided for @journalHowAreYou.
+  ///
+  /// In en, this message translates to:
+  /// **'How do you feel today?'**
+  String get journalHowAreYou;
+
+  /// No description provided for @journalContextPrompt.
+  ///
+  /// In en, this message translates to:
+  /// **'Where are you? (optional)'**
+  String get journalContextPrompt;
+
+  /// No description provided for @journalSave.
+  ///
+  /// In en, this message translates to:
+  /// **'Save how I feel'**
+  String get journalSave;
+
+  /// No description provided for @journalSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved. Thank you for sharing.'**
+  String get journalSaved;
+
+  /// No description provided for @journalSaveError.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t save — please try again'**
+  String get journalSaveError;
+
+  /// No description provided for @journalEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No feelings logged yet'**
+  String get journalEmpty;
+
+  /// No description provided for @journalUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Journal unavailable right now'**
+  String get journalUnavailable;
+
+  /// No description provided for @journalSectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Feelings journal'**
+  String get journalSectionTitle;
+
+  /// No description provided for @journalToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get journalToday;
+
+  /// No description provided for @journalYesterday.
+  ///
+  /// In en, this message translates to:
+  /// **'Yesterday'**
+  String get journalYesterday;
+
+  /// No description provided for @journalNoteTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a note'**
+  String get journalNoteTitle;
+
+  /// No description provided for @journalNoteHint.
+  ///
+  /// In en, this message translates to:
+  /// **'A short note about this feeling (optional)'**
+  String get journalNoteHint;
+
+  /// No description provided for @emotionHappy.
+  ///
+  /// In en, this message translates to:
+  /// **'Happy'**
+  String get emotionHappy;
+
+  /// No description provided for @emotionSad.
+  ///
+  /// In en, this message translates to:
+  /// **'Sad'**
+  String get emotionSad;
+
+  /// No description provided for @emotionScared.
+  ///
+  /// In en, this message translates to:
+  /// **'Scared'**
+  String get emotionScared;
+
+  /// No description provided for @emotionAngry.
+  ///
+  /// In en, this message translates to:
+  /// **'Angry'**
+  String get emotionAngry;
+
+  /// No description provided for @emotionSurprised.
+  ///
+  /// In en, this message translates to:
+  /// **'Surprised'**
+  String get emotionSurprised;
+
+  /// No description provided for @emotionOkay.
+  ///
+  /// In en, this message translates to:
+  /// **'Okay'**
+  String get emotionOkay;
+
+  /// No description provided for @journalCtxHome.
+  ///
+  /// In en, this message translates to:
+  /// **'Home'**
+  String get journalCtxHome;
+
+  /// No description provided for @journalCtxClass.
+  ///
+  /// In en, this message translates to:
+  /// **'Class'**
+  String get journalCtxClass;
+
+  /// No description provided for @journalCtxPlay.
+  ///
+  /// In en, this message translates to:
+  /// **'Play'**
+  String get journalCtxPlay;
+
+  /// No description provided for @journalCtxOutside.
+  ///
+  /// In en, this message translates to:
+  /// **'Outside'**
+  String get journalCtxOutside;
+
+  /// No description provided for @journalCtxMeal.
+  ///
+  /// In en, this message translates to:
+  /// **'Mealtime'**
+  String get journalCtxMeal;
+
+  /// No description provided for @journalCtxFriends.
+  ///
+  /// In en, this message translates to:
+  /// **'Friends'**
+  String get journalCtxFriends;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

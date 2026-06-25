@@ -5,6 +5,7 @@ import 'package:moodcraft/l10n/app_localizations.dart';
 import '../core/constants/app_constants.dart';
 import '../core/providers/repository_providers.dart';
 import '../core/providers/sensory_settings_provider.dart';
+import '../core/services/background_music_service.dart';
 import 'router.dart';
 import 'theme/app_theme.dart';
 
@@ -18,6 +19,18 @@ class MoodCraftApp extends ConsumerWidget {
     ref.watch(sensoryHydrationProvider);
     final settings = ref.watch(sensorySettingsProvider);
     final router = ref.watch(goRouterProvider);
+
+    ref.listen(sensorySettingsProvider, (prev, next) {
+      final music = ref.read(backgroundMusicServiceProvider);
+      if (!next.musicEnabled) {
+        music.stop();
+      } else if (prev?.musicEnabled != next.musicEnabled ||
+          prev?.backgroundTrack != next.backgroundTrack) {
+        music.play(next.backgroundTrack, next.masterVolume);
+      } else if (prev?.masterVolume != next.masterVolume) {
+        music.setVolume(next.masterVolume);
+      }
+    });
 
     return MaterialApp.router(
       title: AppConstants.appName,

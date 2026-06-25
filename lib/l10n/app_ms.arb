@@ -13,6 +13,11 @@
   "animationReduced": "Kurang",
   "animationOff": "Tutup",
   "music": "Muzik latar",
+  "musicTrack": "Pilih lagu",
+  "musicTrack1": "Loceng Tenang",
+  "musicTrack2": "Bunyi Alam",
+  "musicTrack3": "Piano Lembut",
+  "musicVolume": "Kelantangan",
   "comingSoon": "Akan datang",
   "greeting": "Hai, {name}!",
   "navHome": "Utama",
@@ -54,7 +59,9 @@
   "childEmailLabel": "E-mel anak",
   "classNameLabel": "Nama kelas (pilihan)",
   "classCodeNotFound": "Kami tidak menemui kod kelas itu. Guru anda boleh menambah anda kemudian.",
-  "yourClassCode": "Kod kelas anda",
+  "yourClassCode": "Kod kelas",
+  "showCode": "Tunjuk",
+  "hideCode": "Sembunyikan",
   "webMobileOnlyTitle": "Aplikasi mudah alih",
   "webMobileOnlyBody": "Sila gunakan aplikasi mudah alih MoodCraft untuk meneruskan. Aplikasi web adalah untuk guru.",
   "usernameLabel": "Nama pengguna",
@@ -83,5 +90,46 @@
   "colourThemeWarmNeutral": "Hangat",
   "colourThemeLowStimGrey": "Kelabu Rendah",
   "studentProfile": "Profil Pelajar",
-  "childProfile": "Profil Anak"
+  "childProfile": "Profil Anak",
+  "msgNoConversations": "Belum ada perbualan",
+  "msgNoLinkedTeacher": "Belum ada guru dikaitkan",
+  "msgTypeHere": "Taip mesej…",
+  "msgSend": "Hantar",
+  "msgYou": "Anda",
+  "msgAboutChild": "Tentang {childName}",
+  "@msgAboutChild": {
+    "placeholders": {
+      "childName": { "type": "String" }
+    }
+  },
+  "msgConversationTitle": "{parentName} · {studentName}",
+  "@msgConversationTitle": {
+    "placeholders": {
+      "parentName": { "type": "String" },
+      "studentName": { "type": "String" }
+    }
+  },
+  "ageLabel": "Umur",
+  "errAge": "Sila masukkan umur yang sah (3–18)",
+  "ageYearsOld": "{age} tahun",
+  "@ageYearsOld": {
+    "placeholders": {
+      "age": { "type": "int" }
+    }
+  },
+  "scheduleTitle": "Today's schedule",
+  "scheduleSectionTitle": "Daily routine",
+  "scheduleEmpty": "No routine set yet",
+  "scheduleAddActivity": "Add activity",
+  "scheduleActivityHint": "Activity name",
+  "schedulePictureOptional": "Picture (optional)",
+  "schedulePictureNone": "None",
+  "scheduleTimeLabel": "Start",
+  "scheduleEndTimeLabel": "End",
+  "scheduleNow": "Now",
+  "scheduleNext": "Next",
+  "scheduleClashError": "That time overlaps another activity",
+  "scheduleEndError": "End time must be after the start time",
+  "scheduleSaveError": "Couldn't save — please try again",
+  "scheduleUnavailable": "Schedule unavailable right now"
 }

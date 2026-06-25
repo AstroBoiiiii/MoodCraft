@@ -48,6 +48,21 @@ class AppLocalizationsMs extends AppLocalizations {
   String get music => 'Muzik latar';
 
   @override
+  String get musicTrack => 'Pilih lagu';
+
+  @override
+  String get musicTrack1 => 'Loceng Tenang';
+
+  @override
+  String get musicTrack2 => 'Bunyi Alam';
+
+  @override
+  String get musicTrack3 => 'Piano Lembut';
+
+  @override
+  String get musicVolume => 'Kelantangan';
+
+  @override
   String get comingSoon => 'Akan datang';
 
   @override
@@ -173,7 +188,13 @@ class AppLocalizationsMs extends AppLocalizations {
   String get classCodeNotFound => 'Kami tidak menemui kod kelas itu. Guru anda boleh menambah anda kemudian.';
 
   @override
-  String get yourClassCode => 'Kod kelas anda';
+  String get yourClassCode => 'Kod kelas';
+
+  @override
+  String get showCode => 'Tunjuk';
+
+  @override
+  String get hideCode => 'Sembunyikan';
 
   @override
   String get webMobileOnlyTitle => 'Aplikasi mudah alih';
@@ -245,4 +266,157 @@ class AppLocalizationsMs extends AppLocalizations {
 
   @override
   String get childProfile => 'Profil Anak';
+
+  @override
+  String get msgNoConversations => 'Belum ada perbualan';
+
+  @override
+  String get msgNoLinkedTeacher => 'Belum ada guru dikaitkan';
+
+  @override
+  String get msgTypeHere => 'Taip mesej…';
+
+  @override
+  String get msgSend => 'Hantar';
+
+  @override
+  String get msgYou => 'Anda';
+
+  @override
+  String msgAboutChild(String childName) {
+    return 'Tentang $childName';
+  }
+
+  @override
+  String msgConversationTitle(String parentName, String studentName) {
+    return '$parentName · $studentName';
+  }
+
+  @override
+  String get ageLabel => 'Umur';
+
+  @override
+  String get errAge => 'Sila masukkan umur yang sah (3–18)';
+
+  @override
+  String ageYearsOld(int age) {
+    return '$age tahun';
+  }
+
+  @override
+  String get scheduleTitle => 'Today\'s schedule';
+
+  @override
+  String get scheduleSectionTitle => 'Daily routine';
+
+  @override
+  String get scheduleEmpty => 'No routine set yet';
+
+  @override
+  String get scheduleAddActivity => 'Add activity';
+
+  @override
+  String get scheduleActivityHint => 'Activity name';
+
+  @override
+  String get schedulePictureOptional => 'Picture (optional)';
+
+  @override
+  String get schedulePictureNone => 'None';
+
+  @override
+  String get scheduleTimeLabel => 'Start';
+
+  @override
+  String get scheduleEndTimeLabel => 'End';
+
+  @override
+  String get scheduleNow => 'Now';
+
+  @override
+  String get scheduleNext => 'Next';
+
+  @override
+  String get scheduleClashError => 'That time overlaps another activity';
+
+  @override
+  String get scheduleEndError => 'End time must be after the start time';
+
+  @override
+  String get scheduleSaveError => 'Couldn\'t save — please try again';
+
+  @override
+  String get scheduleUnavailable => 'Schedule unavailable right now';
+
+  @override
+  String get journalHowAreYou => 'How do you feel today?';
+
+  @override
+  String get journalContextPrompt => 'Where are you? (optional)';
+
+  @override
+  String get journalSave => 'Save how I feel';
+
+  @override
+  String get journalSaved => 'Saved. Thank you for sharing.';
+
+  @override
+  String get journalSaveError => 'Couldn\'t save — please try again';
+
+  @override
+  String get journalEmpty => 'No feelings logged yet';
+
+  @override
+  String get journalUnavailable => 'Journal unavailable right now';
+
+  @override
+  String get journalSectionTitle => 'Feelings journal';
+
+  @override
+  String get journalToday => 'Today';
+
+  @override
+  String get journalYesterday => 'Yesterday';
+
+  @override
+  String get journalNoteTitle => 'Add a note';
+
+  @override
+  String get journalNoteHint => 'A short note about this feeling (optional)';
+
+  @override
+  String get emotionHappy => 'Happy';
+
+  @override
+  String get emotionSad => 'Sad';
+
+  @override
+  String get emotionScared => 'Scared';
+
+  @override
+  String get emotionAngry => 'Angry';
+
+  @override
+  String get emotionSurprised => 'Surprised';
+
+  @override
+  String get emotionOkay => 'Okay';
+
+  @override
+  String get journalCtxHome => 'Home';
+
+  @override
+  String get journalCtxClass => 'Class';
+
+  @override
+  String get journalCtxPlay => 'Play';
+
+  @override
+  String get journalCtxOutside => 'Outside';
+
+  @override
+  String get journalCtxMeal => 'Mealtime';
+
+  @override
+  String get journalCtxFriends => 'Friends';
 }

@@ -136,11 +136,12 @@ service cloud.firestore {
       allow write: if false;
     }
 
-    // Visual schedules — linked users read; teachers write.
+    // Visual schedules (FR13) — linked users read (covers the child reading
+    // their own); linked teacher/parent write. Never the student.
     match /visualSchedules/{id} {
       allow read: if isLinkedTo(resource.data.studentId);
       allow write: if isLinkedTo(request.resource.data.studentId)
-        && role() == 'teacher';
+        && role() != 'student';
     }
   }
 }

@@ -88,8 +88,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       labelText: l.emailOrUsername,
                       prefixIcon: const Icon(Icons.person_outline_rounded),
                     ),
-                    validator: (v) =>
-                        (v != null && v.trim().isNotEmpty) ? null : l.errEmail,
+                    validator:
+                        (v) =>
+                            (v != null && v.trim().isNotEmpty)
+                                ? null
+                                : l.errEmail,
                   ),
                   const SizedBox(height: AppSpacing.md),
                   TextFormField(
