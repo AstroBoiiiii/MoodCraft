@@ -119,7 +119,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get arMobileOnly => 'AR is available on the mobile app.';
 
   @override
-  String get arPlaceholder => 'AR placeholder — a 3D character will act out a feeling here.';
+  String get arPlaceholder => 'AR placeholder. A 3D character will act out a feeling here.';
 
   @override
   String get signIn => 'Sign in';
@@ -323,7 +323,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get ageLabel => 'Age';
 
   @override
-  String get errAge => 'Please enter a valid age (3–18)';
+  String get errAge => 'Please enter a valid age (3 to 18)';
 
   @override
   String ageYearsOld(int age) {
@@ -389,13 +389,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get scheduleNext => 'Next';
 
   @override
+  String get scheduleFreeNow => 'You are free right now. Try out one of our activities!';
+
+  @override
   String get scheduleClashError => 'That time overlaps another activity';
 
   @override
   String get scheduleEndError => 'End time must be after the start time';
 
   @override
-  String get scheduleSaveError => 'Couldn\'t save — please try again';
+  String get scheduleSaveError => 'Couldn\'t save. Please try again.';
 
   @override
   String get scheduleUnavailable => 'Schedule unavailable right now';
@@ -419,7 +422,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get journalSaved => 'Saved. Thank you for sharing.';
 
   @override
-  String get journalSaveError => 'Couldn\'t save — please try again';
+  String get journalSaveError => 'Couldn\'t save. Please try again.';
 
   @override
   String get journalDeleteTitle => 'Remove this feeling?';
@@ -512,7 +515,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get previewMatch => 'Match the faces to feelings here.';
 
   @override
-  String get previewQuiz => 'A calm feelings quiz — no timer, no score.';
+  String get previewQuiz => 'A calm feelings quiz with no timer and no score.';
 
   @override
   String get accountSection => 'Account';
@@ -524,12 +527,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get mixMatchIntro => 'Pick a way to match feelings.';
 
   @override
-  String get mixMatchLocked => 'Finish the level before this one to open it.';
+  String get mixMatchBadgeHint => 'Complete all the questions to earn badges';
 
   @override
-  String mixMatchLevelN(int n) {
-    return 'Level $n';
-  }
+  String get mixMatchAllDoneHint => 'All done! You earned your badges';
 
   @override
   String get mixMatchTypeFace => 'Faces';
@@ -541,13 +542,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get mixMatchTypeSituation => 'Situations';
 
   @override
-  String get mixMatchTypeWord => 'Words';
+  String get mixMatchTypeStory => 'Stories';
 
   @override
   String get mixMatchPrompt => 'Drag it to the right feeling.';
 
   @override
-  String get mixMatchTryAgain => 'That\'s okay — try another feeling.';
+  String get mixMatchTryAgain => 'That\'s okay. Try another feeling.';
 
   @override
   String get mixMatchDone => 'All done!';
@@ -559,5 +560,5 @@ class AppLocalizationsEn extends AppLocalizations {
   String get mixMatchDoneButton => 'Done';
 
   @override
-  String get mixMatchClassroomHint => 'Pick a level to play on the class screen.';
+  String get mixMatchClassroomHint => 'Pick a way to play on the class screen.';
 }

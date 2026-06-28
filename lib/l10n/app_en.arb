@@ -41,7 +41,7 @@
   "navReports": "Reports",
   "navProgress": "Progress",
   "arMobileOnly": "AR is available on the mobile app.",
-  "arPlaceholder": "AR placeholder — a 3D character will act out a feeling here.",
+  "arPlaceholder": "AR placeholder. A 3D character will act out a feeling here.",
   "signIn": "Sign in",
   "registerTitle": "Create account",
   "nameLabel": "Your name",
@@ -124,7 +124,7 @@
     }
   },
   "ageLabel": "Age",
-  "errAge": "Please enter a valid age (3–18)",
+  "errAge": "Please enter a valid age (3 to 18)",
   "ageYearsOld": "{age} years old",
   "@ageYearsOld": {
     "placeholders": {
@@ -159,9 +159,10 @@
   "scheduleEndTimeLabel": "End",
   "scheduleNow": "Now",
   "scheduleNext": "Next",
+  "scheduleFreeNow": "You are free right now. Try out one of our activities!",
   "scheduleClashError": "That time overlaps another activity",
   "scheduleEndError": "End time must be after the start time",
-  "scheduleSaveError": "Couldn't save — please try again",
+  "scheduleSaveError": "Couldn't save. Please try again.",
   "scheduleUnavailable": "Schedule unavailable right now",
   "journalHowAreYou": "How do you feel today?",
   "journalContextPrompt": "Where are you? (optional)",
@@ -169,7 +170,7 @@
   "journalNoteHint": "Write a little about how you feel",
   "journalSave": "Save how I feel",
   "journalSaved": "Saved. Thank you for sharing.",
-  "journalSaveError": "Couldn't save — please try again",
+  "journalSaveError": "Couldn't save. Please try again.",
   "journalDeleteTitle": "Remove this feeling?",
   "journalDeleteConfirm": "This will take it out of your journal.",
   "journalDeleted": "Removed from your journal.",
@@ -200,25 +201,20 @@
   "previewCompanion": "A friendly companion will help you name feelings here.",
   "previewStory": "Gentle stories that pause to ask how everyone feels.",
   "previewMatch": "Match the faces to feelings here.",
-  "previewQuiz": "A calm feelings quiz — no timer, no score.",
+  "previewQuiz": "A calm feelings quiz with no timer and no score.",
   "accountSection": "Account",
   "detailsSection": "Details",
   "mixMatchIntro": "Pick a way to match feelings.",
-  "mixMatchLocked": "Finish the level before this one to open it.",
-  "mixMatchLevelN": "Level {n}",
-  "@mixMatchLevelN": {
-    "placeholders": {
-      "n": { "type": "int" }
-    }
-  },
+  "mixMatchBadgeHint": "Complete all the questions to earn badges",
+  "mixMatchAllDoneHint": "All done! You earned your badges",
   "mixMatchTypeFace": "Faces",
   "mixMatchTypeBody": "Bodies",
   "mixMatchTypeSituation": "Situations",
-  "mixMatchTypeWord": "Words",
+  "mixMatchTypeStory": "Stories",
   "mixMatchPrompt": "Drag it to the right feeling.",
-  "mixMatchTryAgain": "That's okay — try another feeling.",
+  "mixMatchTryAgain": "That's okay. Try another feeling.",
   "mixMatchDone": "All done!",
   "mixMatchDoneBody": "Great matching. You can play again any time.",
   "mixMatchDoneButton": "Done",
-  "mixMatchClassroomHint": "Pick a level to play on the class screen."
+  "mixMatchClassroomHint": "Pick a way to play on the class screen."
 }

@@ -99,12 +99,18 @@ final studentScheduleProvider = StreamProvider.family<VisualSchedule?, String>((
 
 /// The student currently in focus — for a student/parent that is the first
 /// linked student. Convenience for shells and dashboards.
-final activeStudentProvider = FutureProvider<Student?>((ref) async {
+///
+/// A live stream (not a one-shot read) so progress written mid-session — e.g.
+/// unlocking the next Mix-and-Match level — refreshes the UI immediately,
+/// without a sign-out/in.
+final activeStudentProvider = StreamProvider<Student?>((ref) {
   final user = ref.watch(currentUserProvider);
-  if (user == null || user.linkedStudentIds.isEmpty) return null;
+  if (user == null || user.linkedStudentIds.isEmpty) {
+    return Stream.value(null);
+  }
   return ref
       .watch(studentRepositoryProvider)
-      .getStudent(user.linkedStudentIds.first);
+      .watchStudent(user.linkedStudentIds.first);
 });
 
 /// All students linked to the signed-in teacher (for classroom roster).

@@ -40,7 +40,7 @@ Mobile = all roles. Web = teacher's classroom + office layer only.
 | FR3 | AI companion teaches emotion via face + body; always calm/patient/consistent; **BM + English** | AI Companion | S |
 | FR4 | AR emotion learning: camera + live 3D; **home mode** (1:1) and **classroom projection** | AR Emotion | S,T |
 | FR5 | Cartoon story mode: pauses at emotional moments to ask feelings; levels unlock; teacher launches from web | Story Mode | S,T |
-| FR6 | ✓ Mix-and-match: drag a card (face/body/situation/word) onto the matching emotion bucket; 4 card types = 4 levels (concrete→abstract), 6 fixed buckets, gentle redirect on wrong, no negativity; teacher classroom launch *(rewards + real TTS deferred)* | Mix-and-Match | S,T |
+| FR6 | ✓ Mix-and-match: drag a card (face/body/situation/short-story) onto the matching emotion bucket; 4 card types (concrete→abstract; story = read & interpret, hardest), all always open (no level gating — a calm "rounds done" count instead), 5 fixed buckets (happy/sad/scared/angry/surprised — `neutral` excluded), gentle redirect on wrong, no negativity; teacher classroom launch *(rewards + real TTS deferred)* | Mix-and-Match | S,T |
 | FR7 | Stress-free quiz: sound/image/audio prompts; always encouraging; no timer, no competitive score | Quiz | S,T |
 | FR8 | Teacher dashboard: assigned students' progress, difficulty areas, trends | Teacher dashboard | T |
 | FR9 | Parent dashboard + real-time notifications (task done, milestone, teacher update) | Parent monitoring + FCM | P |
@@ -93,9 +93,9 @@ assets/  rive/  models/  images/  audio/
 - **FR1 auth/linking:** `core/services/auth/` + `data/linking_service.dart`; screens in `features/auth/`; redirects in `app/router.dart`.
 - **FR2 profiles + sensory:** `features/account/account_profile_screen.dart`, `features/teacher/student_profile_detail_screen.dart`, `core/widgets/sensory_settings_sheet.dart`; theming in `app/theme/`.
 - **FR10 messaging:** `features/teacher/messaging_thread_screen.dart`; conversation providers in `core/providers/repository_providers.dart`.
-- **FR12 journal:** `features/journal/journal_section.dart` — `JournalLogger` (child) + `JournalHistorySection` (shared). Any signed-in role (teacher, parent, or optionally the child) can leave one role-labelled `JournalComment` per entry (`commentBy`/`withComment` on the model); comments render distinctly ("Teacher: …"). Embedded by the student tab and both detail screens, mirroring the schedule pattern.
+- **FR12 journal:** `features/journal/journal_section.dart` — `JournalLogger` (child) + `JournalHistorySection` (shared). Teacher and parent can each leave one role-labelled `JournalComment` per entry (`commentBy`/`withComment` on the model); comments render distinctly ("Teacher: …"). The child logs and reads but does not comment on their own entries. Embedded by the student tab and both detail screens, mirroring the schedule pattern.
 - **FR13 schedule:** `features/schedule/schedule_section.dart` (`StudentScheduleSection`, `canEdit`).
-- **FR6 mix-and-match:** `features/mix_match/` — `mix_match_screen.dart` (level select + shared `MixMatchLevelGrid`), `mix_match_play_screen.dart` (drag-to-bucket round, writes a `Session`), `mix_match_data.dart` (`buildMixMatchDeck` auto-discovers card art from the asset manifest under `assets/images/mixmatch/<type>/<emotion>_<n>.png`; words/situations from `kMixMatchWords`/`kMixMatchSituations`). Level progress = `Student.mixMatchLevel`. Teacher classroom launch in `TeacherProfilesScreen`.
+- **FR6 mix-and-match:** `features/mix_match/` — `mix_match_screen.dart` (level select + shared `MixMatchLevelGrid`), `mix_match_play_screen.dart` (drag-to-bucket round, writes a `Session`), `mix_match_data.dart` (`buildMixMatchDeck` auto-discovers card art from the asset manifest under `assets/images/mixmatch/<type>/<emotion>_<n>.png`; stories/situation-text from `kMixMatchStories`/`kMixMatchSituations`; buckets/cards limited to `kMixMatchEmotions`). No level gating — all card types always open. Each card type's round is saved on the student (`Student.mixMatchRounds`: type→`MixMatchRound{cards, placed}`, in `core/models/mix_match_round.dart`) so play resumes the **exact same question** after navigating away or signing out (`deckFromRound`/`roundFromDeck` in `mix_match_data.dart`). `round.placed` drives the child's "X/5" tile (hidden for the teacher) and the overall "X/20 earn badges" bar; refreshed live via `activeStudentProvider` (a `StreamProvider`). A debug-only "Reset progress" button clears it. Teacher classroom launch in `TeacherProfilesScreen`.
 - **Data + models:** interfaces in `core/services/data/repositories.dart`, all Firestore in `firestore_repositories.dart`; models in `core/models/` round-trip via `toJson`/`fromJson` (locked by `test/models_test.dart`). Rules in `firestore.rules`.
 
 ## Firestore model
@@ -113,6 +113,11 @@ All activity/journal records carry `syncStatus` + `timestamp`.
 - `visualSchedules/{id}` — studentId, items[], createdBy
 
 Rules: a user reads/writes only their own record + linked students. Students can't read messages or other students' data. Lock down before real data.
+
+## How to make changes (read this)
+- **Don't take edits hyper-literally.** When asked to change A to B, also update everything connected to A so the whole thing actually fits B: callers, related copy/labels, model fields, persistence, docs, and tests. A change isn't done until the surrounding pieces make sense together. Example: "rename this field" means updating its readers, JSON keys, and tests too — not just the declaration.
+- **Make copy read naturally, not mechanically.** If a rule means a sentence must change (e.g. removing punctuation), rewrite the sentence so it still reads well. Don't just delete the offending character and leave something awkward.
+- **No dashes in user-facing copy.** Never use `—`, `–`, or a hyphen-as-pause (` - `) in any UI sentence; write proper sentences (use full stops or commas). Hyphenated compound words like "Mix-and-Match" or "low-literacy" are fine.
 
 ## Conventions
 - Riverpod everywhere; no global mutable singletons.

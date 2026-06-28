@@ -4,6 +4,7 @@ import 'package:flutter/services.dart' show AssetManifest, rootBundle;
 
 import '../../core/constants/app_constants.dart';
 import '../../core/models/enums.dart';
+import '../../core/models/mix_match_round.dart';
 
 /// One draggable card in a Mix-and-Match round (FR6). A card belongs to exactly
 /// one [answer] emotion — the child's job is to drag it onto that emotion's
@@ -71,8 +72,30 @@ Future<List<MixMatchCard>> buildMixMatchDeck(
   ];
 }
 
+/// Rebuilds the playable deck from a saved round so the child resumes the exact
+/// same cards in the same order (the unplaced ones are `cards[round.placed..]`).
+List<MixMatchCard> deckFromRound(MixMatchType type, MixMatchRound round) => [
+  for (var i = 0; i < round.cards.length; i++)
+    MixMatchCard(
+      id: '${type.name}_saved_$i',
+      type: type,
+      answer: round.cards[i].answer,
+      assetPath: round.cards[i].assetPath,
+      text: round.cards[i].text,
+    ),
+];
+
+/// Snapshots the current deck + how many are placed into a savable round.
+MixMatchRound roundFromDeck(List<MixMatchCard> deck, int placed) => MixMatchRound(
+  placed: placed,
+  cards: [
+    for (final c in deck)
+      MixMatchRoundCard(answer: c.answer, assetPath: c.assetPath, text: c.text),
+  ],
+);
+
 Future<List<MixMatchCard>> _poolFor(MixMatchType type) async {
-  if (type == MixMatchType.word) return _textPool(type, kMixMatchWords);
+  if (type == MixMatchType.story) return _textPool(type, kMixMatchStories);
 
   final images = await _imagePool(type);
   if (images.isNotEmpty) return images;
@@ -113,8 +136,9 @@ Future<List<MixMatchCard>> _imagePool(MixMatchType type) async {
   for (final path in manifest.listAssets()) {
     if (!path.startsWith('$folder/')) continue;
     final answer = _emotionFromPath(path);
-    if (answer == null)
-      continue; // unknown prefix — skip, don't break the round
+    // Skip unknown prefixes and any emotion without a bucket (e.g. neutral) —
+    // never break the round.
+    if (answer == null || !kMixMatchEmotions.contains(answer)) continue;
     cards.add(
       MixMatchCard(id: path, type: type, answer: answer, assetPath: path),
     );

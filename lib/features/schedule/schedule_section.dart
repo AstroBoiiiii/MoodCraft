@@ -449,7 +449,16 @@ class ScheduleNowNextCard extends ConsumerWidget {
         const [];
     if (items.isEmpty) return const SizedBox.shrink();
     final nn = resolveNowNext(items);
-    if (nn.current == -1 && nn.next == -1) return const SizedBox.shrink();
+    var currentIndex = nn.current;
+    var nextIndex = nn.next;
+    // The routine repeats every day. If today's timed activities are all over
+    // (nothing now or later today), the next thing is tomorrow's first one — so
+    // show that instead of hiding the card. Keeps the timetable visible on the
+    // home page whatever the time of day.
+    if (currentIndex == -1 && nextIndex == -1) {
+      nextIndex = items.indexWhere((i) => i.minutesOfDay <= 24 * 60);
+    }
+    if (currentIndex == -1 && nextIndex == -1) return const SizedBox.shrink();
     final onContainer = theme.colorScheme.onPrimaryContainer;
 
     return Padding(
@@ -488,17 +497,26 @@ class ScheduleNowNextCard extends ConsumerWidget {
                   ],
                 ),
                 const SizedBox(height: AppSpacing.sm),
-                if (nn.current != -1)
+                if (currentIndex != -1)
                   _NowNextLine(
                     label: l.scheduleNow,
-                    item: items[nn.current],
+                    item: items[currentIndex],
                     onContainer: onContainer,
+                  )
+                else
+                  // Nothing scheduled right now: a gentle free-time nudge toward
+                  // the activities, rather than a blank space.
+                  Text(
+                    l.scheduleFreeNow,
+                    style: theme.textTheme.bodyLarge?.copyWith(
+                      color: onContainer,
+                    ),
                   ),
-                if (nn.next != -1) ...[
-                  if (nn.current != -1) const SizedBox(height: AppSpacing.xs),
+                if (nextIndex != -1) ...[
+                  const SizedBox(height: AppSpacing.xs),
                   _NowNextLine(
                     label: l.scheduleNext,
-                    item: items[nn.next],
+                    item: items[nextIndex],
                     onContainer: onContainer,
                   ),
                 ],

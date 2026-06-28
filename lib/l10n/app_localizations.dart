@@ -314,7 +314,7 @@ abstract class AppLocalizations {
   /// No description provided for @arPlaceholder.
   ///
   /// In en, this message translates to:
-  /// **'AR placeholder — a 3D character will act out a feeling here.'**
+  /// **'AR placeholder. A 3D character will act out a feeling here.'**
   String get arPlaceholder;
 
   /// No description provided for @signIn.
@@ -710,7 +710,7 @@ abstract class AppLocalizations {
   /// No description provided for @errAge.
   ///
   /// In en, this message translates to:
-  /// **'Please enter a valid age (3–18)'**
+  /// **'Please enter a valid age (3 to 18)'**
   String get errAge;
 
   /// No description provided for @ageYearsOld.
@@ -827,6 +827,12 @@ abstract class AppLocalizations {
   /// **'Next'**
   String get scheduleNext;
 
+  /// No description provided for @scheduleFreeNow.
+  ///
+  /// In en, this message translates to:
+  /// **'You are free right now. Try out one of our activities!'**
+  String get scheduleFreeNow;
+
   /// No description provided for @scheduleClashError.
   ///
   /// In en, this message translates to:
@@ -842,7 +848,7 @@ abstract class AppLocalizations {
   /// No description provided for @scheduleSaveError.
   ///
   /// In en, this message translates to:
-  /// **'Couldn\'t save — please try again'**
+  /// **'Couldn\'t save. Please try again.'**
   String get scheduleSaveError;
 
   /// No description provided for @scheduleUnavailable.
@@ -890,7 +896,7 @@ abstract class AppLocalizations {
   /// No description provided for @journalSaveError.
   ///
   /// In en, this message translates to:
-  /// **'Couldn\'t save — please try again'**
+  /// **'Couldn\'t save. Please try again.'**
   String get journalSaveError;
 
   /// No description provided for @journalDeleteTitle.
@@ -1076,7 +1082,7 @@ abstract class AppLocalizations {
   /// No description provided for @previewQuiz.
   ///
   /// In en, this message translates to:
-  /// **'A calm feelings quiz — no timer, no score.'**
+  /// **'A calm feelings quiz with no timer and no score.'**
   String get previewQuiz;
 
   /// No description provided for @accountSection.
@@ -1097,17 +1103,17 @@ abstract class AppLocalizations {
   /// **'Pick a way to match feelings.'**
   String get mixMatchIntro;
 
-  /// No description provided for @mixMatchLocked.
+  /// No description provided for @mixMatchBadgeHint.
   ///
   /// In en, this message translates to:
-  /// **'Finish the level before this one to open it.'**
-  String get mixMatchLocked;
+  /// **'Complete all the questions to earn badges'**
+  String get mixMatchBadgeHint;
 
-  /// No description provided for @mixMatchLevelN.
+  /// No description provided for @mixMatchAllDoneHint.
   ///
   /// In en, this message translates to:
-  /// **'Level {n}'**
-  String mixMatchLevelN(int n);
+  /// **'All done! You earned your badges'**
+  String get mixMatchAllDoneHint;
 
   /// No description provided for @mixMatchTypeFace.
   ///
@@ -1127,11 +1133,11 @@ abstract class AppLocalizations {
   /// **'Situations'**
   String get mixMatchTypeSituation;
 
-  /// No description provided for @mixMatchTypeWord.
+  /// No description provided for @mixMatchTypeStory.
   ///
   /// In en, this message translates to:
-  /// **'Words'**
-  String get mixMatchTypeWord;
+  /// **'Stories'**
+  String get mixMatchTypeStory;
 
   /// No description provided for @mixMatchPrompt.
   ///
@@ -1142,7 +1148,7 @@ abstract class AppLocalizations {
   /// No description provided for @mixMatchTryAgain.
   ///
   /// In en, this message translates to:
-  /// **'That\'s okay — try another feeling.'**
+  /// **'That\'s okay. Try another feeling.'**
   String get mixMatchTryAgain;
 
   /// No description provided for @mixMatchDone.
@@ -1166,7 +1172,7 @@ abstract class AppLocalizations {
   /// No description provided for @mixMatchClassroomHint.
   ///
   /// In en, this message translates to:
-  /// **'Pick a level to play on the class screen.'**
+  /// **'Pick a way to play on the class screen.'**
   String get mixMatchClassroomHint;
 }
 

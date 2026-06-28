@@ -65,8 +65,7 @@ class TeacherProfilesScreen extends StatelessWidget {
                         ),
                       ),
                     ),
-                    MixMatchLevelGrid(
-                      isUnlocked: (_) => true, // classroom: all levels open
+                    MixMatchTypeGrid(
                       onPick:
                           (type) => context.push(
                             '/teacher/mixmatch/play',

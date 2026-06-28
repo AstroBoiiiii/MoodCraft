@@ -163,9 +163,10 @@ class _JournalLoggerState extends ConsumerState<JournalLogger> {
 }
 
 /// Newest-first history of a student's feelings. Shared by the child's own
-/// journal tab and the teacher/parent child-detail screens. Any signed-in role
-/// (teacher, parent, or — optionally — the child) can leave one role-labelled
-/// comment per entry; comments are shown distinctly ("Teacher: …", "Parent: …").
+/// journal tab and the teacher/parent child-detail screens. Teacher and parent
+/// can each leave one role-labelled comment per entry (shown distinctly as
+/// "Teacher: …" / "Parent: …"); the child logs and reads but does not comment on
+/// their own entries.
 class JournalHistorySection extends ConsumerWidget {
   const JournalHistorySection({
     required this.studentId,
@@ -225,8 +226,10 @@ class JournalHistorySection extends ConsumerWidget {
                   _JournalEntryTile(
                     entry: entry,
                     currentRole: user?.role,
+                    // Only teacher/parent annotate. The child logs and reads
+                    // their feelings but doesn't comment on their own entry.
                     onAnnotate:
-                        user == null
+                        (user == null || user.role == UserRole.student)
                             ? null
                             : () => _editComment(context, ref, entry, user),
                     // The child can remove their own entries; it's their
@@ -532,102 +535,121 @@ class _JournalEntryTile extends StatelessWidget {
           ..sort((a, b) => a.timestamp.compareTo(b.timestamp));
     final hasOwnComment =
         currentRole != null && entry.commentBy(currentRole!) != null;
+    final hasNote = entry.note != null && entry.note!.trim().isNotEmpty;
 
+    // A custom Card/Row (not a ListTile): the note + comments make the entry an
+    // arbitrary height, which a ListTile's fixed-height layout overflows. This
+    // grows to fit its content.
     return Card(
       margin: const EdgeInsets.only(bottom: AppSpacing.sm),
-      child: ListTile(
-        isThreeLine:
-            comments.isNotEmpty ||
-            (entry.note != null && entry.note!.trim().isNotEmpty),
-        leading: CircleAvatar(
-          backgroundColor: color.withValues(alpha: 0.18),
-          child: Icon(kEmotionIcon[entry.emotionIcon], color: color),
-        ),
-        title: Text(
-          emotionLabel(entry.emotionIcon, l),
-          style: theme.textTheme.titleMedium,
-        ),
-        subtitle: Column(
+      child: Padding(
+        padding: const EdgeInsets.all(AppSpacing.md),
+        child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              children: [
-                if (contextIcon != null) ...[
-                  Icon(
-                    contextIcon,
-                    size: 16,
-                    color: theme.colorScheme.onSurfaceVariant,
-                  ),
-                  const SizedBox(width: AppSpacing.xs),
-                  Text(contextLabel(entry.contextIcon!, l)),
-                  const SizedBox(width: AppSpacing.sm),
-                ],
-                Text(
-                  _friendlyTime(entry.timestamp, l),
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
-                  ),
-                ),
-              ],
+            CircleAvatar(
+              backgroundColor: color.withValues(alpha: 0.18),
+              child: Icon(kEmotionIcon[entry.emotionIcon], color: color),
             ),
-            if (entry.note != null && entry.note!.trim().isNotEmpty)
-              Padding(
-                padding: const EdgeInsets.only(top: AppSpacing.xs),
-                child: Text(entry.note!, style: theme.textTheme.bodyMedium),
-              ),
-            for (final c in comments)
-              Padding(
-                padding: const EdgeInsets.only(top: AppSpacing.xs),
-                child: RichText(
-                  text: TextSpan(
-                    style: theme.textTheme.bodyMedium,
+            const SizedBox(width: AppSpacing.md),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    emotionLabel(entry.emotionIcon, l),
+                    style: theme.textTheme.titleMedium,
+                  ),
+                  const SizedBox(height: AppSpacing.xs),
+                  Wrap(
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    spacing: AppSpacing.sm,
                     children: [
-                      TextSpan(
-                        text: '${roleLabel(c.authorRole, l)}: ',
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          fontWeight: FontWeight.w600,
-                          color: theme.colorScheme.primary,
+                      if (contextIcon != null)
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              contextIcon,
+                              size: 16,
+                              color: theme.colorScheme.onSurfaceVariant,
+                            ),
+                            const SizedBox(width: AppSpacing.xs),
+                            Text(contextLabel(entry.contextIcon!, l)),
+                          ],
                         ),
-                      ),
-                      TextSpan(
-                        text: c.text,
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          fontStyle: FontStyle.italic,
+                      Text(
+                        _friendlyTime(entry.timestamp, l),
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
                         ),
                       ),
                     ],
                   ),
-                ),
+                  if (hasNote)
+                    Padding(
+                      padding: const EdgeInsets.only(top: AppSpacing.xs),
+                      child: Text(
+                        entry.note!,
+                        style: theme.textTheme.bodyMedium,
+                      ),
+                    ),
+                  for (final c in comments)
+                    Padding(
+                      padding: const EdgeInsets.only(top: AppSpacing.xs),
+                      child: RichText(
+                        text: TextSpan(
+                          style: theme.textTheme.bodyMedium,
+                          children: [
+                            TextSpan(
+                              text: '${roleLabel(c.authorRole, l)}: ',
+                              style: theme.textTheme.bodyMedium?.copyWith(
+                                fontWeight: FontWeight.w600,
+                                color: theme.colorScheme.primary,
+                              ),
+                            ),
+                            TextSpan(
+                              text: c.text,
+                              style: theme.textTheme.bodyMedium?.copyWith(
+                                fontStyle: FontStyle.italic,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                ],
               ),
+            ),
+            if (onAnnotate != null || onDelete != null) ...[
+              const SizedBox(width: AppSpacing.sm),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (onAnnotate != null)
+                    IconButton(
+                      tooltip: l.journalCommentTitle,
+                      icon: Icon(
+                        hasOwnComment
+                            ? Icons.edit_note_rounded
+                            : Icons.add_comment_outlined,
+                      ),
+                      onPressed: onAnnotate,
+                    ),
+                  if (onDelete != null)
+                    IconButton(
+                      tooltip: l.journalDeleteTitle,
+                      icon: Icon(
+                        Icons.delete_outline_rounded,
+                        color: theme.colorScheme.error,
+                      ),
+                      onPressed: onDelete,
+                    ),
+                ],
+              ),
+            ],
           ],
         ),
-        trailing:
-            (onAnnotate == null && onDelete == null)
-                ? null
-                : Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    if (onAnnotate != null)
-                      IconButton(
-                        tooltip: l.journalCommentTitle,
-                        icon: Icon(
-                          hasOwnComment
-                              ? Icons.edit_note_rounded
-                              : Icons.add_comment_outlined,
-                        ),
-                        onPressed: onAnnotate,
-                      ),
-                    if (onDelete != null)
-                      IconButton(
-                        tooltip: l.journalDeleteTitle,
-                        icon: Icon(
-                          Icons.delete_outline_rounded,
-                          color: theme.colorScheme.error,
-                        ),
-                        onPressed: onDelete,
-                      ),
-                  ],
-                ),
       ),
     );
   }

@@ -44,7 +44,15 @@ void main() {
       ),
       level: 3,
       stars: 12,
-      mixMatchLevel: 2,
+      mixMatchRounds: {
+        'face': MixMatchRound(
+          placed: 1,
+          cards: [
+            MixMatchRoundCard(answer: Emotion.happy, assetPath: 'a/happy_1.png'),
+            MixMatchRoundCard(answer: Emotion.sad, text: 'A sad little story'),
+          ],
+        ),
+      },
     );
     expect(Student.fromJson(student.toJson()).toJson(), student.toJson());
   });

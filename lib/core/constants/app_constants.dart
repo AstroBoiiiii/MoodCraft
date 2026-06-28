@@ -102,9 +102,25 @@ IconData? journalContextIcon(String? key) =>
 
 /// Mix-and-Match (FR6). The child drags a card onto the matching emotion. The
 /// four card types double as the four levels, ordered concrete → abstract so
-/// progression is gentle: a face is the most literal cue, a word the most
-/// abstract. [MixMatchType.values] order IS the level order.
-enum MixMatchType { face, body, situation, word }
+/// progression is gentle: a face is the most literal cue, a short story the most
+/// abstract (the child reads it and interprets the feeling).
+/// [MixMatchType.values] order IS the level order.
+enum MixMatchType { face, body, situation, story }
+
+/// Number of cards (questions) in one Mix-and-Match round, per card type (FR6).
+/// Each category's progress is shown as "X/[kMixMatchRoundSize]".
+const int kMixMatchRoundSize = 5;
+
+/// The feelings used as Mix-and-Match buckets (FR6). Five clear, distinct
+/// emotions — `neutral` ("Okay") is intentionally left out here so every round's
+/// cards map to a strong, teachable feeling and there's no spare empty bucket.
+const List<Emotion> kMixMatchEmotions = [
+  Emotion.happy,
+  Emotion.sad,
+  Emotion.scared,
+  Emotion.angry,
+  Emotion.surprised,
+];
 
 /// Root for Mix-and-Match card art. Image cards live under
 /// `<root>/<type>/<emotion>_<n>.png`; the leading `<emotion>` token encodes the
@@ -113,30 +129,40 @@ enum MixMatchType { face, body, situation, word }
 /// via the asset manifest — see `buildMixMatchDeck`.
 const String kMixMatchAssetRoot = 'assets/images/mixmatch';
 
-/// Folder (under [kMixMatchAssetRoot]) holding image cards for a type. `word`
-/// has no folder — those cards are text from [kMixMatchWords].
+/// Folder (under [kMixMatchAssetRoot]) holding image cards for a type. `story`
+/// has no folder — those cards are text from [kMixMatchStories].
 String mixMatchTypeFolder(MixMatchType type) => switch (type) {
   MixMatchType.face => '$kMixMatchAssetRoot/face',
   MixMatchType.body => '$kMixMatchAssetRoot/body',
   MixMatchType.situation => '$kMixMatchAssetRoot/situation',
-  MixMatchType.word => '$kMixMatchAssetRoot/word',
+  MixMatchType.story => '$kMixMatchAssetRoot/story',
 };
 
-/// Whether a type's cards are drawn as text (vs. an image asset). Words are
+/// Whether a type's cards are drawn as text (vs. an image asset). Stories are
 /// always text; situations fall back to text when no art has been uploaded.
-bool mixMatchTypeIsText(MixMatchType type) => type == MixMatchType.word;
+bool mixMatchTypeIsText(MixMatchType type) => type == MixMatchType.story;
 
-/// Calm, vetted word cards per emotion (FR6, `word` level). Gentle synonyms a
-/// young reader can match to the feeling. Kept here so they can be swapped or
-/// extended without touching the activity. Routed through l10n labels for the
-/// buckets; these card words are intentionally short and literal.
-const Map<Emotion, List<String>> kMixMatchWords = {
-  Emotion.happy: ['happy', 'glad', 'cheerful'],
-  Emotion.sad: ['sad', 'unhappy', 'down'],
-  Emotion.scared: ['scared', 'afraid', 'nervous'],
-  Emotion.angry: ['angry', 'cross', 'upset'],
-  Emotion.surprised: ['surprised', 'amazed', 'shocked'],
-  Emotion.neutral: ['okay', 'calm', 'fine'],
+/// Calm, vetted short-story cards per emotion (FR6, hardest `story` level). The
+/// child reads a tiny two-sentence scene and interprets which feeling it shows —
+/// the most abstract step, no single emotion word given away. One per emotion so
+/// a round shows five distinct feelings. Kept here so they can be swapped or
+/// extended without touching the activity.
+const Map<Emotion, List<String>> kMixMatchStories = {
+  Emotion.happy: [
+    'Mia opened her birthday present and found a soft puppy inside. She hugged it and could not stop smiling.',
+  ],
+  Emotion.sad: [
+    'Sam watched his balloon float far up into the sky. He could not get it back, and his eyes filled with tears.',
+  ],
+  Emotion.scared: [
+    'The lights went out and Lily heard a loud bang. She pulled her blanket up and held it tight.',
+  ],
+  Emotion.angry: [
+    'Ben built a tall block tower all by himself. Someone knocked it over, and he stamped his feet hard.',
+  ],
+  Emotion.surprised: [
+    'Ava opened the door and the whole room jumped up shouting. Her mouth fell open. She never expected anyone to be there.',
+  ],
 };
 
 /// Short situation cards per emotion (FR6, `situation` level), used when no
@@ -148,7 +174,6 @@ const Map<Emotion, List<String>> kMixMatchSituations = {
   Emotion.scared: ['Heard a loud noise', 'It is very dark'],
   Emotion.angry: ['My tower fell down', 'Lost my turn'],
   Emotion.surprised: ['A surprise party', 'A balloon popped'],
-  Emotion.neutral: ['Waiting in line', 'A quiet morning'],
 };
 
 /// Soft accent per student-home activity, keyed by the activity's route id. Used
