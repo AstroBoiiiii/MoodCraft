@@ -3,6 +3,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../core/constants/app_constants.dart';
 import '../core/models/enums.dart';
 import '../core/providers/auth_provider.dart';
 import '../features/account/account_profile_screen.dart';
@@ -12,6 +13,8 @@ import '../features/auth/register_screen.dart';
 import '../features/auth/web_mobile_only_screen.dart';
 import '../features/parent/parent_screens.dart';
 import '../features/parent/parent_shell.dart';
+import '../features/mix_match/mix_match_screen.dart';
+import '../features/mix_match/mix_match_play_screen.dart';
 import '../features/student/ar/ar_screen.dart';
 import '../features/student/student_screens.dart';
 import '../features/student/student_shell.dart';
@@ -156,7 +159,17 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/student/mixmatch',
         parentNavigatorKey: _rootNavigatorKey,
-        builder: (context, state) => const MixMatchScreen(),
+        builder: (context, state) => const MixMatchHomeScreen(),
+      ),
+      // Mix-and-Match round (FR6). `extra` carries the chosen level + the
+      // student id (null id = teacher classroom mode).
+      GoRoute(
+        path: '/student/mixmatch/play',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) {
+          final args = state.extra as MixMatchArgs;
+          return MixMatchPlayScreen(type: args.type, studentId: args.studentId);
+        },
       ),
       GoRoute(
         path: '/student/quiz',
@@ -167,6 +180,17 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         path: '/student/schedule',
         parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) => const ScheduleScreen(),
+      ),
+
+      // Teacher classroom projection of Mix-and-Match (FR6). Same play screen,
+      // classroom mode (null studentId) — no per-child session is recorded.
+      GoRoute(
+        path: '/teacher/mixmatch/play',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) {
+          final type = state.extra as MixMatchType;
+          return MixMatchPlayScreen(type: type, studentId: null);
+        },
       ),
 
       // Teacher messaging thread — pushed full-screen over the shell so the

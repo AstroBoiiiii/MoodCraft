@@ -47,6 +47,8 @@
   "nameLabel": "Your name",
   "emailLabel": "Email",
   "passwordLabel": "Password",
+  "showPassword": "Show password",
+  "hidePassword": "Hide password",
   "languageLabel": "Language",
   "languageEnglish": "English",
   "languageMalay": "Bahasa Melayu",
@@ -65,6 +67,7 @@
   "classNameLabel": "Class name (optional)",
   "classCodeNotFound": "We couldn't find that class code. Your teacher can add you later.",
   "yourClassCode": "Class code",
+  "classLabel": "Class",
   "showCode": "Show",
   "hideCode": "Hide",
   "webMobileOnlyTitle": "Mobile app",
@@ -98,9 +101,15 @@
   "childProfile": "Child Profile",
   "msgNoConversations": "No conversations yet",
   "msgNoLinkedTeacher": "No teacher linked yet",
+  "msgNewMessage": "New message",
+  "msgStartConversation": "Start a conversation",
+  "msgNoParentsToMessage": "No parents linked to your students yet",
   "msgTypeHere": "Type a message…",
   "msgSend": "Send",
   "msgYou": "You",
+  "msgDeleteMessage": "Delete message",
+  "msgDeleteConfirm": "Delete this message? This can't be undone.",
+  "msgDeleted": "Message deleted",
   "msgAboutChild": "About {childName}",
   "@msgAboutChild": {
     "placeholders": {
@@ -122,6 +131,23 @@
       "age": { "type": "int" }
     }
   },
+  "studentDelete": "Delete student",
+  "studentDeleteConfirm": "Remove {name} from your class? This can't be undone.",
+  "@studentDeleteConfirm": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "studentDeleted": "Student removed",
+  "parentRemove": "Remove parent",
+  "parentRemoveConfirm": "Remove {name} as a parent of this student?",
+  "@parentRemoveConfirm": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "actionDelete": "Delete",
+  "actionRemove": "Remove",
   "scheduleTitle": "Today's schedule",
   "scheduleSectionTitle": "Daily routine",
   "scheduleEmpty": "No routine set yet",
@@ -139,16 +165,21 @@
   "scheduleUnavailable": "Schedule unavailable right now",
   "journalHowAreYou": "How do you feel today?",
   "journalContextPrompt": "Where are you? (optional)",
+  "journalNotePrompt": "Want to say more? (optional)",
+  "journalNoteHint": "Write a little about how you feel",
   "journalSave": "Save how I feel",
   "journalSaved": "Saved. Thank you for sharing.",
   "journalSaveError": "Couldn't save — please try again",
+  "journalDeleteTitle": "Remove this feeling?",
+  "journalDeleteConfirm": "This will take it out of your journal.",
+  "journalDeleted": "Removed from your journal.",
   "journalEmpty": "No feelings logged yet",
   "journalUnavailable": "Journal unavailable right now",
   "journalSectionTitle": "Feelings journal",
   "journalToday": "Today",
   "journalYesterday": "Yesterday",
-  "journalNoteTitle": "Add a note",
-  "journalNoteHint": "A short note about this feeling (optional)",
+  "journalCommentTitle": "Add a comment",
+  "journalCommentHint": "A short comment about this feeling (optional)",
   "emotionHappy": "Happy",
   "emotionSad": "Sad",
   "emotionScared": "Scared",
@@ -160,5 +191,34 @@
   "journalCtxPlay": "Play",
   "journalCtxOutside": "Outside",
   "journalCtxMeal": "Mealtime",
-  "journalCtxFriends": "Friends"
+  "journalCtxFriends": "Friends",
+  "homeActivities": "Activities",
+  "previewDashboard": "Your students' progress and difficulty areas will appear here.",
+  "previewClassroom": "Project an activity to the whole class from here.",
+  "previewReports": "Gentle progress reports you can share will appear here.",
+  "previewRewards": "Stars and badges will appear here as you play.",
+  "previewCompanion": "A friendly companion will help you name feelings here.",
+  "previewStory": "Gentle stories that pause to ask how everyone feels.",
+  "previewMatch": "Match the faces to feelings here.",
+  "previewQuiz": "A calm feelings quiz — no timer, no score.",
+  "accountSection": "Account",
+  "detailsSection": "Details",
+  "mixMatchIntro": "Pick a way to match feelings.",
+  "mixMatchLocked": "Finish the level before this one to open it.",
+  "mixMatchLevelN": "Level {n}",
+  "@mixMatchLevelN": {
+    "placeholders": {
+      "n": { "type": "int" }
+    }
+  },
+  "mixMatchTypeFace": "Faces",
+  "mixMatchTypeBody": "Bodies",
+  "mixMatchTypeSituation": "Situations",
+  "mixMatchTypeWord": "Words",
+  "mixMatchPrompt": "Drag it to the right feeling.",
+  "mixMatchTryAgain": "That's okay — try another feeling.",
+  "mixMatchDone": "All done!",
+  "mixMatchDoneBody": "Great matching. You can play again any time.",
+  "mixMatchDoneButton": "Done",
+  "mixMatchClassroomHint": "Pick a level to play on the class screen."
 }

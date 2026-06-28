@@ -20,12 +20,17 @@ abstract interface class StudentRepository {
   Future<Student?> getStudent(String id);
   Stream<Student?> watchStudent(String id);
   Future<void> upsert(Student student);
+
+  /// Removes a student record (teacher action). Linked teachers/parents should
+  /// drop the id from their own `linkedStudentIds` separately.
+  Future<void> delete(String id);
 }
 
 abstract interface class JournalRepository {
   /// Newest-first journal entries for a student.
   Stream<List<JournalEntry>> watchForStudent(String studentId);
   Future<void> add(JournalEntry entry);
+  Future<void> delete(String id);
 }
 
 abstract interface class SessionRepository {
@@ -43,6 +48,9 @@ abstract interface class MessageRepository {
 
   Future<void> send(Message message);
 
+  /// Deletes a single message (only the sender may do this).
+  Future<void> delete(String id);
+
   /// Marks all messages in [conversationId] addressed to [myUid] as read.
   Future<void> markThreadRead(String conversationId, String myUid);
 }
@@ -56,4 +64,16 @@ abstract interface class VisualScheduleRepository {
 
   /// Create or replace a student's schedule (doc id = studentId).
   Future<void> upsert(VisualSchedule schedule);
+
+  /// Atomically rebase one editor's changes onto the latest server schedule so
+  /// a teacher and a parent editing the same child never clobber each other
+  /// (FR13). [baseline] is the schedule the editor opened with, [draft] is what
+  /// they want to save. Throws [ScheduleConflictException] if an added activity
+  /// overlaps one saved meanwhile.
+  Future<void> reconcile({
+    required String studentId,
+    required String createdBy,
+    required List<ScheduleItem> baseline,
+    required List<ScheduleItem> draft,
+  });
 }

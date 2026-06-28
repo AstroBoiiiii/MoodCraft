@@ -7,6 +7,9 @@ import '../../core/models/app_user.dart';
 import '../../core/models/student.dart';
 import '../../core/providers/repository_providers.dart';
 import '../../core/widgets/calm_scaffold.dart';
+import '../../core/widgets/contact_card.dart';
+import '../../core/widgets/profile_header.dart';
+import '../../core/widgets/section_card.dart';
 import '../../core/widgets/sensory_read_only_view.dart';
 import '../../core/widgets/sensory_settings_sheet.dart';
 import '../journal/journal_section.dart';
@@ -50,87 +53,37 @@ class _ChildProfileView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
-    final theme = Theme.of(context);
 
     return ListView(
       children: [
-        Center(
-          child: CircleAvatar(
-            radius: 40,
-            child: Text(
-              student.name.isNotEmpty ? student.name[0].toUpperCase() : '?',
-              style: theme.textTheme.headlineSmall,
-            ),
-          ),
-        ),
-        const SizedBox(height: AppSpacing.md),
-        Center(child: Text(student.name, style: theme.textTheme.headlineSmall)),
-        const SizedBox(height: AppSpacing.sm),
-        if (student.age > 0)
-          Center(
-            child: Text(
-              l.ageYearsOld(student.age),
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
-            ),
-          ),
-        const SizedBox(height: AppSpacing.md),
-        Center(
-          child: Chip(
-            avatar: const Icon(Icons.star_rounded, size: 18),
-            label: Text(l.levelStars(student.level, student.stars)),
-          ),
+        ProfileHeader(
+          name: student.name,
+          subtitle: student.age > 0 ? l.ageYearsOld(student.age) : null,
+          chipLabel: l.levelStars(student.level, student.stars),
         ),
         const SizedBox(height: AppSpacing.lg),
-        const Divider(),
-        const SizedBox(height: AppSpacing.sm),
-        Text(l.sensorySettings, style: theme.textTheme.titleMedium),
-        const SizedBox(height: AppSpacing.sm),
-        SensoryReadOnlyView(settings: student.sensorySettings),
+        SectionCard(
+          title: l.sensorySettings,
+          icon: Icons.tune_rounded,
+          child: SensoryReadOnlyView(settings: student.sensorySettings),
+        ),
         if (teachers.isNotEmpty) ...[
           const SizedBox(height: AppSpacing.lg),
-          const Divider(),
-          const SizedBox(height: AppSpacing.sm),
-          Text(l.teacherLabel, style: theme.textTheme.titleMedium),
-          const SizedBox(height: AppSpacing.sm),
-          for (final teacher in teachers) _ContactTile(user: teacher),
+          SectionCard(
+            title: l.teacherLabel,
+            icon: Icons.person_rounded,
+            child: Column(
+              children: [
+                for (final teacher in teachers) ContactCard(user: teacher),
+              ],
+            ),
+          ),
         ],
         const SizedBox(height: AppSpacing.lg),
-        const Divider(),
-        const SizedBox(height: AppSpacing.sm),
         StudentScheduleSection(studentId: student.id, canEdit: true),
         const SizedBox(height: AppSpacing.lg),
-        const Divider(),
-        const SizedBox(height: AppSpacing.sm),
-        JournalHistorySection(studentId: student.id, canAnnotate: true),
+        JournalHistorySection(studentId: student.id),
       ],
-    );
-  }
-}
-
-class _ContactTile extends StatelessWidget {
-  const _ContactTile({required this.user});
-  final AppUser user;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Card(
-      margin: const EdgeInsets.only(bottom: AppSpacing.sm),
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.md),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(user.name, style: theme.textTheme.titleSmall),
-            if (user.username.isNotEmpty)
-              Text('@${user.username}', style: theme.textTheme.bodySmall),
-            if (user.phone.isNotEmpty)
-              Text(user.phone, style: theme.textTheme.bodySmall),
-          ],
-        ),
-      ),
     );
   }
 }

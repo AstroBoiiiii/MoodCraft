@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:moodcraft/l10n/app_localizations.dart';
 
 import '../core/constants/app_constants.dart';
+import '../core/providers/auth_provider.dart';
 import '../core/providers/repository_providers.dart';
 import '../core/providers/sensory_settings_provider.dart';
 import '../core/services/background_music_service.dart';
@@ -29,6 +30,15 @@ class MoodCraftApp extends ConsumerWidget {
         music.play(next.backgroundTrack, next.masterVolume);
       } else if (prev?.masterVolume != next.masterVolume) {
         music.setVolume(next.masterVolume);
+      }
+    });
+
+    // Stop background music the moment anyone signs out (covers every sign-out
+    // path). Also reset the toggle so it never resumes for the next account.
+    ref.listen(currentUserProvider, (prev, next) {
+      if (prev != null && next == null) {
+        ref.read(backgroundMusicServiceProvider).stop();
+        ref.read(sensorySettingsProvider.notifier).setMusicEnabled(false);
       }
     });
 

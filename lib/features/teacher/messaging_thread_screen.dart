@@ -1,4 +1,6 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 
@@ -44,6 +46,9 @@ class _MessagingThreadScreenState extends ConsumerState<MessagingThreadScreen> {
   @override
   void initState() {
     super.initState();
+    // On web, suppress the browser's native right-click menu so our own
+    // "Delete message" menu can show instead. Restored in dispose.
+    if (kIsWeb) BrowserContextMenu.disableContextMenu();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final myUid = ref.read(currentUserProvider)?.uid;
       if (myUid != null) {
@@ -56,6 +61,7 @@ class _MessagingThreadScreenState extends ConsumerState<MessagingThreadScreen> {
 
   @override
   void dispose() {
+    if (kIsWeb) BrowserContextMenu.enableContextMenu();
     _controller.dispose();
     _scrollController.dispose();
     super.dispose();
@@ -98,6 +104,35 @@ class _MessagingThreadScreenState extends ConsumerState<MessagingThreadScreen> {
 
     ref.read(messageRepositoryProvider).send(message);
     _scrollToBottom();
+  }
+
+  Future<void> _confirmDelete(Message message) async {
+    final l = AppLocalizations.of(context);
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder:
+          (context) => AlertDialog(
+            title: Text(l.msgDeleteMessage),
+            content: Text(l.msgDeleteConfirm),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(false),
+                child: Text(l.cancelEdit),
+              ),
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(true),
+                child: Text(l.actionDelete),
+              ),
+            ],
+          ),
+    );
+    if (confirmed != true) return;
+
+    await ref.read(messageRepositoryProvider).delete(message.id);
+    if (!mounted) return;
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(l.msgDeleted)));
   }
 
   @override
@@ -143,6 +178,10 @@ class _MessagingThreadScreenState extends ConsumerState<MessagingThreadScreen> {
                       message: messages[i],
                       isMe: messages[i].fromUid == myUid,
                       meLabel: l.msgYou,
+                      onDelete:
+                          messages[i].fromUid == myUid
+                              ? () => _confirmDelete(messages[i])
+                              : null,
                     ),
               );
             },
@@ -171,11 +210,54 @@ class _MessageBubble extends StatelessWidget {
     required this.message,
     required this.isMe,
     required this.meLabel,
+    this.onDelete,
   });
 
   final Message message;
   final bool isMe;
   final String meLabel;
+
+  /// Non-null only for the current user's own messages — long-press (mobile) or
+  /// right-click (web/desktop) opens a Delete menu.
+  final VoidCallback? onDelete;
+
+  /// Shows a small "Delete" menu at [position]; runs [onDelete] if chosen.
+  /// Works the same on touch and mouse, so web (Chrome) gets a usable
+  /// affordance where a mouse long-press is unreliable.
+  Future<void> _showDeleteMenu(BuildContext context, Offset position) async {
+    final onDelete = this.onDelete;
+    if (onDelete == null) return;
+    final l = AppLocalizations.of(context);
+    final overlay =
+        Overlay.of(context).context.findRenderObject() as RenderBox;
+    final selected = await showMenu<bool>(
+      context: context,
+      position: RelativeRect.fromLTRB(
+        position.dx,
+        position.dy,
+        overlay.size.width - position.dx,
+        overlay.size.height - position.dy,
+      ),
+      items: [
+        PopupMenuItem<bool>(
+          value: true,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                Icons.delete_outline_rounded,
+                size: 20,
+                color: Theme.of(context).colorScheme.error,
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              Text(l.msgDeleteMessage),
+            ],
+          ),
+        ),
+      ],
+    );
+    if (selected == true) onDelete();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -202,7 +284,16 @@ class _MessageBubble extends StatelessWidget {
         alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 320),
-          child: Container(
+          child: GestureDetector(
+            onLongPressStart:
+                onDelete == null
+                    ? null
+                    : (d) => _showDeleteMenu(context, d.globalPosition),
+            onSecondaryTapDown:
+                onDelete == null
+                    ? null
+                    : (d) => _showDeleteMenu(context, d.globalPosition),
+            child: Container(
             padding: const EdgeInsets.symmetric(
               horizontal: AppSpacing.md,
               vertical: AppSpacing.sm,
@@ -239,6 +330,7 @@ class _MessageBubble extends StatelessWidget {
                 ),
               ],
             ),
+          ),
           ),
         ),
       ),

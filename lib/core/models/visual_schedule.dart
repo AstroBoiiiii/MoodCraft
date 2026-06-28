@@ -161,3 +161,46 @@ bool _listEquals(List<ScheduleItem> a, List<ScheduleItem> b) {
   }
   return true;
 }
+
+/// Thrown by [reconcileScheduleItems] when an activity the editor added clashes
+/// with one the other role saved meanwhile, so we never commit two activities
+/// in the same time slot ("only one activity per time", FR13).
+class ScheduleConflictException implements Exception {
+  const ScheduleConflictException(this.conflicting);
+
+  /// The activity that could not be added because it overlaps an existing one.
+  final ScheduleItem conflicting;
+
+  @override
+  String toString() => 'ScheduleConflictException(${conflicting.label})';
+}
+
+/// Rebase one editor's changes onto the latest server schedule so a teacher and
+/// a parent editing the same child never clobber each other (FR13 sync).
+///
+/// [baseline] is the schedule the editor opened with; [draft] is what they want
+/// to save; [server] is the freshest copy at commit time (read inside a
+/// transaction). We apply only the *delta* the editor made — items they removed
+/// are dropped from the server list, items they added are appended — so a
+/// concurrent activity saved by the other role survives. Each added item is
+/// checked for overlap against the resulting list and throws
+/// [ScheduleConflictException] if the slot is already taken.
+List<ScheduleItem> reconcileScheduleItems({
+  required List<ScheduleItem> baseline,
+  required List<ScheduleItem> draft,
+  required List<ScheduleItem> server,
+}) {
+  final removed = baseline.where((b) => !draft.contains(b));
+  final added = draft.where((d) => !baseline.contains(d));
+
+  final result = server.where((s) => !removed.contains(s)).toList();
+  for (final item in added) {
+    if (result.contains(item)) continue; // identical item already present
+    if (result.any((existing) => existing.overlaps(item))) {
+      throw ScheduleConflictException(item);
+    }
+    result.add(item);
+  }
+  result.sort((a, b) => a.minutesOfDay.compareTo(b.minutesOfDay));
+  return result;
+}

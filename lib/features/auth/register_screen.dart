@@ -9,6 +9,7 @@ import '../../core/providers/auth_provider.dart';
 import '../../core/services/auth/auth_service.dart';
 import '../../core/widgets/big_button.dart';
 import '../../core/widgets/calm_scaffold.dart';
+import '../../core/widgets/password_field.dart';
 
 /// Account creation (FR1). One calm form whose extra fields adapt to the chosen
 /// role: a student joins a class and names a parent, a parent names their child,
@@ -184,15 +185,11 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     validator: (v) => _isEmail(v) ? null : l.errEmail,
                   ),
                   const SizedBox(height: AppSpacing.md),
-                  TextFormField(
+                  PasswordField(
                     controller: _password,
-                    obscureText: true,
+                    labelText: l.passwordLabel,
                     autofillHints: const [AutofillHints.newPassword],
                     textInputAction: TextInputAction.next,
-                    decoration: InputDecoration(
-                      labelText: l.passwordLabel,
-                      prefixIcon: const Icon(Icons.lock_outline_rounded),
-                    ),
                     validator:
                         (v) =>
                             (v != null && v.length >= 6) ? null : l.errPassword,

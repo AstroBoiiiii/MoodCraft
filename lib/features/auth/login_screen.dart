@@ -10,6 +10,7 @@ import '../../core/providers/auth_provider.dart';
 import '../../core/services/auth/auth_service.dart';
 import '../../core/widgets/big_button.dart';
 import '../../core/widgets/calm_scaffold.dart';
+import '../../core/widgets/password_field.dart';
 
 /// Email/password sign-in (FR1). Successful sign-in updates the auth stream and
 /// the router redirects to the role's home — no manual navigation needed here.
@@ -95,16 +96,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                 : l.errEmail,
                   ),
                   const SizedBox(height: AppSpacing.md),
-                  TextFormField(
+                  PasswordField(
                     controller: _password,
-                    obscureText: true,
+                    labelText: l.passwordLabel,
                     autofillHints: const [AutofillHints.password],
                     textInputAction: TextInputAction.done,
                     onFieldSubmitted: (_) => _submit(),
-                    decoration: InputDecoration(
-                      labelText: l.passwordLabel,
-                      prefixIcon: const Icon(Icons.lock_outline_rounded),
-                    ),
                     validator:
                         (v) =>
                             (v != null && v.length >= 6) ? null : l.errPassword,

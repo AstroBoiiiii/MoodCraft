@@ -100,6 +100,73 @@ const Map<String, IconData> kJournalContextCatalog = {
 IconData? journalContextIcon(String? key) =>
     key == null ? null : kJournalContextCatalog[key];
 
+/// Mix-and-Match (FR6). The child drags a card onto the matching emotion. The
+/// four card types double as the four levels, ordered concrete → abstract so
+/// progression is gentle: a face is the most literal cue, a word the most
+/// abstract. [MixMatchType.values] order IS the level order.
+enum MixMatchType { face, body, situation, word }
+
+/// Root for Mix-and-Match card art. Image cards live under
+/// `<root>/<type>/<emotion>_<n>.png`; the leading `<emotion>` token encodes the
+/// correct answer, so dropping a new file in needs no code or data change
+/// (asset strategy, CLAUDE.md section 9). Folders are auto-scanned at runtime
+/// via the asset manifest — see `buildMixMatchDeck`.
+const String kMixMatchAssetRoot = 'assets/images/mixmatch';
+
+/// Folder (under [kMixMatchAssetRoot]) holding image cards for a type. `word`
+/// has no folder — those cards are text from [kMixMatchWords].
+String mixMatchTypeFolder(MixMatchType type) => switch (type) {
+  MixMatchType.face => '$kMixMatchAssetRoot/face',
+  MixMatchType.body => '$kMixMatchAssetRoot/body',
+  MixMatchType.situation => '$kMixMatchAssetRoot/situation',
+  MixMatchType.word => '$kMixMatchAssetRoot/word',
+};
+
+/// Whether a type's cards are drawn as text (vs. an image asset). Words are
+/// always text; situations fall back to text when no art has been uploaded.
+bool mixMatchTypeIsText(MixMatchType type) => type == MixMatchType.word;
+
+/// Calm, vetted word cards per emotion (FR6, `word` level). Gentle synonyms a
+/// young reader can match to the feeling. Kept here so they can be swapped or
+/// extended without touching the activity. Routed through l10n labels for the
+/// buckets; these card words are intentionally short and literal.
+const Map<Emotion, List<String>> kMixMatchWords = {
+  Emotion.happy: ['happy', 'glad', 'cheerful'],
+  Emotion.sad: ['sad', 'unhappy', 'down'],
+  Emotion.scared: ['scared', 'afraid', 'nervous'],
+  Emotion.angry: ['angry', 'cross', 'upset'],
+  Emotion.surprised: ['surprised', 'amazed', 'shocked'],
+  Emotion.neutral: ['okay', 'calm', 'fine'],
+};
+
+/// Short situation cards per emotion (FR6, `situation` level), used when no
+/// situation art has been uploaded. Each is a tiny, concrete scene a child can
+/// link to a feeling. Drop images in `mixmatch/situation/` to use art instead.
+const Map<Emotion, List<String>> kMixMatchSituations = {
+  Emotion.happy: ['Got a present', 'Playing with a friend'],
+  Emotion.sad: ['Dropped my ice cream', 'Said bye to a friend'],
+  Emotion.scared: ['Heard a loud noise', 'It is very dark'],
+  Emotion.angry: ['My tower fell down', 'Lost my turn'],
+  Emotion.surprised: ['A surprise party', 'A balloon popped'],
+  Emotion.neutral: ['Waiting in line', 'A quiet morning'],
+};
+
+/// Soft accent per student-home activity, keyed by the activity's route id. Used
+/// by `ActivityCard` to tint the icon badge + outline only — muted tones in the
+/// same calm family as `kEmotionColor`, never a harsh fill (CLAUDE.md section 4).
+const Map<String, Color> kActivityAccent = {
+  'companion': Color(0xFF5DAA9C),
+  'ar': Color(0xFF6B92B0),
+  'story': Color(0xFFE3B23C),
+  'mixmatch': Color(0xFF9385BC),
+  'quiz': Color(0xFFC58579),
+  'rewards': Color(0xFFE3B23C),
+};
+
+/// Resolve an activity [key] to its accent, falling back to a neutral tone.
+Color activityAccent(String key) =>
+    kActivityAccent[key] ?? const Color(0xFF8B97A1);
+
 /// Firestore collection names — referenced by repository implementations so the
 /// schema lives in one place (see CLAUDE.md section 7).
 class FirestoreCollections {

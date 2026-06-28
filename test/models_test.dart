@@ -39,9 +39,12 @@ void main() {
       avatar: 'avatar_01',
       teacherIds: ['t1'],
       parentIds: ['p1'],
-      sensorySettings: SensorySettings(animationIntensity: AnimationIntensity.off),
+      sensorySettings: SensorySettings(
+        animationIntensity: AnimationIntensity.off,
+      ),
       level: 3,
       stars: 12,
+      mixMatchLevel: 2,
     );
     expect(Student.fromJson(student.toJson()).toJson(), student.toJson());
   });
@@ -111,7 +114,10 @@ void main() {
       options: ['angry', 'happy'],
       feedback: 'Yes — his face is scrunched up.',
     );
-    expect(EmotionContent.fromJson(content.toJson()).toJson(), content.toJson());
+    expect(
+      EmotionContent.fromJson(content.toJson()).toJson(),
+      content.toJson(),
+    );
   });
 
   test('VisualSchedule round-trips (time-ranged items, optional icon)', () {
@@ -144,45 +150,72 @@ void main() {
     expect(restored, schedule);
   });
 
-  test('VisualSchedule.sortedItems orders by start time; minutesOfDay parses', () {
-    const schedule = VisualSchedule(
-      id: 'v1',
-      studentId: 's1',
-      items: [
-        ScheduleItem(time: '12:00', endTime: '12:30', label: 'Lunch'),
-        ScheduleItem(time: '08:30', endTime: '09:00', label: 'Arrive'),
-        ScheduleItem(time: '', endTime: '', label: 'Whenever'), // sorts last
-      ],
-      createdBy: 't1',
-    );
-    expect(
-      schedule.sortedItems.map((e) => e.label).toList(),
-      ['Arrive', 'Lunch', 'Whenever'],
-    );
-    expect(
-      const ScheduleItem(time: '08:30', endTime: '09:00', label: 'x')
-          .minutesOfDay,
-      510,
-    );
-    expect(
-      const ScheduleItem(time: '', endTime: '', label: 'x').minutesOfDay,
-      greaterThan(24 * 60),
-    );
-  });
+  test(
+    'VisualSchedule.sortedItems orders by start time; minutesOfDay parses',
+    () {
+      const schedule = VisualSchedule(
+        id: 'v1',
+        studentId: 's1',
+        items: [
+          ScheduleItem(time: '12:00', endTime: '12:30', label: 'Lunch'),
+          ScheduleItem(time: '08:30', endTime: '09:00', label: 'Arrive'),
+          ScheduleItem(time: '', endTime: '', label: 'Whenever'), // sorts last
+        ],
+        createdBy: 't1',
+      );
+      expect(schedule.sortedItems.map((e) => e.label).toList(), [
+        'Arrive',
+        'Lunch',
+        'Whenever',
+      ]);
+      expect(
+        const ScheduleItem(
+          time: '08:30',
+          endTime: '09:00',
+          label: 'x',
+        ).minutesOfDay,
+        510,
+      );
+      expect(
+        const ScheduleItem(time: '', endTime: '', label: 'x').minutesOfDay,
+        greaterThan(24 * 60),
+      );
+    },
+  );
 
-  test('ScheduleItem.overlaps detects clashes but allows touching intervals', () {
-    const a = ScheduleItem(time: '09:00', endTime: '10:00', label: 'A');
-    const overlapping =
-        ScheduleItem(time: '09:30', endTime: '10:30', label: 'B');
-    const touching = ScheduleItem(time: '10:00', endTime: '11:00', label: 'C');
-    const separate = ScheduleItem(time: '11:00', endTime: '12:00', label: 'D');
-    expect(a.overlaps(overlapping), isTrue);
-    expect(a.overlaps(touching), isFalse); // back-to-back is fine
-    expect(a.overlaps(separate), isFalse);
-  });
+  test(
+    'ScheduleItem.overlaps detects clashes but allows touching intervals',
+    () {
+      const a = ScheduleItem(time: '09:00', endTime: '10:00', label: 'A');
+      const overlapping = ScheduleItem(
+        time: '09:30',
+        endTime: '10:30',
+        label: 'B',
+      );
+      const touching = ScheduleItem(
+        time: '10:00',
+        endTime: '11:00',
+        label: 'C',
+      );
+      const separate = ScheduleItem(
+        time: '11:00',
+        endTime: '12:00',
+        label: 'D',
+      );
+      expect(a.overlaps(overlapping), isTrue);
+      expect(a.overlaps(touching), isFalse); // back-to-back is fine
+      expect(a.overlaps(separate), isFalse);
+    },
+  );
 
   test('enumFromName falls back on unknown value', () {
-    expect(enumFromName(Emotion.values, 'banana', Emotion.neutral), Emotion.neutral);
-    expect(enumFromName(Emotion.values, 'happy', Emotion.neutral), Emotion.happy);
+    expect(
+      enumFromName(Emotion.values, 'banana', Emotion.neutral),
+      Emotion.neutral,
+    );
+    expect(
+      enumFromName(Emotion.values, 'happy', Emotion.neutral),
+      Emotion.happy,
+    );
   });
 }

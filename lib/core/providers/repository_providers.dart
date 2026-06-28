@@ -267,6 +267,75 @@ final teacherConversationsProvider = StreamProvider<List<ConversationSummary>>((
   }
 });
 
+/// The class the signed-in student belongs to (resolved via their teacher), so
+/// their profile can show the class name. Null if not in a class yet.
+final studentClassProvider = FutureProvider<Classroom?>((ref) async {
+  final student = await ref.watch(activeStudentProvider.future);
+  if (student == null || student.teacherIds.isEmpty) return null;
+  final snap =
+      await FirebaseFirestore.instance
+          .collection(FirestoreCollections.classes)
+          .where('teacherId', whereIn: student.teacherIds.take(10).toList())
+          .limit(1)
+          .get();
+  if (snap.docs.isEmpty) return null;
+  final doc = snap.docs.first;
+  return Classroom.fromJson({...doc.data(), 'id': doc.id});
+});
+
+/// The signed-in student's own teacher + parent contacts, so their profile can
+/// show who they're linked to (full name, username, phone).
+final studentContactsProvider =
+    FutureProvider<({List<AppUser> teachers, List<AppUser> parents})>((
+      ref,
+    ) async {
+      final student = await ref.watch(activeStudentProvider.future);
+      if (student == null) {
+        return (teachers: <AppUser>[], parents: <AppUser>[]);
+      }
+      final userRepo = ref.read(userRepositoryProvider);
+      final teachers = await userRepo.getUsersFor(student.teacherIds);
+      final parents = await userRepo.getUsersFor(student.parentIds);
+      return (teachers: teachers, parents: parents);
+    });
+
+/// One person the teacher can start (or continue) a conversation with — a
+/// (student, parent) pair drawn from the teacher's roster. Lets the teacher
+/// message first instead of waiting for the parent to write (FR10).
+typedef TeacherMessageTarget =
+    ({
+      String studentId,
+      String studentName,
+      String parentUid,
+      String parentName,
+      String conversationId,
+    });
+
+/// All parents the signed-in teacher can message, across their linked students.
+final teacherMessageTargetsProvider =
+    FutureProvider<List<TeacherMessageTarget>>((ref) async {
+      final user = ref.watch(currentUserProvider);
+      if (user == null || user.role != UserRole.teacher) return [];
+      final students = await ref.watch(classStudentsStreamProvider.future);
+      final userRepo = ref.read(userRepositoryProvider);
+      final rows = <TeacherMessageTarget>[];
+      for (final s in students) {
+        if (s.parentIds.isEmpty) continue;
+        final parents = await userRepo.getUsersFor(s.parentIds);
+        for (final p in parents) {
+          rows.add((
+            studentId: s.id,
+            studentName: s.name,
+            parentUid: p.uid,
+            parentName: p.name,
+            conversationId: Message.buildConversationId(s.id, user.uid, p.uid),
+          ));
+        }
+      }
+      rows.sort((a, b) => a.studentName.compareTo(b.studentName));
+      return rows;
+    });
+
 /// The parent's single conversation with their child's teacher.
 /// Returns (conversationId, teacherUid, teacherName, studentId) or null.
 ///

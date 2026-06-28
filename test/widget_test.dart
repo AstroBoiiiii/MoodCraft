@@ -12,7 +12,9 @@ void main() {
     expect(find.text('New here? Create an account'), findsOneWidget);
   });
 
-  testWidgets('can open the create-account form with all roles', (tester) async {
+  testWidgets('can open the create-account form with all roles', (
+    tester,
+  ) async {
     await tester.pumpWidget(const ProviderScope(child: MoodCraftApp()));
     await tester.pumpAndSettle();
 

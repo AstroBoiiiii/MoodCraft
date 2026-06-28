@@ -137,6 +137,12 @@ class AppLocalizationsMs extends AppLocalizations {
   String get passwordLabel => 'Kata laluan';
 
   @override
+  String get showPassword => 'Show password';
+
+  @override
+  String get hidePassword => 'Hide password';
+
+  @override
   String get languageLabel => 'Bahasa';
 
   @override
@@ -189,6 +195,9 @@ class AppLocalizationsMs extends AppLocalizations {
 
   @override
   String get yourClassCode => 'Kod kelas';
+
+  @override
+  String get classLabel => 'Class';
 
   @override
   String get showCode => 'Tunjuk';
@@ -274,6 +283,15 @@ class AppLocalizationsMs extends AppLocalizations {
   String get msgNoLinkedTeacher => 'Belum ada guru dikaitkan';
 
   @override
+  String get msgNewMessage => 'New message';
+
+  @override
+  String get msgStartConversation => 'Start a conversation';
+
+  @override
+  String get msgNoParentsToMessage => 'No parents linked to your students yet';
+
+  @override
   String get msgTypeHere => 'Taip mesej…';
 
   @override
@@ -281,6 +299,15 @@ class AppLocalizationsMs extends AppLocalizations {
 
   @override
   String get msgYou => 'Anda';
+
+  @override
+  String get msgDeleteMessage => 'Delete message';
+
+  @override
+  String get msgDeleteConfirm => 'Delete this message? This can\'t be undone.';
+
+  @override
+  String get msgDeleted => 'Message deleted';
 
   @override
   String msgAboutChild(String childName) {
@@ -302,6 +329,31 @@ class AppLocalizationsMs extends AppLocalizations {
   String ageYearsOld(int age) {
     return '$age tahun';
   }
+
+  @override
+  String get studentDelete => 'Delete student';
+
+  @override
+  String studentDeleteConfirm(String name) {
+    return 'Remove $name from your class? This can\'t be undone.';
+  }
+
+  @override
+  String get studentDeleted => 'Student removed';
+
+  @override
+  String get parentRemove => 'Remove parent';
+
+  @override
+  String parentRemoveConfirm(String name) {
+    return 'Remove $name as a parent of this student?';
+  }
+
+  @override
+  String get actionDelete => 'Delete';
+
+  @override
+  String get actionRemove => 'Remove';
 
   @override
   String get scheduleTitle => 'Today\'s schedule';
@@ -355,6 +407,12 @@ class AppLocalizationsMs extends AppLocalizations {
   String get journalContextPrompt => 'Where are you? (optional)';
 
   @override
+  String get journalNotePrompt => 'Want to say more? (optional)';
+
+  @override
+  String get journalNoteHint => 'Write a little about how you feel';
+
+  @override
   String get journalSave => 'Save how I feel';
 
   @override
@@ -362,6 +420,15 @@ class AppLocalizationsMs extends AppLocalizations {
 
   @override
   String get journalSaveError => 'Couldn\'t save — please try again';
+
+  @override
+  String get journalDeleteTitle => 'Remove this feeling?';
+
+  @override
+  String get journalDeleteConfirm => 'This will take it out of your journal.';
+
+  @override
+  String get journalDeleted => 'Removed from your journal.';
 
   @override
   String get journalEmpty => 'No feelings logged yet';
@@ -379,10 +446,10 @@ class AppLocalizationsMs extends AppLocalizations {
   String get journalYesterday => 'Yesterday';
 
   @override
-  String get journalNoteTitle => 'Add a note';
+  String get journalCommentTitle => 'Add a comment';
 
   @override
-  String get journalNoteHint => 'A short note about this feeling (optional)';
+  String get journalCommentHint => 'A short comment about this feeling (optional)';
 
   @override
   String get emotionHappy => 'Happy';
@@ -419,4 +486,78 @@ class AppLocalizationsMs extends AppLocalizations {
 
   @override
   String get journalCtxFriends => 'Friends';
+
+  @override
+  String get homeActivities => 'Activities';
+
+  @override
+  String get previewDashboard => 'Your students\' progress and difficulty areas will appear here.';
+
+  @override
+  String get previewClassroom => 'Project an activity to the whole class from here.';
+
+  @override
+  String get previewReports => 'Gentle progress reports you can share will appear here.';
+
+  @override
+  String get previewRewards => 'Stars and badges will appear here as you play.';
+
+  @override
+  String get previewCompanion => 'A friendly companion will help you name feelings here.';
+
+  @override
+  String get previewStory => 'Gentle stories that pause to ask how everyone feels.';
+
+  @override
+  String get previewMatch => 'Match the faces to feelings here.';
+
+  @override
+  String get previewQuiz => 'A calm feelings quiz — no timer, no score.';
+
+  @override
+  String get accountSection => 'Account';
+
+  @override
+  String get detailsSection => 'Details';
+
+  @override
+  String get mixMatchIntro => 'Pick a way to match feelings.';
+
+  @override
+  String get mixMatchLocked => 'Finish the level before this one to open it.';
+
+  @override
+  String mixMatchLevelN(int n) {
+    return 'Level $n';
+  }
+
+  @override
+  String get mixMatchTypeFace => 'Faces';
+
+  @override
+  String get mixMatchTypeBody => 'Bodies';
+
+  @override
+  String get mixMatchTypeSituation => 'Situations';
+
+  @override
+  String get mixMatchTypeWord => 'Words';
+
+  @override
+  String get mixMatchPrompt => 'Drag it to the right feeling.';
+
+  @override
+  String get mixMatchTryAgain => 'That\'s okay — try another feeling.';
+
+  @override
+  String get mixMatchDone => 'All done!';
+
+  @override
+  String get mixMatchDoneBody => 'Great matching. You can play again any time.';
+
+  @override
+  String get mixMatchDoneButton => 'Done';
+
+  @override
+  String get mixMatchClassroomHint => 'Pick a level to play on the class screen.';
 }

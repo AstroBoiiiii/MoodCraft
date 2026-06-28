@@ -347,6 +347,18 @@ abstract class AppLocalizations {
   /// **'Password'**
   String get passwordLabel;
 
+  /// No description provided for @showPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Show password'**
+  String get showPassword;
+
+  /// No description provided for @hidePassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide password'**
+  String get hidePassword;
+
   /// No description provided for @languageLabel.
   ///
   /// In en, this message translates to:
@@ -454,6 +466,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Class code'**
   String get yourClassCode;
+
+  /// No description provided for @classLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Class'**
+  String get classLabel;
 
   /// No description provided for @showCode.
   ///
@@ -617,6 +635,24 @@ abstract class AppLocalizations {
   /// **'No teacher linked yet'**
   String get msgNoLinkedTeacher;
 
+  /// No description provided for @msgNewMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'New message'**
+  String get msgNewMessage;
+
+  /// No description provided for @msgStartConversation.
+  ///
+  /// In en, this message translates to:
+  /// **'Start a conversation'**
+  String get msgStartConversation;
+
+  /// No description provided for @msgNoParentsToMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'No parents linked to your students yet'**
+  String get msgNoParentsToMessage;
+
   /// No description provided for @msgTypeHere.
   ///
   /// In en, this message translates to:
@@ -634,6 +670,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'You'**
   String get msgYou;
+
+  /// No description provided for @msgDeleteMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete message'**
+  String get msgDeleteMessage;
+
+  /// No description provided for @msgDeleteConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this message? This can\'t be undone.'**
+  String get msgDeleteConfirm;
+
+  /// No description provided for @msgDeleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Message deleted'**
+  String get msgDeleted;
 
   /// No description provided for @msgAboutChild.
   ///
@@ -664,6 +718,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{age} years old'**
   String ageYearsOld(int age);
+
+  /// No description provided for @studentDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete student'**
+  String get studentDelete;
+
+  /// No description provided for @studentDeleteConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove {name} from your class? This can\'t be undone.'**
+  String studentDeleteConfirm(String name);
+
+  /// No description provided for @studentDeleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Student removed'**
+  String get studentDeleted;
+
+  /// No description provided for @parentRemove.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove parent'**
+  String get parentRemove;
+
+  /// No description provided for @parentRemoveConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove {name} as a parent of this student?'**
+  String parentRemoveConfirm(String name);
+
+  /// No description provided for @actionDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get actionDelete;
+
+  /// No description provided for @actionRemove.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove'**
+  String get actionRemove;
 
   /// No description provided for @scheduleTitle.
   ///
@@ -767,6 +863,18 @@ abstract class AppLocalizations {
   /// **'Where are you? (optional)'**
   String get journalContextPrompt;
 
+  /// No description provided for @journalNotePrompt.
+  ///
+  /// In en, this message translates to:
+  /// **'Want to say more? (optional)'**
+  String get journalNotePrompt;
+
+  /// No description provided for @journalNoteHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Write a little about how you feel'**
+  String get journalNoteHint;
+
   /// No description provided for @journalSave.
   ///
   /// In en, this message translates to:
@@ -784,6 +892,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Couldn\'t save — please try again'**
   String get journalSaveError;
+
+  /// No description provided for @journalDeleteTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove this feeling?'**
+  String get journalDeleteTitle;
+
+  /// No description provided for @journalDeleteConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'This will take it out of your journal.'**
+  String get journalDeleteConfirm;
+
+  /// No description provided for @journalDeleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Removed from your journal.'**
+  String get journalDeleted;
 
   /// No description provided for @journalEmpty.
   ///
@@ -815,17 +941,17 @@ abstract class AppLocalizations {
   /// **'Yesterday'**
   String get journalYesterday;
 
-  /// No description provided for @journalNoteTitle.
+  /// No description provided for @journalCommentTitle.
   ///
   /// In en, this message translates to:
-  /// **'Add a note'**
-  String get journalNoteTitle;
+  /// **'Add a comment'**
+  String get journalCommentTitle;
 
-  /// No description provided for @journalNoteHint.
+  /// No description provided for @journalCommentHint.
   ///
   /// In en, this message translates to:
-  /// **'A short note about this feeling (optional)'**
-  String get journalNoteHint;
+  /// **'A short comment about this feeling (optional)'**
+  String get journalCommentHint;
 
   /// No description provided for @emotionHappy.
   ///
@@ -898,6 +1024,150 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Friends'**
   String get journalCtxFriends;
+
+  /// No description provided for @homeActivities.
+  ///
+  /// In en, this message translates to:
+  /// **'Activities'**
+  String get homeActivities;
+
+  /// No description provided for @previewDashboard.
+  ///
+  /// In en, this message translates to:
+  /// **'Your students\' progress and difficulty areas will appear here.'**
+  String get previewDashboard;
+
+  /// No description provided for @previewClassroom.
+  ///
+  /// In en, this message translates to:
+  /// **'Project an activity to the whole class from here.'**
+  String get previewClassroom;
+
+  /// No description provided for @previewReports.
+  ///
+  /// In en, this message translates to:
+  /// **'Gentle progress reports you can share will appear here.'**
+  String get previewReports;
+
+  /// No description provided for @previewRewards.
+  ///
+  /// In en, this message translates to:
+  /// **'Stars and badges will appear here as you play.'**
+  String get previewRewards;
+
+  /// No description provided for @previewCompanion.
+  ///
+  /// In en, this message translates to:
+  /// **'A friendly companion will help you name feelings here.'**
+  String get previewCompanion;
+
+  /// No description provided for @previewStory.
+  ///
+  /// In en, this message translates to:
+  /// **'Gentle stories that pause to ask how everyone feels.'**
+  String get previewStory;
+
+  /// No description provided for @previewMatch.
+  ///
+  /// In en, this message translates to:
+  /// **'Match the faces to feelings here.'**
+  String get previewMatch;
+
+  /// No description provided for @previewQuiz.
+  ///
+  /// In en, this message translates to:
+  /// **'A calm feelings quiz — no timer, no score.'**
+  String get previewQuiz;
+
+  /// No description provided for @accountSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Account'**
+  String get accountSection;
+
+  /// No description provided for @detailsSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Details'**
+  String get detailsSection;
+
+  /// No description provided for @mixMatchIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick a way to match feelings.'**
+  String get mixMatchIntro;
+
+  /// No description provided for @mixMatchLocked.
+  ///
+  /// In en, this message translates to:
+  /// **'Finish the level before this one to open it.'**
+  String get mixMatchLocked;
+
+  /// No description provided for @mixMatchLevelN.
+  ///
+  /// In en, this message translates to:
+  /// **'Level {n}'**
+  String mixMatchLevelN(int n);
+
+  /// No description provided for @mixMatchTypeFace.
+  ///
+  /// In en, this message translates to:
+  /// **'Faces'**
+  String get mixMatchTypeFace;
+
+  /// No description provided for @mixMatchTypeBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Bodies'**
+  String get mixMatchTypeBody;
+
+  /// No description provided for @mixMatchTypeSituation.
+  ///
+  /// In en, this message translates to:
+  /// **'Situations'**
+  String get mixMatchTypeSituation;
+
+  /// No description provided for @mixMatchTypeWord.
+  ///
+  /// In en, this message translates to:
+  /// **'Words'**
+  String get mixMatchTypeWord;
+
+  /// No description provided for @mixMatchPrompt.
+  ///
+  /// In en, this message translates to:
+  /// **'Drag it to the right feeling.'**
+  String get mixMatchPrompt;
+
+  /// No description provided for @mixMatchTryAgain.
+  ///
+  /// In en, this message translates to:
+  /// **'That\'s okay — try another feeling.'**
+  String get mixMatchTryAgain;
+
+  /// No description provided for @mixMatchDone.
+  ///
+  /// In en, this message translates to:
+  /// **'All done!'**
+  String get mixMatchDone;
+
+  /// No description provided for @mixMatchDoneBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Great matching. You can play again any time.'**
+  String get mixMatchDoneBody;
+
+  /// No description provided for @mixMatchDoneButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get mixMatchDoneButton;
+
+  /// No description provided for @mixMatchClassroomHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick a level to play on the class screen.'**
+  String get mixMatchClassroomHint;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

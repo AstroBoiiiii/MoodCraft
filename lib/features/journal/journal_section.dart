@@ -7,6 +7,7 @@ import '../../app/theme/tokens.dart';
 import '../../core/constants/app_constants.dart';
 import '../../core/models/enums.dart';
 import '../../core/models/journal_entry.dart';
+import '../../core/providers/auth_provider.dart';
 import '../../core/providers/repository_providers.dart';
 import '../../core/widgets/narrated_text.dart';
 
@@ -35,7 +36,14 @@ class JournalLogger extends ConsumerStatefulWidget {
 class _JournalLoggerState extends ConsumerState<JournalLogger> {
   Emotion? _emotion;
   String? _context; // null = no place chosen (optional)
+  final _noteController = TextEditingController();
   bool _saving = false;
+
+  @override
+  void dispose() {
+    _noteController.dispose();
+    super.dispose();
+  }
 
   Future<void> _save() async {
     final emotion = _emotion;
@@ -43,6 +51,7 @@ class _JournalLoggerState extends ConsumerState<JournalLogger> {
     setState(() => _saving = true);
     final l = AppLocalizations.of(context);
     final messenger = ScaffoldMessenger.of(context);
+    final note = _noteController.text.trim();
     try {
       await ref
           .read(journalRepositoryProvider)
@@ -52,6 +61,7 @@ class _JournalLoggerState extends ConsumerState<JournalLogger> {
               studentId: widget.studentId,
               emotionIcon: emotion,
               contextIcon: _context,
+              note: note.isEmpty ? null : note,
               timestamp: DateTime.now(),
             ),
           );
@@ -61,6 +71,7 @@ class _JournalLoggerState extends ConsumerState<JournalLogger> {
       setState(() {
         _emotion = null;
         _context = null;
+        _noteController.clear();
         _saving = false;
       });
       messenger.showSnackBar(SnackBar(content: Text(l.journalSaved)));
@@ -114,6 +125,18 @@ class _JournalLoggerState extends ConsumerState<JournalLogger> {
           ],
         ),
         const SizedBox(height: AppSpacing.lg),
+        Text(l.journalNotePrompt, style: theme.textTheme.labelLarge),
+        const SizedBox(height: AppSpacing.sm),
+        TextField(
+          controller: _noteController,
+          maxLines: 3,
+          textCapitalization: TextCapitalization.sentences,
+          decoration: InputDecoration(
+            hintText: l.journalNoteHint,
+            border: const OutlineInputBorder(),
+          ),
+        ),
+        const SizedBox(height: AppSpacing.lg),
         SizedBox(
           width: double.infinity,
           child: ConstrainedBox(
@@ -140,24 +163,24 @@ class _JournalLoggerState extends ConsumerState<JournalLogger> {
 }
 
 /// Newest-first history of a student's feelings. Shared by the child's own
-/// journal tab (read-only) and the teacher/parent child-detail screens. Pass
-/// [canAnnotate] true to let a teacher/parent attach a short note to an entry.
+/// journal tab and the teacher/parent child-detail screens. Any signed-in role
+/// (teacher, parent, or — optionally — the child) can leave one role-labelled
+/// comment per entry; comments are shown distinctly ("Teacher: …", "Parent: …").
 class JournalHistorySection extends ConsumerWidget {
   const JournalHistorySection({
     required this.studentId,
-    this.canAnnotate = false,
     this.showTitle = true,
     super.key,
   });
 
   final String studentId;
-  final bool canAnnotate;
   final bool showTitle;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l = AppLocalizations.of(context);
     final theme = Theme.of(context);
+    final user = ref.watch(currentUserProvider);
     final entriesAsync = ref.watch(studentJournalProvider(studentId));
 
     return Column(
@@ -201,9 +224,16 @@ class JournalHistorySection extends ConsumerWidget {
                 for (final entry in entries)
                   _JournalEntryTile(
                     entry: entry,
+                    currentRole: user?.role,
                     onAnnotate:
-                        canAnnotate
-                            ? () => _editNote(context, ref, entry)
+                        user == null
+                            ? null
+                            : () => _editComment(context, ref, entry, user),
+                    // The child can remove their own entries; it's their
+                    // journal. Teacher/parent keep their read + comment view.
+                    onDelete:
+                        user?.role == UserRole.student
+                            ? () => _confirmDelete(context, ref, entry)
                             : null,
                   ),
               ],
@@ -214,29 +244,42 @@ class JournalHistorySection extends ConsumerWidget {
     );
   }
 
-  Future<void> _editNote(
+  Future<void> _editComment(
     BuildContext context,
     WidgetRef ref,
     JournalEntry entry,
+    dynamic user,
   ) async {
     final l = AppLocalizations.of(context);
-    final controller = TextEditingController(text: entry.note ?? '');
+    // Each role edits only its own comment (one per role).
+    final existing = entry.commentBy(user.role);
+    final controller = TextEditingController(text: existing?.text ?? '');
     final text = await showDialog<String>(
       context: context,
       builder:
           (ctx) => AlertDialog(
-            title: Text(l.journalNoteTitle),
+            title: Text(l.journalCommentTitle),
             content: TextField(
               controller: controller,
               autofocus: true,
               maxLines: 3,
               textCapitalization: TextCapitalization.sentences,
               decoration: InputDecoration(
-                hintText: l.journalNoteHint,
+                hintText: l.journalCommentHint,
                 border: const OutlineInputBorder(),
               ),
             ),
             actions: [
+              // Only when a comment already exists — clears just this role's
+              // comment (passing an empty string through withComment below).
+              if (existing != null)
+                TextButton(
+                  style: TextButton.styleFrom(
+                    foregroundColor: Theme.of(ctx).colorScheme.error,
+                  ),
+                  onPressed: () => Navigator.pop(ctx, ''),
+                  child: Text(l.actionDelete),
+                ),
               TextButton(
                 onPressed: () => Navigator.pop(ctx),
                 child: Text(l.cancelEdit),
@@ -251,12 +294,69 @@ class JournalHistorySection extends ConsumerWidget {
     controller.dispose();
     if (text == null) return; // cancelled
     // The journal repo writes by document id, so re-adding the edited entry
-    // updates it in place (the rules allow a linked teacher/parent to update).
+    // updates it in place. withComment replaces just this role's comment (an
+    // empty text clears it), leaving the other roles' comments untouched.
     await ref
         .read(journalRepositoryProvider)
-        .add(entry.copyWith(note: text.isEmpty ? null : text));
+        .add(
+          entry.withComment(
+            JournalComment(
+              authorUid: user.uid,
+              authorRole: user.role,
+              authorName: user.name,
+              text: text,
+              timestamp: DateTime.now(),
+            ),
+          ),
+        );
+  }
+
+  /// Removes a journal entry after a calm confirm. Reversible in spirit — the
+  /// child simply chooses to take a feeling back; no scolding, no failure tone.
+  Future<void> _confirmDelete(
+    BuildContext context,
+    WidgetRef ref,
+    JournalEntry entry,
+  ) async {
+    final l = AppLocalizations.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder:
+          (ctx) => AlertDialog(
+            title: Text(l.journalDeleteTitle),
+            content: Text(l.journalDeleteConfirm),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx, false),
+                child: Text(l.cancelEdit),
+              ),
+              FilledButton(
+                style: FilledButton.styleFrom(
+                  backgroundColor: Theme.of(ctx).colorScheme.error,
+                ),
+                onPressed: () => Navigator.pop(ctx, true),
+                child: Text(l.actionDelete),
+              ),
+            ],
+          ),
+    );
+    if (confirmed != true) return;
+    try {
+      await ref.read(journalRepositoryProvider).delete(entry.id);
+      messenger.showSnackBar(SnackBar(content: Text(l.journalDeleted)));
+    } catch (_) {
+      messenger.showSnackBar(SnackBar(content: Text(l.journalSaveError)));
+    }
   }
 }
+
+/// Friendly role label for a journal comment author.
+String roleLabel(UserRole role, AppLocalizations l) => switch (role) {
+  UserRole.student => l.roleStudent,
+  UserRole.teacher => l.roleTeacher,
+  UserRole.parent => l.roleParent,
+};
 
 /// Friendly emotion label (kept gentle: neutral reads as "Okay", not "Neutral").
 String emotionLabel(Emotion emotion, AppLocalizations l) => switch (emotion) {
@@ -402,10 +502,23 @@ class _ContextChoice extends StatelessWidget {
 }
 
 class _JournalEntryTile extends StatelessWidget {
-  const _JournalEntryTile({required this.entry, this.onAnnotate});
+  const _JournalEntryTile({
+    required this.entry,
+    this.currentRole,
+    this.onAnnotate,
+    this.onDelete,
+  });
 
   final JournalEntry entry;
+
+  /// Role of the signed-in viewer, so the comment button reads "add" vs "edit"
+  /// for their own comment. Null = nobody signed in (read-only).
+  final UserRole? currentRole;
   final VoidCallback? onAnnotate;
+
+  /// Provided only when the viewer may delete this entry (the student's own
+  /// journal). Null hides the delete affordance.
+  final VoidCallback? onDelete;
 
   @override
   Widget build(BuildContext context) {
@@ -413,10 +526,19 @@ class _JournalEntryTile extends StatelessWidget {
     final l = AppLocalizations.of(context);
     final color = kEmotionColor[entry.emotionIcon] ?? theme.colorScheme.primary;
     final contextIcon = journalContextIcon(entry.contextIcon);
+    // Comments oldest-first so the conversation reads top to bottom.
+    final comments =
+        entry.comments.toList()
+          ..sort((a, b) => a.timestamp.compareTo(b.timestamp));
+    final hasOwnComment =
+        currentRole != null && entry.commentBy(currentRole!) != null;
 
     return Card(
       margin: const EdgeInsets.only(bottom: AppSpacing.sm),
       child: ListTile(
+        isThreeLine:
+            comments.isNotEmpty ||
+            (entry.note != null && entry.note!.trim().isNotEmpty),
         leading: CircleAvatar(
           backgroundColor: color.withValues(alpha: 0.18),
           child: Icon(kEmotionIcon[entry.emotionIcon], color: color),
@@ -448,29 +570,63 @@ class _JournalEntryTile extends StatelessWidget {
                 ),
               ],
             ),
-            if ((entry.note ?? '').isNotEmpty)
+            if (entry.note != null && entry.note!.trim().isNotEmpty)
               Padding(
                 padding: const EdgeInsets.only(top: AppSpacing.xs),
-                child: Text(
-                  entry.note!,
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    fontStyle: FontStyle.italic,
+                child: Text(entry.note!, style: theme.textTheme.bodyMedium),
+              ),
+            for (final c in comments)
+              Padding(
+                padding: const EdgeInsets.only(top: AppSpacing.xs),
+                child: RichText(
+                  text: TextSpan(
+                    style: theme.textTheme.bodyMedium,
+                    children: [
+                      TextSpan(
+                        text: '${roleLabel(c.authorRole, l)}: ',
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          fontWeight: FontWeight.w600,
+                          color: theme.colorScheme.primary,
+                        ),
+                      ),
+                      TextSpan(
+                        text: c.text,
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          fontStyle: FontStyle.italic,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
           ],
         ),
         trailing:
-            onAnnotate == null
+            (onAnnotate == null && onDelete == null)
                 ? null
-                : IconButton(
-                  tooltip: l.journalNoteTitle,
-                  icon: Icon(
-                    (entry.note ?? '').isEmpty
-                        ? Icons.note_add_outlined
-                        : Icons.edit_note_rounded,
-                  ),
-                  onPressed: onAnnotate,
+                : Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (onAnnotate != null)
+                      IconButton(
+                        tooltip: l.journalCommentTitle,
+                        icon: Icon(
+                          hasOwnComment
+                              ? Icons.edit_note_rounded
+                              : Icons.add_comment_outlined,
+                        ),
+                        onPressed: onAnnotate,
+                      ),
+                    if (onDelete != null)
+                      IconButton(
+                        tooltip: l.journalDeleteTitle,
+                        icon: Icon(
+                          Icons.delete_outline_rounded,
+                          color: theme.colorScheme.error,
+                        ),
+                        onPressed: onDelete,
+                      ),
+                  ],
                 ),
       ),
     );

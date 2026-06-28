@@ -8,7 +8,11 @@ import 'package:moodcraft/core/models/enums.dart';
 void main() {
   test('every Emotion has a journal icon and colour', () {
     for (final emotion in Emotion.values) {
-      expect(kEmotionIcon[emotion], isNotNull, reason: 'icon missing: $emotion');
+      expect(
+        kEmotionIcon[emotion],
+        isNotNull,
+        reason: 'icon missing: $emotion',
+      );
       expect(
         kEmotionColor[emotion],
         isNotNull,

@@ -38,6 +38,9 @@ class _StudentScheduleSectionState
     extends ConsumerState<StudentScheduleSection> {
   bool _editing = false;
   List<ScheduleItem> _draft = [];
+  // The server schedule captured when editing started, so _confirm can rebase
+  // this role's add/remove delta onto the latest copy instead of overwriting.
+  List<ScheduleItem> _baseline = [];
   TimeOfDay? _pickedTime;
   TimeOfDay? _pickedEndTime;
   String? _pickedIcon; // null = no picture
@@ -63,7 +66,8 @@ class _StudentScheduleSectionState
 
   void _startEdit(VisualSchedule? current) {
     setState(() {
-      _draft = List<ScheduleItem>.from(current?.sortedItems ?? const []);
+      _baseline = List<ScheduleItem>.from(current?.sortedItems ?? const []);
+      _draft = List<ScheduleItem>.from(_baseline);
       _pickedTime = null;
       _pickedEndTime = null;
       _pickedIcon = null;
@@ -76,6 +80,7 @@ class _StudentScheduleSectionState
     setState(() {
       _editing = false;
       _draft = [];
+      _baseline = [];
       _labelController.clear();
     });
   }
@@ -142,23 +147,30 @@ class _StudentScheduleSectionState
     setState(() => _saving = true);
     final uid = ref.read(currentUserProvider)?.uid ?? '';
     try {
+      // Rebase this role's changes onto the latest server schedule (transaction)
+      // so a teacher/parent editing the same child don't overwrite each other,
+      // and a slot taken meanwhile is rejected rather than double-booked.
       await ref
           .read(visualScheduleRepositoryProvider)
-          .upsert(
-            VisualSchedule(
-              id: widget.studentId,
-              studentId: widget.studentId,
-              createdBy: uid,
-              items: _draft,
-            ),
+          .reconcile(
+            studentId: widget.studentId,
+            createdBy: uid,
+            baseline: _baseline,
+            draft: _draft,
           );
       if (!mounted) return;
       setState(() {
         _saving = false;
         _editing = false;
         _draft = [];
+        _baseline = [];
         _labelController.clear();
       });
+    } on ScheduleConflictException {
+      if (!mounted) return;
+      setState(() => _saving = false);
+      // Keep the editor open so the user can adjust the clashing time.
+      _showError(AppLocalizations.of(context).scheduleClashError);
     } catch (_) {
       if (!mounted) return;
       setState(() => _saving = false);
@@ -239,22 +251,10 @@ class _StudentScheduleSectionState
       );
     }
 
-    // Now/next derived from the device clock. "current" is the activity whose
-    // [start,end) interval contains now; "next" is the first activity still to
-    // start. Untimed items (minutesOfDay > 24h) are never highlighted.
-    final nowMinutes = TimeOfDay.now().hour * 60 + TimeOfDay.now().minute;
-    int currentIndex = -1;
-    int nextIndex = -1;
-    for (var i = 0; i < items.length; i++) {
-      final start = items[i].minutesOfDay;
-      if (start > 24 * 60) continue;
-      final end = items[i].endMinutesOfDay;
-      if (start <= nowMinutes && nowMinutes < end) {
-        currentIndex = i;
-      } else if (start > nowMinutes && nextIndex == -1) {
-        nextIndex = i;
-      }
-    }
+    // Now/next derived from the device clock (shared with [ScheduleNowNextCard]).
+    final nn = resolveNowNext(items);
+    final currentIndex = nn.current;
+    final nextIndex = nn.next;
 
     return Column(
       children: [
@@ -406,6 +406,146 @@ class _StudentScheduleSectionState
           ],
         ),
       ],
+    );
+  }
+}
+
+/// Index of the activity happening now and the first one still to come, derived
+/// from the device clock. -1 when none. Untimed items (minutesOfDay > 24h) are
+/// ignored. Shared by the full schedule view and the home [ScheduleNowNextCard].
+({int current, int next}) resolveNowNext(List<ScheduleItem> items) {
+  final nowMinutes = TimeOfDay.now().hour * 60 + TimeOfDay.now().minute;
+  var current = -1;
+  var next = -1;
+  for (var i = 0; i < items.length; i++) {
+    final start = items[i].minutesOfDay;
+    if (start > 24 * 60) continue;
+    final end = items[i].endMinutesOfDay;
+    if (start <= nowMinutes && nowMinutes < end) {
+      current = i;
+    } else if (start > nowMinutes && next == -1) {
+      next = i;
+    }
+  }
+  return (current: current, next: next);
+}
+
+/// Compact "happening now / coming next" summary of a child's routine (FR13),
+/// shown at the top of the student home. Taps through to the full schedule.
+/// Renders nothing when there is no routine or nothing is current/upcoming, so
+/// the home stays calm and uncluttered.
+class ScheduleNowNextCard extends ConsumerWidget {
+  const ScheduleNowNextCard({required this.studentId, this.onTap, super.key});
+
+  final String studentId;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l = AppLocalizations.of(context);
+    final theme = Theme.of(context);
+    final items =
+        ref.watch(studentScheduleProvider(studentId)).value?.sortedItems ??
+        const [];
+    if (items.isEmpty) return const SizedBox.shrink();
+    final nn = resolveNowNext(items);
+    if (nn.current == -1 && nn.next == -1) return const SizedBox.shrink();
+    final onContainer = theme.colorScheme.onPrimaryContainer;
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppSpacing.lg),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(AppRadii.md),
+        child: Ink(
+          decoration: BoxDecoration(
+            color: theme.colorScheme.primaryContainer,
+            borderRadius: BorderRadius.circular(AppRadii.md),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(AppSpacing.md),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Icon(
+                      Icons.view_agenda_rounded,
+                      size: 20,
+                      color: onContainer,
+                    ),
+                    const SizedBox(width: AppSpacing.sm),
+                    Expanded(
+                      child: Text(
+                        l.scheduleTitle,
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          color: onContainer,
+                        ),
+                      ),
+                    ),
+                    if (onTap != null)
+                      Icon(Icons.chevron_right_rounded, color: onContainer),
+                  ],
+                ),
+                const SizedBox(height: AppSpacing.sm),
+                if (nn.current != -1)
+                  _NowNextLine(
+                    label: l.scheduleNow,
+                    item: items[nn.current],
+                    onContainer: onContainer,
+                  ),
+                if (nn.next != -1) ...[
+                  if (nn.current != -1) const SizedBox(height: AppSpacing.xs),
+                  _NowNextLine(
+                    label: l.scheduleNext,
+                    item: items[nn.next],
+                    onContainer: onContainer,
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _NowNextLine extends StatelessWidget {
+  const _NowNextLine({
+    required this.label,
+    required this.item,
+    required this.onContainer,
+  });
+
+  final String label;
+  final ScheduleItem item;
+  final Color onContainer;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final hasIcon = item.iconKey?.isNotEmpty ?? false;
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
+      child: Row(
+        children: [
+          _StatusChip(label: label),
+          const SizedBox(width: AppSpacing.sm),
+          if (hasIcon) ...[
+            Icon(scheduleIcon(item.iconKey!), size: 22, color: onContainer),
+            const SizedBox(width: AppSpacing.xs),
+          ],
+          Expanded(
+            child: Text(
+              item.label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: theme.textTheme.bodyLarge?.copyWith(color: onContainer),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

@@ -14,6 +14,7 @@ class Student {
     this.sensorySettings = SensorySettings.defaults,
     this.level = 1,
     this.stars = 0,
+    this.mixMatchLevel = 0,
   });
 
   final String id;
@@ -30,6 +31,12 @@ class Student {
   final int level;
   final int stars;
 
+  /// Furthest unlocked Mix-and-Match level (FR6): highest [MixMatchType] index
+  /// the child may play. 0 = only the first level (Face) is open; finishing a
+  /// level bumps this so the next unlocks. Levels stay replayable; never a fail
+  /// gate.
+  final int mixMatchLevel;
+
   Student copyWith({
     String? id,
     String? name,
@@ -40,6 +47,7 @@ class Student {
     SensorySettings? sensorySettings,
     int? level,
     int? stars,
+    int? mixMatchLevel,
   }) {
     return Student(
       id: id ?? this.id,
@@ -51,6 +59,7 @@ class Student {
       sensorySettings: sensorySettings ?? this.sensorySettings,
       level: level ?? this.level,
       stars: stars ?? this.stars,
+      mixMatchLevel: mixMatchLevel ?? this.mixMatchLevel,
     );
   }
 
@@ -64,6 +73,7 @@ class Student {
     'sensorySettings': sensorySettings.toJson(),
     'level': level,
     'stars': stars,
+    'mixMatchLevel': mixMatchLevel,
   };
 
   factory Student.fromJson(Map<String, dynamic> json) => Student(
@@ -78,5 +88,6 @@ class Student {
     ),
     level: (json['level'] as num?)?.toInt() ?? 1,
     stars: (json['stars'] as num?)?.toInt() ?? 0,
+    mixMatchLevel: (json['mixMatchLevel'] as num?)?.toInt() ?? 0,
   );
 }

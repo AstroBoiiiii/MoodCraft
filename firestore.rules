@@ -102,12 +102,16 @@ service cloud.firestore {
       allow update, delete: if false;
     }
 
-    // Journal entries — linked users read and create.
+    // Journal entries — linked users read and create. Any linked user may
+    // update (to add/edit their role-labelled comment). Only the child whose
+    // journal it is may delete an entry (their own logged feeling); teacher and
+    // parent keep a read + comment view.
     match /journalEntries/{id} {
       allow read: if isLinkedTo(resource.data.studentId);
       allow create: if isLinkedTo(request.resource.data.studentId);
       allow update: if isLinkedTo(resource.data.studentId);
-      allow delete: if false;
+      allow delete: if isLinkedTo(resource.data.studentId)
+        && role() == 'student';
     }
 
     // Messages — teacher/parent only (never students); sender or recipient.
@@ -119,7 +123,8 @@ service cloud.firestore {
         && request.resource.data.fromUid == request.auth.uid;
       allow update: if isSignedIn()
         && resource.data.toUid == request.auth.uid; // mark read
-      allow delete: if false;
+      allow delete: if isSignedIn()
+        && resource.data.fromUid == request.auth.uid; // sender removes own message
     }
 
     // AI observation reports — linked users read; teachers create.

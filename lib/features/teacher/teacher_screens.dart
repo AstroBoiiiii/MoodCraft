@@ -4,30 +4,84 @@ import 'package:go_router/go_router.dart';
 import 'package:moodcraft/l10n/app_localizations.dart';
 
 import '../../app/theme/tokens.dart';
+import '../../core/providers/auth_provider.dart';
 import '../../core/providers/repository_providers.dart';
 import '../../core/widgets/calm_scaffold.dart';
+import '../../core/widgets/empty_state.dart';
+import '../../core/widgets/initial_avatar.dart';
 import '../../core/widgets/placeholder_screen.dart';
+import '../../core/widgets/section_card.dart';
 import '../../core/widgets/sensory_settings_sheet.dart';
+import '../mix_match/mix_match_screen.dart';
 
 /// Teacher dashboard — the landing screen for the web portal. Carries the
 /// account actions (sensory settings + sign out).
 class TeacherDashboardScreen extends ConsumerWidget {
   const TeacherDashboardScreen({super.key});
   @override
-  Widget build(BuildContext context, WidgetRef ref) => PlaceholderScreen(
-    title: AppLocalizations.of(context).navDashboard,
-    icon: Icons.dashboard_rounded,
-    actions: accountActions(context, ref),
-  );
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l = AppLocalizations.of(context);
+    return PlaceholderScreen(
+      title: l.navDashboard,
+      icon: Icons.dashboard_rounded,
+      message: l.previewDashboard,
+      actions: accountActions(context, ref),
+    );
+  }
 }
 
+/// The teacher's classroom-projection layer (web + mobile). Launches an
+/// activity to play on the projected screen for the whole class. Mix-and-Match
+/// (FR6) runs here in "classroom mode": every level is open and no per-child
+/// session is recorded — it's a group demo, not one student's record.
 class TeacherProfilesScreen extends StatelessWidget {
   const TeacherProfilesScreen({super.key});
   @override
-  Widget build(BuildContext context) => PlaceholderScreen(
-    title: AppLocalizations.of(context).navClassroom,
-    icon: Icons.cast_for_education_rounded,
-  );
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
+    final theme = Theme.of(context);
+    return CalmScaffold(
+      title: l.navClassroom,
+      icon: Icons.cast_for_education_rounded,
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 560),
+          child: ListView(
+            children: [
+              Text(l.previewClassroom, style: theme.textTheme.bodyLarge),
+              const SizedBox(height: AppSpacing.lg),
+              SectionCard(
+                title: l.navMatch,
+                icon: Icons.extension_rounded,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: AppSpacing.md),
+                      child: Text(
+                        l.mixMatchClassroomHint,
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ),
+                    MixMatchLevelGrid(
+                      isUnlocked: (_) => true, // classroom: all levels open
+                      onPick:
+                          (type) => context.push(
+                            '/teacher/mixmatch/play',
+                            extra: type,
+                          ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 class TeacherClassroomScreen extends ConsumerStatefulWidget {
@@ -54,68 +108,44 @@ class _TeacherClassroomScreenState
       icon: Icons.groups_rounded,
       body: ListView(
         children: [
-          // ── Class code row ────────────────────────────────────────────────
+          // ── Class code ────────────────────────────────────────────────────
           classAsync.when(
             loading: () => const SizedBox.shrink(),
             error: (_, __) => const SizedBox.shrink(),
             data: (classroom) {
               if (classroom == null) return const SizedBox.shrink();
-              return Container(
-                padding: const EdgeInsets.all(AppSpacing.md),
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.surfaceContainerHighest,
-                  borderRadius: BorderRadius.circular(AppRadii.md),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    if (classroom.name.isNotEmpty) ...[
-                      Text(classroom.name, style: theme.textTheme.titleMedium),
-                      const SizedBox(height: AppSpacing.xs),
-                    ],
-                    Row(
-                      children: [
-                        Icon(
-                          Icons.tag_rounded,
-                          size: 16,
-                          color: theme.colorScheme.onSurfaceVariant,
-                        ),
-                        const SizedBox(width: AppSpacing.xs),
-                        Text(
-                          l.yourClassCode,
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: theme.colorScheme.onSurfaceVariant,
-                          ),
-                        ),
-                        const Spacer(),
-                        // Reveal / hide toggle
-                        TextButton.icon(
-                          onPressed:
-                              () =>
-                                  setState(() => _codeVisible = !_codeVisible),
-                          icon: Icon(
-                            _codeVisible
-                                ? Icons.visibility_off_rounded
-                                : Icons.visibility_rounded,
-                            size: 16,
-                          ),
-                          label: Text(
-                            _codeVisible ? l.hideCode : l.showCode,
-                            style: theme.textTheme.labelSmall,
-                          ),
-                          style: TextButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: AppSpacing.sm,
+              return Padding(
+                padding: const EdgeInsets.only(bottom: AppSpacing.lg),
+                child: SectionCard(
+                  title: l.yourClassCode,
+                  icon: Icons.tag_rounded,
+                  trailing: TextButton.icon(
+                    onPressed:
+                        () => setState(() => _codeVisible = !_codeVisible),
+                    icon: Icon(
+                      _codeVisible
+                          ? Icons.visibility_off_rounded
+                          : Icons.visibility_rounded,
+                      size: 18,
+                    ),
+                    label: Text(_codeVisible ? l.hideCode : l.showCode),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (classroom.name.isNotEmpty)
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+                          child: Text(
+                            classroom.name,
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              color: theme.colorScheme.onSurfaceVariant,
                             ),
                           ),
                         ),
-                      ],
-                    ),
-                    if (_codeVisible) ...[
-                      const SizedBox(height: AppSpacing.sm),
                       Center(
                         child: SelectableText(
-                          classroom.classCode,
+                          _codeVisible ? classroom.classCode : '••••••',
                           style: theme.textTheme.displaySmall?.copyWith(
                             color: theme.colorScheme.primary,
                             letterSpacing: 8,
@@ -123,54 +153,45 @@ class _TeacherClassroomScreenState
                           ),
                         ),
                       ),
-                      const SizedBox(height: AppSpacing.xs),
                     ],
-                  ],
+                  ),
                 ),
               );
             },
           ),
-          const SizedBox(height: AppSpacing.lg),
           // ── Students ──────────────────────────────────────────────────────
           Text(l.navStudents, style: theme.textTheme.titleMedium),
           const SizedBox(height: AppSpacing.sm),
           studentsAsync.when(
             loading: () => const Center(child: CircularProgressIndicator()),
-            error: (_, __) => Text(l.comingSoon),
+            error: (_, __) => EmptyState(message: l.comingSoon, compact: true),
             data: (students) {
               if (students.isEmpty) {
-                return Center(
-                  child: Padding(
-                    padding: const EdgeInsets.all(AppSpacing.lg),
-                    child: Text(l.noStudentsYet),
-                  ),
+                return EmptyState(
+                  icon: Icons.groups_rounded,
+                  message: l.noStudentsYet,
+                  compact: true,
                 );
               }
               return Column(
                 children: [
                   for (final student in students)
-                    ListTile(
-                      contentPadding: const EdgeInsets.symmetric(
-                        vertical: AppSpacing.xs,
-                      ),
-                      leading: CircleAvatar(
-                        child: Text(
-                          student.name.isNotEmpty
-                              ? student.name[0].toUpperCase()
-                              : '?',
+                    Card(
+                      margin: const EdgeInsets.only(bottom: AppSpacing.sm),
+                      child: ListTile(
+                        leading: InitialAvatar(name: student.name),
+                        title: Text(student.name),
+                        subtitle: Text(
+                          student.age > 0
+                              ? '${l.ageYearsOld(student.age)} · ${l.levelStars(student.level, student.stars)}'
+                              : l.levelStars(student.level, student.stars),
                         ),
+                        trailing: const Icon(Icons.chevron_right_rounded),
+                        onTap:
+                            () => context.push(
+                              '/teacher/students/student/${student.id}',
+                            ),
                       ),
-                      title: Text(student.name),
-                      subtitle: Text(
-                        student.age > 0
-                            ? '${l.ageYearsOld(student.age)} · ${l.levelStars(student.level, student.stars)}'
-                            : l.levelStars(student.level, student.stars),
-                      ),
-                      trailing: const Icon(Icons.chevron_right_rounded),
-                      onTap:
-                          () => context.push(
-                            '/teacher/students/student/${student.id}',
-                          ),
                     ),
                 ],
               );
@@ -188,35 +209,24 @@ class TeacherMessagesScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l = AppLocalizations.of(context);
-    final theme = Theme.of(context);
     final conversationsAsync = ref.watch(teacherConversationsProvider);
 
     return CalmScaffold(
       title: l.navMessages,
       icon: Icons.message_rounded,
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => _showNewMessageSheet(context, ref, l),
+        icon: const Icon(Icons.edit_rounded),
+        label: Text(l.msgNewMessage),
+      ),
       body: conversationsAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (_, __) => Center(child: Text(l.comingSoon)),
         data: (conversations) {
           if (conversations.isEmpty) {
-            return Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    Icons.forum_outlined,
-                    size: 64,
-                    color: theme.colorScheme.outlineVariant,
-                  ),
-                  const SizedBox(height: AppSpacing.md),
-                  Text(
-                    l.msgNoConversations,
-                    style: theme.textTheme.bodyLarge?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                ],
-              ),
+            return EmptyState(
+              icon: Icons.forum_outlined,
+              message: l.msgNoConversations,
             );
           }
           return ListView.separated(
@@ -226,6 +236,7 @@ class TeacherMessagesScreen extends ConsumerWidget {
               final conv = conversations[i];
               return _ConversationTile(
                 conv: conv,
+                myUid: ref.watch(currentUserProvider)?.uid,
                 onTap:
                     () => context.push(
                       '/teacher/messages/thread',
@@ -248,15 +259,106 @@ class TeacherMessagesScreen extends ConsumerWidget {
   }
 }
 
+/// Lets the teacher pick a parent and open a thread even before any message
+/// exists — the conversation id is derived from the (student, teacher, parent)
+/// trio, so the same thread the parent sees opens up (FR10).
+void _showNewMessageSheet(
+  BuildContext context,
+  WidgetRef ref,
+  AppLocalizations l,
+) {
+  showModalBottomSheet(
+    context: context,
+    showDragHandle: true,
+    builder:
+        (_) => Consumer(
+          builder: (sheetCtx, sheetRef, __) {
+            final targetsAsync = sheetRef.watch(teacherMessageTargetsProvider);
+            return SafeArea(
+              child: targetsAsync.when(
+                loading:
+                    () => const Padding(
+                      padding: EdgeInsets.all(AppSpacing.xl),
+                      child: Center(child: CircularProgressIndicator()),
+                    ),
+                error:
+                    (_, __) => Padding(
+                      padding: const EdgeInsets.all(AppSpacing.xl),
+                      child: Text(l.comingSoon),
+                    ),
+                data: (targets) {
+                  if (targets.isEmpty) {
+                    return Padding(
+                      padding: const EdgeInsets.all(AppSpacing.xl),
+                      child: Text(
+                        l.msgNoParentsToMessage,
+                        textAlign: TextAlign.center,
+                        style: Theme.of(sheetCtx).textTheme.bodyLarge,
+                      ),
+                    );
+                  }
+                  return ListView(
+                    shrinkWrap: true,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.all(AppSpacing.md),
+                        child: Text(
+                          l.msgStartConversation,
+                          style: Theme.of(sheetCtx).textTheme.titleMedium,
+                        ),
+                      ),
+                      for (final t in targets)
+                        ListTile(
+                          leading: CircleAvatar(
+                            child: Text(
+                              t.parentName.isNotEmpty
+                                  ? t.parentName[0].toUpperCase()
+                                  : '?',
+                            ),
+                          ),
+                          title: Text(t.parentName),
+                          subtitle: Text(t.studentName),
+                          onTap: () {
+                            Navigator.pop(sheetCtx);
+                            context.push(
+                              '/teacher/messages/thread',
+                              extra: {
+                                'conversationId': t.conversationId,
+                                'toUid': t.parentUid,
+                                'studentId': t.studentId,
+                                'title': l.msgConversationTitle(
+                                  t.parentName,
+                                  t.studentName,
+                                ),
+                              },
+                            );
+                          },
+                        ),
+                    ],
+                  );
+                },
+              ),
+            );
+          },
+        ),
+  );
+}
+
 class _ConversationTile extends StatelessWidget {
-  const _ConversationTile({required this.conv, required this.onTap});
+  const _ConversationTile({
+    required this.conv,
+    required this.onTap,
+    this.myUid,
+  });
 
   final ConversationSummary conv;
+  final String? myUid;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l = AppLocalizations.of(context);
     final time = conv.lastMessage.timestamp;
     final now = DateTime.now();
     final timeStr =
@@ -310,8 +412,20 @@ class _ConversationTile extends StatelessWidget {
                     color: theme.colorScheme.primary,
                   ),
                 ),
-                Text(
-                  conv.lastMessage.text,
+                Text.rich(
+                  TextSpan(
+                    children: [
+                      TextSpan(
+                        text:
+                            '${conv.lastMessage.fromUid == myUid ? l.msgYou : conv.parentName}: ',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      TextSpan(text: conv.lastMessage.text),
+                    ],
+                  ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: theme.textTheme.bodySmall?.copyWith(
@@ -349,8 +463,12 @@ class _ConversationTile extends StatelessWidget {
 class TeacherReportsScreen extends StatelessWidget {
   const TeacherReportsScreen({super.key});
   @override
-  Widget build(BuildContext context) => PlaceholderScreen(
-    title: AppLocalizations.of(context).navReports,
-    icon: Icons.assessment_rounded,
-  );
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
+    return PlaceholderScreen(
+      title: l.navReports,
+      icon: Icons.assessment_rounded,
+      message: l.previewReports,
+    );
+  }
 }

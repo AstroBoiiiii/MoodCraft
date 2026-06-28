@@ -40,7 +40,7 @@ Mobile = all roles. Web = teacher's classroom + office layer only.
 | FR3 | AI companion teaches emotion via face + body; always calm/patient/consistent; **BM + English** | AI Companion | S |
 | FR4 | AR emotion learning: camera + live 3D; **home mode** (1:1) and **classroom projection** | AR Emotion | S,T |
 | FR5 | Cartoon story mode: pauses at emotional moments to ask feelings; levels unlock; teacher launches from web | Story Mode | S,T |
-| FR6 | Mix-and-match faces↔emotion/situation; audio narration; gentle redirect on wrong, no negativity | Mix-and-Match | S,T |
+| FR6 | ✓ Mix-and-match: drag a card (face/body/situation/word) onto the matching emotion bucket; 4 card types = 4 levels (concrete→abstract), 6 fixed buckets, gentle redirect on wrong, no negativity; teacher classroom launch *(rewards + real TTS deferred)* | Mix-and-Match | S,T |
 | FR7 | Stress-free quiz: sound/image/audio prompts; always encouraging; no timer, no competitive score | Quiz | S,T |
 | FR8 | Teacher dashboard: assigned students' progress, difficulty areas, trends | Teacher dashboard | T |
 | FR9 | Parent dashboard + real-time notifications (task done, milestone, teacher update) | Parent monitoring + FCM | P |
@@ -51,7 +51,9 @@ Mobile = all roles. Web = teacher's classroom + office layer only.
 | FR14 | Offline: games, activities, journal, schedule work offline; auto-sync when back online | Firestore persistence | S,P |
 | FR15 | Dual language **BM + English** (UI, narration, content); pick at registration, change in settings | l10n (en + ms) | All |
 
-✓ = implemented and wired. Unmarked = calm placeholder or not built yet (FR3–FR9, FR11). FR14 offline persistence is on (Firestore cache) and already covers the built data features; FR15 is English-only for now (see Project context).
+✓ = implemented and wired. Unmarked = calm placeholder or not built yet (FR3–FR5, FR7–FR9, FR11). FR14 offline persistence is on (Firestore cache) and already covers the built data features; FR15 is English-only for now (see Project context).
+
+**Rewards are deferred (intentional).** We complete each feature first, then do the FR11 rewards/celebration pass (stars/badges/unlockables) across all of them at the end. So a built activity shows a calm "all done" moment but no stars yet — don't add per-feature reward UI until the FR11 pass.
 
 ## Tech stack
 - **Flutter** (stable, null-safe), **Riverpod** for all state.
@@ -91,8 +93,9 @@ assets/  rive/  models/  images/  audio/
 - **FR1 auth/linking:** `core/services/auth/` + `data/linking_service.dart`; screens in `features/auth/`; redirects in `app/router.dart`.
 - **FR2 profiles + sensory:** `features/account/account_profile_screen.dart`, `features/teacher/student_profile_detail_screen.dart`, `core/widgets/sensory_settings_sheet.dart`; theming in `app/theme/`.
 - **FR10 messaging:** `features/teacher/messaging_thread_screen.dart`; conversation providers in `core/providers/repository_providers.dart`.
-- **FR12 journal:** `features/journal/journal_section.dart` — `JournalLogger` (child) + `JournalHistorySection` (shared, `canAnnotate` for teacher/parent). Embedded by the student tab and both detail screens, mirroring the schedule pattern.
+- **FR12 journal:** `features/journal/journal_section.dart` — `JournalLogger` (child) + `JournalHistorySection` (shared). Any signed-in role (teacher, parent, or optionally the child) can leave one role-labelled `JournalComment` per entry (`commentBy`/`withComment` on the model); comments render distinctly ("Teacher: …"). Embedded by the student tab and both detail screens, mirroring the schedule pattern.
 - **FR13 schedule:** `features/schedule/schedule_section.dart` (`StudentScheduleSection`, `canEdit`).
+- **FR6 mix-and-match:** `features/mix_match/` — `mix_match_screen.dart` (level select + shared `MixMatchLevelGrid`), `mix_match_play_screen.dart` (drag-to-bucket round, writes a `Session`), `mix_match_data.dart` (`buildMixMatchDeck` auto-discovers card art from the asset manifest under `assets/images/mixmatch/<type>/<emotion>_<n>.png`; words/situations from `kMixMatchWords`/`kMixMatchSituations`). Level progress = `Student.mixMatchLevel`. Teacher classroom launch in `TeacherProfilesScreen`.
 - **Data + models:** interfaces in `core/services/data/repositories.dart`, all Firestore in `firestore_repositories.dart`; models in `core/models/` round-trip via `toJson`/`fromJson` (locked by `test/models_test.dart`). Rules in `firestore.rules`.
 
 ## Firestore model
@@ -103,7 +106,7 @@ All activity/journal records carry `syncStatus` + `timestamp`.
 - `pendingLinks/{id}` — studentEmail, parentEmail, initiatorUid, initiatorRole *(deleted on resolution)*
 - `emailDirectory/{email}` — uid, role *(written at registration; used for invite resolution)*
 - `sessions/{id}` — studentId, activityType, emotionsShown[], responses[], correctCount, retries, durationMs, timestamp, syncStatus
-- `journalEntries/{id}` — studentId, emotionIcon, contextIcon?, note?, timestamp, syncStatus
+- `journalEntries/{id}` — studentId, emotionIcon, contextIcon?, comments[] (role-labelled), timestamp, syncStatus
 - `messages/{id}` — fromUid, toUid, studentId, text, timestamp, read
 - `observationReports/{id}` — studentId, generatedText, basedOnSessionIds[], dateRange, createdBy, timestamp
 - `emotionContent/{id}` — emotion, language, prompt, options[], feedback (curated, offline-capable)

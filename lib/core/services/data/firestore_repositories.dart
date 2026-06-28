@@ -90,6 +90,9 @@ class FirestoreStudentRepository implements StudentRepository {
   @override
   Future<void> upsert(Student student) =>
       _col.doc(student.id).set(_encode(student.toJson()));
+
+  @override
+  Future<void> delete(String id) => _col.doc(id).delete();
 }
 
 class FirestoreJournalRepository implements JournalRepository {
@@ -111,6 +114,9 @@ class FirestoreJournalRepository implements JournalRepository {
   @override
   Future<void> add(JournalEntry entry) =>
       _col.doc(entry.id).set(_encode(entry.toJson()));
+
+  @override
+  Future<void> delete(String id) => _col.doc(id).delete();
 }
 
 class FirestoreSessionRepository implements SessionRepository {
@@ -164,6 +170,9 @@ class FirestoreMessageRepository implements MessageRepository {
       _col.doc(message.id).set(_encode(message.toJson()));
 
   @override
+  Future<void> delete(String id) => _col.doc(id).delete();
+
+  @override
   Future<void> markThreadRead(String conversationId, String myUid) async {
     final snap =
         await _col
@@ -202,4 +211,40 @@ class FirestoreVisualScheduleRepository implements VisualScheduleRepository {
   @override
   Future<void> upsert(VisualSchedule schedule) =>
       _col.doc(schedule.studentId).set(_encode(schedule.toJson()));
+
+  @override
+  Future<void> reconcile({
+    required String studentId,
+    required String createdBy,
+    required List<ScheduleItem> baseline,
+    required List<ScheduleItem> draft,
+  }) {
+    final ref = _col.doc(studentId);
+    // Read-merge-write inside a transaction so concurrent teacher/parent saves
+    // can't lose each other's activities. reconcileScheduleItems throws
+    // ScheduleConflictException on an overlapping slot, aborting the commit.
+    return _db.runTransaction((tx) async {
+      final snap = await tx.get(ref);
+      final server =
+          snap.exists
+              ? VisualSchedule.fromJson(_decode(snap)).items
+              : const <ScheduleItem>[];
+      final merged = reconcileScheduleItems(
+        baseline: baseline,
+        draft: draft,
+        server: server,
+      );
+      tx.set(
+        ref,
+        _encode(
+          VisualSchedule(
+            id: studentId,
+            studentId: studentId,
+            createdBy: createdBy,
+            items: merged,
+          ).toJson(),
+        ),
+      );
+    });
+  }
 }
