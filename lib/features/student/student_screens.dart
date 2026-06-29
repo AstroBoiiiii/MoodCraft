@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -11,6 +12,7 @@ import '../../core/widgets/calm_scaffold.dart';
 import '../../core/widgets/placeholder_screen.dart';
 import '../../core/widgets/sensory_settings_sheet.dart';
 import '../journal/journal_section.dart';
+import '../quiz/quiz_home_screen.dart';
 import '../schedule/schedule_section.dart';
 
 /// The student's home hub: a calm, icon-led menu of activities. One clear screen
@@ -155,15 +157,58 @@ class StoryScreen extends StatelessWidget {
   }
 }
 
-class QuizScreen extends StatelessWidget {
+/// FR7 — the stress-free feelings quiz entry. Pick a day (Today / Yesterday /
+/// Day before) to play that day's set; the real date decides which set each day
+/// shows. Each day's round is one calm mix of look / listen / story, no score,
+/// no timer, and resumes where the child left off.
+class QuizScreen extends ConsumerWidget {
   const QuizScreen({super.key});
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l = AppLocalizations.of(context);
-    return PlaceholderScreen(
+    final theme = Theme.of(context);
+    final student = ref.watch(activeStudentProvider).value;
+    return CalmScaffold(
       title: l.navQuiz,
       icon: Icons.emoji_objects_rounded,
-      message: l.previewQuiz,
+      actions: accountActions(context, ref),
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 560),
+          child: ListView(
+            children: [
+              Text(l.quizPickDay, style: theme.textTheme.titleMedium),
+              const SizedBox(height: AppSpacing.md),
+              QuizDayPicker(
+                progressFor:
+                    (setIndex) =>
+                        (student?.quizRounds[setIndex.toString()]?.answered ?? 0)
+                            .clamp(0, kQuizRoundSize),
+                onPick:
+                    (setIndex) => context.push(
+                      '/student/quiz/play',
+                      extra: (studentId: student?.id, setIndex: setIndex),
+                    ),
+              ),
+              // Dev-only: clear all quiz progress back to 0/5. Compiled out of
+              // release/demo builds (kDebugMode), so it disappears when done.
+              if (kDebugMode && student != null) ...[
+                const SizedBox(height: AppSpacing.lg),
+                Center(
+                  child: TextButton.icon(
+                    onPressed:
+                        () => ref
+                            .read(studentRepositoryProvider)
+                            .upsert(student.copyWith(quizRounds: {})),
+                    icon: const Icon(Icons.restart_alt_rounded),
+                    label: const Text('Reset progress (dev)'),
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

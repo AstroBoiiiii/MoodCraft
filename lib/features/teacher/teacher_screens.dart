@@ -13,6 +13,7 @@ import '../../core/widgets/placeholder_screen.dart';
 import '../../core/widgets/section_card.dart';
 import '../../core/widgets/sensory_settings_sheet.dart';
 import '../mix_match/mix_match_screen.dart';
+import '../quiz/quiz_home_screen.dart';
 
 /// Teacher dashboard — the landing screen for the web portal. Carries the
 /// account actions (sensory settings + sign out).
@@ -70,6 +71,32 @@ class TeacherProfilesScreen extends StatelessWidget {
                           (type) => context.push(
                             '/teacher/mixmatch/play',
                             extra: type,
+                          ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: AppSpacing.lg),
+              SectionCard(
+                title: l.navQuiz,
+                icon: Icons.emoji_objects_rounded,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: AppSpacing.md),
+                      child: Text(
+                        l.quizClassroomHint,
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ),
+                    QuizDayPicker(
+                      onPick:
+                          (setIndex) => context.push(
+                            '/teacher/quiz/play',
+                            extra: setIndex,
                           ),
                     ),
                   ],

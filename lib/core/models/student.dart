@@ -1,5 +1,6 @@
 import '../utils/json_utils.dart';
 import 'mix_match_round.dart';
+import 'quiz_round.dart';
 import 'sensory_settings.dart';
 
 /// `students/{studentId}` — the learner profile, owning the sensory settings
@@ -16,6 +17,7 @@ class Student {
     this.level = 1,
     this.stars = 0,
     this.mixMatchRounds = const {},
+    this.quizRounds = const {},
   });
 
   final String id;
@@ -38,6 +40,11 @@ class Student {
   /// out. `round.placed` drives the "X/5" tile and the overall badge bar.
   final Map<String, MixMatchRound> mixMatchRounds;
 
+  /// Per daily-set saved stress-free quiz rounds (FR7): set index (as a string)
+  /// → the child's in-progress (or finished) round. Persisted so the quiz
+  /// resumes on the exact same question after navigating away or signing out.
+  final Map<String, QuizRound> quizRounds;
+
   Student copyWith({
     String? id,
     String? name,
@@ -49,6 +56,7 @@ class Student {
     int? level,
     int? stars,
     Map<String, MixMatchRound>? mixMatchRounds,
+    Map<String, QuizRound>? quizRounds,
   }) {
     return Student(
       id: id ?? this.id,
@@ -61,6 +69,7 @@ class Student {
       level: level ?? this.level,
       stars: stars ?? this.stars,
       mixMatchRounds: mixMatchRounds ?? this.mixMatchRounds,
+      quizRounds: quizRounds ?? this.quizRounds,
     );
   }
 
@@ -75,6 +84,7 @@ class Student {
     'level': level,
     'stars': stars,
     'mixMatchRounds': mixMatchRounds.map((k, v) => MapEntry(k, v.toJson())),
+    'quizRounds': quizRounds.map((k, v) => MapEntry(k, v.toJson())),
   };
 
   factory Student.fromJson(Map<String, dynamic> json) => Student(
@@ -90,5 +100,6 @@ class Student {
     level: (json['level'] as num?)?.toInt() ?? 1,
     stars: (json['stars'] as num?)?.toInt() ?? 0,
     mixMatchRounds: mixMatchRoundsFromJson(json['mixMatchRounds']),
+    quizRounds: quizRoundsFromJson(json['quizRounds']),
   );
 }

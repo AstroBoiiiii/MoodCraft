@@ -53,6 +53,27 @@ void main() {
           ],
         ),
       },
+      quizRounds: {
+        '0': QuizRound(
+          answered: 1,
+          questions: [
+            QuizRoundQuestion(
+              modality: QuizModality.look,
+              answer: Emotion.happy,
+              options: [Emotion.happy, Emotion.sad, Emotion.angry],
+              feedback: 'Yes! A big smile means happy.',
+              assetPath: 'assets/images/quiz/look/set1/happy_1.png',
+            ),
+            QuizRoundQuestion(
+              modality: QuizModality.story,
+              answer: Emotion.scared,
+              options: [Emotion.scared, Emotion.surprised, Emotion.happy],
+              feedback: '',
+              text: 'The lights went out.',
+            ),
+          ],
+        ),
+      },
     );
     expect(Student.fromJson(student.toJson()).toJson(), student.toJson());
   });

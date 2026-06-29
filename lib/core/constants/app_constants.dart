@@ -4,6 +4,7 @@ library;
 
 import 'package:flutter/material.dart';
 
+import '../models/emotion_content.dart';
 import '../models/enums.dart';
 
 /// When true, the app uses the in-memory [StubAuthService] instead of real
@@ -155,7 +156,7 @@ const Map<Emotion, List<String>> kMixMatchStories = {
     'Sam watched his balloon float far up into the sky. He could not get it back, and his eyes filled with tears.',
   ],
   Emotion.scared: [
-    'The lights went out and Lily heard a loud bang. She pulled her blanket up and held it tight.',
+    'The lights went out and Lilya heard a loud bang. She pulled her blanket up and held it tight.',
   ],
   Emotion.angry: [
     'Ben built a tall block tower all by himself. Someone knocked it over, and he stamped his feet hard.',
@@ -175,6 +176,108 @@ const Map<Emotion, List<String>> kMixMatchSituations = {
   Emotion.angry: ['My tower fell down', 'Lost my turn'],
   Emotion.surprised: ['A surprise party', 'A balloon popped'],
 };
+
+/// FR7 stress-free quiz. Number of questions in one mixed round — the round
+/// interleaves the three ways of asking (look / listen / story) so every
+/// available way shows up. No timer, no score (CLAUDE.md FR7). Drives the
+/// per-day "X/5" on the picker.
+const int kQuizRoundSize = 5;
+
+/// Number of daily quiz sets. Only the **stories** differ per day; the faces and
+/// sound cues are shared, recycled across every set. The real date picks which
+/// story set is "today" (see `quizSetIndexForDate`). Matches
+/// `kQuizStorySets.length`.
+const int kQuizSetCount = 3;
+
+/// The feelings the quiz teaches (the five clear, teachable emotions; `neutral`
+/// excluded). The quiz keeps its own list so it never depends on Mix-and-Match.
+const List<Emotion> kQuizEmotions = [
+  Emotion.happy,
+  Emotion.sad,
+  Emotion.scared,
+  Emotion.angry,
+  Emotion.surprised,
+];
+
+/// The quiz's own shared "look" face-art folder. Faces are NOT per-set: a few
+/// variations per feeling (`happy_1.png`, `happy_2.png`, ...) live here and are
+/// recycled across every daily set. The leading `<emotion>` token is the answer.
+/// The quiz keeps its OWN folder (not Mix-and-Match's). Registered in pubspec.
+const String kQuizLookRoot = 'assets/images/quiz/look';
+
+/// The quiz's shared "listen" sound-cue folder. Like the faces, cues are NOT
+/// per-set: the same feeling sounds are recycled across every daily set. A clip
+/// named `<emotion>_<n>.mp3` (or `.wav`) becomes a Listen question; the leading
+/// `<emotion>` token is the answer. Empty folder = the round uses look + story.
+/// Registered in pubspec.yaml.
+const String kQuizCueFolder = 'assets/audio/cues';
+
+/// Last-resort fallback feedback, one bland line per feeling, only used if a
+/// modality/story line below is somehow missing. The real spoken feedback is
+/// tailored per question: faces use [kQuizLookFeedback], sounds use
+/// [kQuizListenFeedback], and each story carries its own `feedback`. Teaching
+/// content, English only like [kMixMatchStories] (BM is the deferred FR15 pass).
+const Map<Emotion, String> kQuizFeedback = {
+  Emotion.happy: "That feeling is happy.",
+  Emotion.sad: "That feeling is sad.",
+  Emotion.scared: "That feeling is scared.",
+  Emotion.angry: "That feeling is angry.",
+  Emotion.surprised: "That feeling is surprised.",
+};
+
+/// Warm spoken feedback for "look" (face) questions, one short line per feeling
+/// that points at what the face is doing. Read aloud on a right answer.
+const Map<Emotion, String> kQuizLookFeedback = {
+  Emotion.happy: "Look at that big smile. Happy!",
+  Emotion.sad: "The mouth turns down. That is sad.",
+  Emotion.scared: "Those wide eyes look scared.",
+  Emotion.angry: "That scrunched up face is angry.",
+  Emotion.surprised: "Wide eyes, open mouth. Surprised!",
+};
+
+/// Warm spoken feedback for "listen" (sound) questions, naming the sound the
+/// child just heard so the cue and the feeling connect. Read aloud on a right
+/// answer.
+const Map<Emotion, String> kQuizListenFeedback = {
+  Emotion.happy: "Yahoo! That is a happy sound.",
+  Emotion.sad: "Waah! That crying sounds sad.",
+  Emotion.scared: "Aaah! That scream sounds scared.",
+  Emotion.angry: "Grrr. That growl sounds angry.",
+  Emotion.surprised: "Oooh! That sound is surprised.",
+};
+
+/// Three sets of short, calm scenarios for the quiz's "story" questions (FR7),
+/// one set per day (today / yesterday / day before, chosen by
+/// `quizSetIndexForDate`). Read aloud, the child picks the matching feeling.
+/// Shaped as [EmotionContent] (the curated, offline teaching model); the short
+/// spoken feedback after a right answer comes from [kQuizFeedback]. English-only
+/// content like [kMixMatchStories].
+const List<List<EmotionContent>> kQuizStorySets = [
+  // Set 1
+  [
+    EmotionContent(id: 'q1_happy', emotion: Emotion.happy, prompt: 'Ari found his lost teddy under the bed.', feedback: 'Ari found his teddy. He feels happy.'),
+    EmotionContent(id: 'q1_sad', emotion: Emotion.sad, prompt: 'Nina watched her ice cream fall on the floor.', feedback: "Nina's ice cream fell. She feels sad."),
+    EmotionContent(id: 'q1_scared', emotion: Emotion.scared, prompt: 'The room went dark and something went bump.', feedback: 'A bump in the dark. That feels scared.'),
+    EmotionContent(id: 'q1_angry', emotion: Emotion.angry, prompt: 'Someone took Omar off his turn on the swing.', feedback: 'Omar lost his turn. He feels angry.'),
+    EmotionContent(id: 'q1_surprised', emotion: Emotion.surprised, prompt: 'Everyone jumped out and shouted at the party.', feedback: 'Everyone jumped out. What a surprise!'),
+  ],
+  // Set 2
+  [
+    EmotionContent(id: 'q2_happy', emotion: Emotion.happy, prompt: "Lina's puppy ran to her, wagging its tail.", feedback: 'The puppy runs to Lina. She feels happy.'),
+    EmotionContent(id: 'q2_sad', emotion: Emotion.sad, prompt: "Sam's best friend moved far away today.", feedback: "Sam's friend moved away. He feels sad."),
+    EmotionContent(id: 'q2_scared', emotion: Emotion.scared, prompt: 'A big dog barked loudly right behind Mia.', feedback: 'A big dog barked at Mia. She feels scared.'),
+    EmotionContent(id: 'q2_angry', emotion: Emotion.angry, prompt: "Tom's little brother scribbled on his drawing.", feedback: 'Tom\'s drawing got scribbled. He feels angry.'),
+    EmotionContent(id: 'q2_surprised', emotion: Emotion.surprised, prompt: 'A balloon popped with a sudden loud bang.', feedback: 'The balloon went bang. What a surprise!'),
+  ],
+  // Set 3
+  [
+    EmotionContent(id: 'q3_happy', emotion: Emotion.happy, prompt: 'Grandma baked Aziz his favourite cake.', feedback: "Grandma baked Aziz's cake. He feels happy."),
+    EmotionContent(id: 'q3_sad', emotion: Emotion.sad, prompt: "Maya's balloon floated up into the sky.", feedback: "Maya's balloon floated away. She feels sad."),
+    EmotionContent(id: 'q3_scared', emotion: Emotion.scared, prompt: 'All the lights went out in the house.', feedback: 'All the lights went out. That feels scared.'),
+    EmotionContent(id: 'q3_angry', emotion: Emotion.angry, prompt: 'Someone knocked down the tower Eli built.', feedback: 'Eli\'s tower was knocked down. He feels angry.'),
+    EmotionContent(id: 'q3_surprised', emotion: Emotion.surprised, prompt: 'Dad came home early carrying a puppy.', feedback: 'Dad came home with a puppy. What a surprise!'),
+  ],
+];
 
 /// Soft accent per student-home activity, keyed by the activity's route id. Used
 /// by `ActivityCard` to tint the icon badge + outline only — muted tones in the

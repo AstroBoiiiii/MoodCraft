@@ -4,4 +4,6 @@
          to allow setting breakpoints, to provide hot reload, etc.
     -->
     <uses-permission android:name="android.permission.INTERNET"/>
+    <!-- Debug only: let link-preview images load over plain http too. -->
+    <application android:usesCleartextTraffic="true" />
 </manifest>

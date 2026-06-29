@@ -8,6 +8,7 @@ export 'journal_entry.dart';
 export 'message.dart';
 export 'mix_match_round.dart';
 export 'observation_report.dart';
+export 'quiz_round.dart';
 export 'sensory_settings.dart';
 export 'session.dart';
 export 'student.dart';

@@ -561,4 +561,61 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get mixMatchClassroomHint => 'Pick a way to play on the class screen.';
+
+  @override
+  String get mixMatchListen => 'Listen';
+
+  @override
+  String get mixMatchListening => 'Playing';
+
+  @override
+  String get quizAskLook => 'Who feels this way?';
+
+  @override
+  String get quizAskListen => 'How does this feel?';
+
+  @override
+  String get quizAskStory => 'How do they feel?';
+
+  @override
+  String get quizListen => 'Listen';
+
+  @override
+  String get quizPlaying => 'Playing';
+
+  @override
+  String get quizTryAgain => 'That\'s okay. Look again.';
+
+  @override
+  String get quizNext => 'Next';
+
+  @override
+  String get quizFinish => 'Finish';
+
+  @override
+  String get quizDone => 'All done!';
+
+  @override
+  String get quizDoneBody => 'Great feeling spotting. You can play again any time.';
+
+  @override
+  String get quizDoneButton => 'Done';
+
+  @override
+  String get quizStart => 'Start quiz';
+
+  @override
+  String get quizClassroomHint => 'Play a calm feelings quiz on the class screen.';
+
+  @override
+  String get quizPickDay => 'Pick a day to play.';
+
+  @override
+  String get quizToday => 'Today';
+
+  @override
+  String get quizYesterday => 'Yesterday';
+
+  @override
+  String get quizDayBefore => 'Day before';
 }

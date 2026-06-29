@@ -15,6 +15,7 @@ import '../features/parent/parent_screens.dart';
 import '../features/parent/parent_shell.dart';
 import '../features/mix_match/mix_match_screen.dart';
 import '../features/mix_match/mix_match_play_screen.dart';
+import '../features/quiz/quiz_play_screen.dart';
 import '../features/student/ar/ar_screen.dart';
 import '../features/student/student_screens.dart';
 import '../features/student/student_shell.dart';
@@ -176,6 +177,19 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) => const QuizScreen(),
       ),
+      // Stress-free quiz round (FR7). `extra` carries the chosen daily set + the
+      // student id (null id = teacher classroom mode).
+      GoRoute(
+        path: '/student/quiz/play',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) {
+          final args = state.extra as QuizPlayArgs;
+          return QuizPlayScreen(
+            studentId: args.studentId,
+            setIndex: args.setIndex,
+          );
+        },
+      ),
       GoRoute(
         path: '/student/schedule',
         parentNavigatorKey: _rootNavigatorKey,
@@ -190,6 +204,18 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state) {
           final type = state.extra as MixMatchType;
           return MixMatchPlayScreen(type: type, studentId: null);
+        },
+      ),
+
+      // Teacher classroom projection of the stress-free quiz (FR7). Same play
+      // screen in classroom mode (null studentId) — a group demo, no record.
+      // `extra` is the chosen daily set index.
+      GoRoute(
+        path: '/teacher/quiz/play',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) {
+          final setIndex = state.extra as int;
+          return QuizPlayScreen(studentId: null, setIndex: setIndex);
         },
       ),
 

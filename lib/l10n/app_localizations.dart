@@ -1174,6 +1174,120 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Pick a way to play on the class screen.'**
   String get mixMatchClassroomHint;
+
+  /// No description provided for @mixMatchListen.
+  ///
+  /// In en, this message translates to:
+  /// **'Listen'**
+  String get mixMatchListen;
+
+  /// No description provided for @mixMatchListening.
+  ///
+  /// In en, this message translates to:
+  /// **'Playing'**
+  String get mixMatchListening;
+
+  /// No description provided for @quizAskLook.
+  ///
+  /// In en, this message translates to:
+  /// **'Who feels this way?'**
+  String get quizAskLook;
+
+  /// No description provided for @quizAskListen.
+  ///
+  /// In en, this message translates to:
+  /// **'How does this feel?'**
+  String get quizAskListen;
+
+  /// No description provided for @quizAskStory.
+  ///
+  /// In en, this message translates to:
+  /// **'How do they feel?'**
+  String get quizAskStory;
+
+  /// No description provided for @quizListen.
+  ///
+  /// In en, this message translates to:
+  /// **'Listen'**
+  String get quizListen;
+
+  /// No description provided for @quizPlaying.
+  ///
+  /// In en, this message translates to:
+  /// **'Playing'**
+  String get quizPlaying;
+
+  /// No description provided for @quizTryAgain.
+  ///
+  /// In en, this message translates to:
+  /// **'That\'s okay. Look again.'**
+  String get quizTryAgain;
+
+  /// No description provided for @quizNext.
+  ///
+  /// In en, this message translates to:
+  /// **'Next'**
+  String get quizNext;
+
+  /// No description provided for @quizFinish.
+  ///
+  /// In en, this message translates to:
+  /// **'Finish'**
+  String get quizFinish;
+
+  /// No description provided for @quizDone.
+  ///
+  /// In en, this message translates to:
+  /// **'All done!'**
+  String get quizDone;
+
+  /// No description provided for @quizDoneBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Great feeling spotting. You can play again any time.'**
+  String get quizDoneBody;
+
+  /// No description provided for @quizDoneButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get quizDoneButton;
+
+  /// No description provided for @quizStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Start quiz'**
+  String get quizStart;
+
+  /// No description provided for @quizClassroomHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Play a calm feelings quiz on the class screen.'**
+  String get quizClassroomHint;
+
+  /// No description provided for @quizPickDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick a day to play.'**
+  String get quizPickDay;
+
+  /// No description provided for @quizToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get quizToday;
+
+  /// No description provided for @quizYesterday.
+  ///
+  /// In en, this message translates to:
+  /// **'Yesterday'**
+  String get quizYesterday;
+
+  /// No description provided for @quizDayBefore.
+  ///
+  /// In en, this message translates to:
+  /// **'Day before'**
+  String get quizDayBefore;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

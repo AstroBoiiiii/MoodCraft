@@ -11,6 +11,7 @@ import '../../core/models/mix_match_round.dart';
 import '../../core/models/session.dart';
 import '../../core/providers/repository_providers.dart';
 import '../../core/providers/sensory_settings_provider.dart';
+import '../../core/services/narration_service.dart';
 import '../../core/widgets/calm_scaffold.dart';
 import '../journal/journal_section.dart' show emotionLabel;
 import 'mix_match_data.dart';
@@ -52,6 +53,17 @@ class _MixMatchPlayScreenState extends ConsumerState<MixMatchPlayScreen> {
   void initState() {
     super.initState();
     _load();
+    // Warm up the device/browser voices now so the first "Listen" tap on a story
+    // card speaks immediately (web loads its voice list asynchronously).
+    ref.read(narrationServiceProvider).prewarm();
+  }
+
+  @override
+  void dispose() {
+    // Cut any narration when leaving the round so it never trails into the next
+    // screen.
+    ref.read(narrationServiceProvider).stop();
+    super.dispose();
   }
 
   Future<void> _load() async {
@@ -95,6 +107,8 @@ class _MixMatchPlayScreenState extends ConsumerState<MixMatchPlayScreen> {
   void _onDrop(MixMatchCard card, Emotion bucket) {
     if (bucket == card.answer) {
       if (!_missedCurrent) _firstTryCorrect++;
+      // Stop narrating the card that was just placed before the next one shows.
+      ref.read(narrationServiceProvider).stop();
       setState(() {
         _justAccepted = bucket;
         _nudge = false;
@@ -207,6 +221,12 @@ class _MixMatchPlayScreenState extends ConsumerState<MixMatchPlayScreen> {
                 child: _DraggableCard(key: ValueKey(card.id), card: card),
               ),
             ),
+            // Tap to hear the story/situation read aloud (audio-first, FR6). Only
+            // text cards have words to narrate; faces and bodies are picture-only.
+            if (card.isText) ...[
+              const SizedBox(height: AppSpacing.md),
+              _NarrateButton(text: card.text!),
+            ],
             const SizedBox(height: AppSpacing.lg),
             Expanded(flex: 4, child: _buildBuckets()),
           ],
@@ -288,6 +308,40 @@ class _ProgressDots extends StatelessWidget {
             ),
           ),
       ],
+    );
+  }
+}
+
+/// Reads the current text card aloud (FR6 audio-first narration). One large,
+/// calm tap target that toggles: tap to play, tap again while it is playing to
+/// stop, then tap once more to play again from the beginning. Honours the
+/// student's master volume.
+class _NarrateButton extends ConsumerWidget {
+  const _NarrateButton({required this.text});
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l = AppLocalizations.of(context);
+    final service = ref.read(narrationServiceProvider);
+    final volume = ref.watch(
+      sensorySettingsProvider.select((s) => s.masterVolume),
+    );
+    return ValueListenableBuilder<bool>(
+      valueListenable: service.speaking,
+      builder: (context, speaking, _) {
+        return FilledButton.tonalIcon(
+          onPressed:
+              speaking
+                  ? () => service.stop()
+                  : () => service.narrate(text, volume: volume),
+          icon: Icon(
+            speaking ? Icons.pause_rounded : Icons.play_arrow_rounded,
+          ),
+          label: Text(speaking ? l.mixMatchListening : l.mixMatchListen),
+        );
+      },
     );
   }
 }
