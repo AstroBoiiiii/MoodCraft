@@ -36,7 +36,11 @@ typedef QuizPlayArgs = ({String? studentId, int setIndex});
 /// session is recorded and no progress is saved — a group demo, not one child's
 /// record.
 class QuizPlayScreen extends ConsumerStatefulWidget {
-  const QuizPlayScreen({required this.studentId, required this.setIndex, super.key});
+  const QuizPlayScreen({
+    required this.studentId,
+    required this.setIndex,
+    super.key,
+  });
 
   final String? studentId;
   final int setIndex;
@@ -586,7 +590,11 @@ class _Feedback extends StatelessWidget {
                 color: color.withValues(alpha: 0.18),
                 shape: BoxShape.circle,
               ),
-              child: Icon(kEmotionIcon[question.answer], size: 38, color: color),
+              child: Icon(
+                kEmotionIcon[question.answer],
+                size: 38,
+                color: color,
+              ),
             ),
             const SizedBox(height: AppSpacing.sm),
             Text(

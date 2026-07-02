@@ -74,8 +74,25 @@ void main() {
           ],
         ),
       },
+      storyProgress: {
+        'lost_ball': StoryProgress(levelsDone: 1, pausesDone: 1, positionMs: 3000),
+        'new_puppy': StoryProgress(),
+      },
     );
     expect(Student.fromJson(student.toJson()).toJson(), student.toJson());
+  });
+
+  test('StoryProgress map parses defensively', () {
+    expect(storyProgressFromJson(null), isEmpty);
+    expect(storyProgressFromJson('junk'), isEmpty);
+    final parsed = storyProgressFromJson({
+      'lost_ball': {'levelsDone': 2, 'pausesDone': 1, 'positionMs': 7000},
+      'bad': 'not a map',
+    });
+    expect(parsed.keys, ['lost_ball']);
+    expect(parsed['lost_ball']!.levelsDone, 2);
+    expect(parsed['lost_ball']!.pausesDone, 1);
+    expect(parsed['lost_ball']!.positionMs, 7000);
   });
 
   test('Session round-trips', () {

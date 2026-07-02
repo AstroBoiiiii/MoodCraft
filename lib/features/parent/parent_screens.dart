@@ -3,17 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:moodcraft/l10n/app_localizations.dart';
 
 import '../../app/theme/tokens.dart';
-import '../../core/models/app_user.dart';
-import '../../core/models/student.dart';
 import '../../core/providers/repository_providers.dart';
 import '../../core/widgets/calm_scaffold.dart';
-import '../../core/widgets/contact_card.dart';
-import '../../core/widgets/profile_header.dart';
-import '../../core/widgets/section_card.dart';
-import '../../core/widgets/sensory_read_only_view.dart';
+import '../../core/widgets/constrained_content.dart';
 import '../../core/widgets/sensory_settings_sheet.dart';
-import '../journal/journal_section.dart';
-import '../schedule/schedule_section.dart';
+import '../student_detail/student_detail_tabs.dart';
 import '../teacher/messaging_thread_screen.dart';
 
 /// Parent monitoring — shows the linked child's profile and their teacher(s).
@@ -34,56 +28,20 @@ class ParentMonitoringScreen extends ConsumerWidget {
         error: (_, __) => Center(child: Text(l.comingSoon)),
         data: (detail) {
           if (detail == null) return Center(child: Text(l.noChildLinked));
-          return _ChildProfileView(
-            student: detail.student,
-            teachers: detail.teachers,
+          // Same tabbed child view the teacher gets, minus teacher-only
+          // actions: no parent removal and no delete menu. The schedule stays
+          // editable (FR13 — set by teacher or parent).
+          return ConstrainedContent(
+            child: StudentDetailTabs(
+              key: ValueKey(detail.student.id),
+              student: detail.student,
+              teachers: detail.teachers,
+              parents: const [],
+              canEditSchedule: true,
+            ),
           );
         },
       ),
-    );
-  }
-}
-
-class _ChildProfileView extends StatelessWidget {
-  const _ChildProfileView({required this.student, required this.teachers});
-
-  final Student student;
-  final List<AppUser> teachers;
-
-  @override
-  Widget build(BuildContext context) {
-    final l = AppLocalizations.of(context);
-
-    return ListView(
-      children: [
-        ProfileHeader(
-          name: student.name,
-          subtitle: student.age > 0 ? l.ageYearsOld(student.age) : null,
-          chipLabel: l.levelStars(student.level, student.stars),
-        ),
-        const SizedBox(height: AppSpacing.lg),
-        SectionCard(
-          title: l.sensorySettings,
-          icon: Icons.tune_rounded,
-          child: SensoryReadOnlyView(settings: student.sensorySettings),
-        ),
-        if (teachers.isNotEmpty) ...[
-          const SizedBox(height: AppSpacing.lg),
-          SectionCard(
-            title: l.teacherLabel,
-            icon: Icons.person_rounded,
-            child: Column(
-              children: [
-                for (final teacher in teachers) ContactCard(user: teacher),
-              ],
-            ),
-          ),
-        ],
-        const SizedBox(height: AppSpacing.lg),
-        StudentScheduleSection(studentId: student.id, canEdit: true),
-        const SizedBox(height: AppSpacing.lg),
-        JournalHistorySection(studentId: student.id),
-      ],
     );
   }
 }

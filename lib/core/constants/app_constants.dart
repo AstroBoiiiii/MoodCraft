@@ -255,29 +255,126 @@ const Map<Emotion, String> kQuizListenFeedback = {
 const List<List<EmotionContent>> kQuizStorySets = [
   // Set 1
   [
-    EmotionContent(id: 'q1_happy', emotion: Emotion.happy, prompt: 'Ari found his lost teddy under the bed.', feedback: 'Ari found his teddy. He feels happy.'),
-    EmotionContent(id: 'q1_sad', emotion: Emotion.sad, prompt: 'Nina watched her ice cream fall on the floor.', feedback: "Nina's ice cream fell. She feels sad."),
-    EmotionContent(id: 'q1_scared', emotion: Emotion.scared, prompt: 'The room went dark and something went bump.', feedback: 'A bump in the dark. That feels scared.'),
-    EmotionContent(id: 'q1_angry', emotion: Emotion.angry, prompt: 'Someone took Omar off his turn on the swing.', feedback: 'Omar lost his turn. He feels angry.'),
-    EmotionContent(id: 'q1_surprised', emotion: Emotion.surprised, prompt: 'Everyone jumped out and shouted at the party.', feedback: 'Everyone jumped out. What a surprise!'),
+    EmotionContent(
+      id: 'q1_happy',
+      emotion: Emotion.happy,
+      prompt: 'Ari found his lost teddy under the bed.',
+      feedback: 'Ari found his teddy. He feels happy.',
+    ),
+    EmotionContent(
+      id: 'q1_sad',
+      emotion: Emotion.sad,
+      prompt: 'Nina watched her ice cream fall on the floor.',
+      feedback: "Nina's ice cream fell. She feels sad.",
+    ),
+    EmotionContent(
+      id: 'q1_scared',
+      emotion: Emotion.scared,
+      prompt: 'The room went dark and something went bump.',
+      feedback: 'A bump in the dark. That feels scared.',
+    ),
+    EmotionContent(
+      id: 'q1_angry',
+      emotion: Emotion.angry,
+      prompt: 'Someone took Omar off his turn on the swing.',
+      feedback: 'Omar lost his turn. He feels angry.',
+    ),
+    EmotionContent(
+      id: 'q1_surprised',
+      emotion: Emotion.surprised,
+      prompt: 'Everyone jumped out and shouted at the party.',
+      feedback: 'Everyone jumped out. What a surprise!',
+    ),
   ],
   // Set 2
   [
-    EmotionContent(id: 'q2_happy', emotion: Emotion.happy, prompt: "Lina's puppy ran to her, wagging its tail.", feedback: 'The puppy runs to Lina. She feels happy.'),
-    EmotionContent(id: 'q2_sad', emotion: Emotion.sad, prompt: "Sam's best friend moved far away today.", feedback: "Sam's friend moved away. He feels sad."),
-    EmotionContent(id: 'q2_scared', emotion: Emotion.scared, prompt: 'A big dog barked loudly right behind Mia.', feedback: 'A big dog barked at Mia. She feels scared.'),
-    EmotionContent(id: 'q2_angry', emotion: Emotion.angry, prompt: "Tom's little brother scribbled on his drawing.", feedback: 'Tom\'s drawing got scribbled. He feels angry.'),
-    EmotionContent(id: 'q2_surprised', emotion: Emotion.surprised, prompt: 'A balloon popped with a sudden loud bang.', feedback: 'The balloon went bang. What a surprise!'),
+    EmotionContent(
+      id: 'q2_happy',
+      emotion: Emotion.happy,
+      prompt: "Lina's puppy ran to her, wagging its tail.",
+      feedback: 'The puppy runs to Lina. She feels happy.',
+    ),
+    EmotionContent(
+      id: 'q2_sad',
+      emotion: Emotion.sad,
+      prompt: "Sam's best friend moved far away today.",
+      feedback: "Sam's friend moved away. He feels sad.",
+    ),
+    EmotionContent(
+      id: 'q2_scared',
+      emotion: Emotion.scared,
+      prompt: 'A big dog barked loudly right behind Mia.',
+      feedback: 'A big dog barked at Mia. She feels scared.',
+    ),
+    EmotionContent(
+      id: 'q2_angry',
+      emotion: Emotion.angry,
+      prompt: "Tom's little brother scribbled on his drawing.",
+      feedback: 'Tom\'s drawing got scribbled. He feels angry.',
+    ),
+    EmotionContent(
+      id: 'q2_surprised',
+      emotion: Emotion.surprised,
+      prompt: 'A balloon popped with a sudden loud bang.',
+      feedback: 'The balloon went bang. What a surprise!',
+    ),
   ],
   // Set 3
   [
-    EmotionContent(id: 'q3_happy', emotion: Emotion.happy, prompt: 'Grandma baked Aziz his favourite cake.', feedback: "Grandma baked Aziz's cake. He feels happy."),
-    EmotionContent(id: 'q3_sad', emotion: Emotion.sad, prompt: "Maya's balloon floated up into the sky.", feedback: "Maya's balloon floated away. She feels sad."),
-    EmotionContent(id: 'q3_scared', emotion: Emotion.scared, prompt: 'All the lights went out in the house.', feedback: 'All the lights went out. That feels scared.'),
-    EmotionContent(id: 'q3_angry', emotion: Emotion.angry, prompt: 'Someone knocked down the tower Eli built.', feedback: 'Eli\'s tower was knocked down. He feels angry.'),
-    EmotionContent(id: 'q3_surprised', emotion: Emotion.surprised, prompt: 'Dad came home early carrying a puppy.', feedback: 'Dad came home with a puppy. What a surprise!'),
+    EmotionContent(
+      id: 'q3_happy',
+      emotion: Emotion.happy,
+      prompt: 'Grandma baked Aziz his favourite cake.',
+      feedback: "Grandma baked Aziz's cake. He feels happy.",
+    ),
+    EmotionContent(
+      id: 'q3_sad',
+      emotion: Emotion.sad,
+      prompt: "Maya's balloon floated up into the sky.",
+      feedback: "Maya's balloon floated away. She feels sad.",
+    ),
+    EmotionContent(
+      id: 'q3_scared',
+      emotion: Emotion.scared,
+      prompt: 'All the lights went out in the house.',
+      feedback: 'All the lights went out. That feels scared.',
+    ),
+    EmotionContent(
+      id: 'q3_angry',
+      emotion: Emotion.angry,
+      prompt: 'Someone knocked down the tower Eli built.',
+      feedback: 'Eli\'s tower was knocked down. He feels angry.',
+    ),
+    EmotionContent(
+      id: 'q3_surprised',
+      emotion: Emotion.surprised,
+      prompt: 'Dad came home early carrying a puppy.',
+      feedback: 'Dad came home with a puppy. What a surprise!',
+    ),
   ],
 ];
+
+/// FR5 Story Mode. Root folder for the episode videos. Each episode in the
+/// story catalogue (`kStoryCatalog` in `features/story/story_data.dart`) names
+/// its own file under this root; drop the real mp4 in and point the catalogue
+/// at it with no other code change (asset strategy, CLAUDE.md section 9).
+/// Registered in pubspec.yaml.
+const String kStoryVideoRoot = 'assets/video';
+
+/// The feelings Story Mode asks about at a pause (the five clear, teachable
+/// emotions; `neutral` excluded). Story Mode keeps its own list so it never
+/// depends on Mix-and-Match or the quiz.
+const List<Emotion> kStoryEmotions = [
+  Emotion.happy,
+  Emotion.sad,
+  Emotion.scared,
+  Emotion.angry,
+  Emotion.surprised,
+];
+
+/// Number of episodes in every story (FR5). Episodes play in order, like a
+/// little series: finishing one gently opens the next.
+const int kStoryEpisodeCount = 3;
 
 /// Soft accent per student-home activity, keyed by the activity's route id. Used
 /// by `ActivityCard` to tint the icon badge + outline only — muted tones in the

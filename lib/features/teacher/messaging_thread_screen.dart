@@ -227,8 +227,7 @@ class _MessageBubble extends StatelessWidget {
     final onDelete = this.onDelete;
     if (onDelete == null) return;
     final l = AppLocalizations.of(context);
-    final overlay =
-        Overlay.of(context).context.findRenderObject() as RenderBox;
+    final overlay = Overlay.of(context).context.findRenderObject() as RenderBox;
     final selected = await showMenu<bool>(
       context: context,
       position: RelativeRect.fromLTRB(
@@ -313,7 +312,9 @@ class _MessageBubble extends StatelessWidget {
                   topLeft: const Radius.circular(AppRadii.md),
                   topRight: const Radius.circular(AppRadii.md),
                   bottomLeft: Radius.circular(isMe ? AppRadii.md : AppRadii.sm),
-                  bottomRight: Radius.circular(isMe ? AppRadii.sm : AppRadii.md),
+                  bottomRight: Radius.circular(
+                    isMe ? AppRadii.sm : AppRadii.md,
+                  ),
                 ),
               ),
               child: Column(

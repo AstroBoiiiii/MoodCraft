@@ -99,6 +99,13 @@
   "colourThemeLowStimGrey": "Low Stim",
   "studentProfile": "Student Profile",
   "childProfile": "Child Profile",
+  "tabOverview": "Overview",
+  "tabSchedule": "Schedule",
+  "tabJournal": "Journal",
+  "progressReport": "Progress report",
+  "progressReportSoon": "A progress report for this student is coming soon.",
+  "selectStudentHint": "Select a student to see their details",
+  "homeTodayHeading": "Today",
   "msgNoConversations": "No conversations yet",
   "msgNoLinkedTeacher": "No teacher linked yet",
   "msgNewMessage": "New message",
@@ -199,7 +206,6 @@
   "previewReports": "Gentle progress reports you can share will appear here.",
   "previewRewards": "Stars and badges will appear here as you play.",
   "previewCompanion": "A friendly companion will help you name feelings here.",
-  "previewStory": "Gentle stories that pause to ask how everyone feels.",
   "previewMatch": "Match the faces to feelings here.",
   "previewQuiz": "A calm feelings quiz with no timer and no score.",
   "accountSection": "Account",
@@ -235,5 +241,20 @@
   "quizPickDay": "Pick a day to play.",
   "quizToday": "Today",
   "quizYesterday": "Yesterday",
-  "quizDayBefore": "Day before"
+  "quizDayBefore": "Day before",
+  "storyIntro": "Pick a story to watch.",
+  "storyEpisode": "Episode {n}",
+  "@storyEpisode": {
+    "placeholders": {
+      "n": { "type": "int" }
+    }
+  },
+  "storyAskFeeling": "How do they feel?",
+  "storyTryAgain": "That's okay. Have another look.",
+  "storyContinue": "Continue",
+  "storyDone": "The end!",
+  "storyDoneBody": "Great watching. The next episode is ready when you are.",
+  "storyDoneButton": "Done",
+  "storyVideoUnavailable": "This story is getting ready. Please try another one.",
+  "storyClassroomHint": "Play a story episode on the class screen."
 }

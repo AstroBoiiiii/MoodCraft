@@ -86,13 +86,18 @@ List<MixMatchCard> deckFromRound(MixMatchType type, MixMatchRound round) => [
 ];
 
 /// Snapshots the current deck + how many are placed into a savable round.
-MixMatchRound roundFromDeck(List<MixMatchCard> deck, int placed) => MixMatchRound(
-  placed: placed,
-  cards: [
-    for (final c in deck)
-      MixMatchRoundCard(answer: c.answer, assetPath: c.assetPath, text: c.text),
-  ],
-);
+MixMatchRound roundFromDeck(List<MixMatchCard> deck, int placed) =>
+    MixMatchRound(
+      placed: placed,
+      cards: [
+        for (final c in deck)
+          MixMatchRoundCard(
+            answer: c.answer,
+            assetPath: c.assetPath,
+            text: c.text,
+          ),
+      ],
+    );
 
 Future<List<MixMatchCard>> _poolFor(MixMatchType type) async {
   if (type == MixMatchType.story) return _textPool(type, kMixMatchStories);

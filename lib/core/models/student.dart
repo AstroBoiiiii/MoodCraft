@@ -2,6 +2,7 @@ import '../utils/json_utils.dart';
 import 'mix_match_round.dart';
 import 'quiz_round.dart';
 import 'sensory_settings.dart';
+import 'story_progress.dart';
 
 /// `students/{studentId}` — the learner profile, owning the sensory settings
 /// and gentle progression (level/stars).
@@ -18,6 +19,7 @@ class Student {
     this.stars = 0,
     this.mixMatchRounds = const {},
     this.quizRounds = const {},
+    this.storyProgress = const {},
   });
 
   final String id;
@@ -45,6 +47,11 @@ class Student {
   /// resumes on the exact same question after navigating away or signing out.
   final Map<String, QuizRound> quizRounds;
 
+  /// Per-story saved Story Mode progress (FR5): story id → episodes finished
+  /// plus the exact pause point of the in-progress episode. Persisted so
+  /// episodes unlock in order and play resumes where the child left off.
+  final Map<String, StoryProgress> storyProgress;
+
   Student copyWith({
     String? id,
     String? name,
@@ -57,6 +64,7 @@ class Student {
     int? stars,
     Map<String, MixMatchRound>? mixMatchRounds,
     Map<String, QuizRound>? quizRounds,
+    Map<String, StoryProgress>? storyProgress,
   }) {
     return Student(
       id: id ?? this.id,
@@ -70,6 +78,7 @@ class Student {
       stars: stars ?? this.stars,
       mixMatchRounds: mixMatchRounds ?? this.mixMatchRounds,
       quizRounds: quizRounds ?? this.quizRounds,
+      storyProgress: storyProgress ?? this.storyProgress,
     );
   }
 
@@ -85,6 +94,7 @@ class Student {
     'stars': stars,
     'mixMatchRounds': mixMatchRounds.map((k, v) => MapEntry(k, v.toJson())),
     'quizRounds': quizRounds.map((k, v) => MapEntry(k, v.toJson())),
+    'storyProgress': storyProgress.map((k, v) => MapEntry(k, v.toJson())),
   };
 
   factory Student.fromJson(Map<String, dynamic> json) => Student(
@@ -101,5 +111,6 @@ class Student {
     stars: (json['stars'] as num?)?.toInt() ?? 0,
     mixMatchRounds: mixMatchRoundsFromJson(json['mixMatchRounds']),
     quizRounds: quizRoundsFromJson(json['quizRounds']),
+    storyProgress: storyProgressFromJson(json['storyProgress']),
   );
 }

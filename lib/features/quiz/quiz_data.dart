@@ -215,7 +215,8 @@ List<_Cand> _allCandidates(
 
 /// Identifies a candidate by its actual content (modality + image/sound/story),
 /// so the same picture or clip never appears twice in one round.
-String _contentKey(_Cand c) => '${c.modality.name}:${c.assetPath ?? c.text ?? ''}';
+String _contentKey(_Cand c) =>
+    '${c.modality.name}:${c.assetPath ?? c.text ?? ''}';
 
 /// Wraps a chosen candidate into a question, drawing its answer choices.
 QuizQuestion _finalize(_Cand c, int index, Random rng) => QuizQuestion(
@@ -272,8 +273,8 @@ List<Emotion> _optionsFor(Emotion answer, Random rng) {
 /// feelings outside [kQuizEmotions] are skipped.
 Map<Emotion, List<String>> _looksByEmotion(List<String> assets) {
   final out = <Emotion, List<String>>{};
-  final paths = assets.where((p) => p.startsWith('$kQuizLookRoot/')).toList()
-    ..sort();
+  final paths =
+      assets.where((p) => p.startsWith('$kQuizLookRoot/')).toList()..sort();
   for (final path in paths) {
     final e = _emotionFromPath(path);
     if (e == null || !kQuizEmotions.contains(e)) continue;
@@ -286,8 +287,8 @@ Map<Emotion, List<String>> _looksByEmotion(List<String> assets) {
 /// filename; the leading `<emotion>` token is the answer.
 Map<Emotion, List<String>> _listensByEmotion(List<String> assets) {
   final out = <Emotion, List<String>>{};
-  final paths = assets.where((p) => p.startsWith('$kQuizCueFolder/')).toList()
-    ..sort();
+  final paths =
+      assets.where((p) => p.startsWith('$kQuizCueFolder/')).toList()..sort();
   for (final path in paths) {
     final e = _emotionFromPath(path);
     if (e == null || !kQuizEmotions.contains(e)) continue;

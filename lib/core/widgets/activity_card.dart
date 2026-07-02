@@ -39,13 +39,13 @@ class ActivityCard extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Container(
-                width: 64,
-                height: 64,
+                width: 72,
+                height: 72,
                 decoration: BoxDecoration(
                   color: accent.withValues(alpha: 0.18),
                   shape: BoxShape.circle,
                 ),
-                child: Icon(icon, size: 34, color: accent),
+                child: Icon(icon, size: 40, color: accent),
               ),
               const SizedBox(height: AppSpacing.sm),
               Text(

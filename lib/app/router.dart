@@ -16,6 +16,8 @@ import '../features/parent/parent_shell.dart';
 import '../features/mix_match/mix_match_screen.dart';
 import '../features/mix_match/mix_match_play_screen.dart';
 import '../features/quiz/quiz_play_screen.dart';
+import '../features/story/story_home_screen.dart';
+import '../features/story/story_play_screen.dart';
 import '../features/student/ar/ar_screen.dart';
 import '../features/student/student_screens.dart';
 import '../features/student/student_shell.dart';
@@ -65,12 +67,10 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       // Signed out: only the auth-flow routes are allowed.
       if (user == null) return onPublic ? null : '/login';
 
-      // Web is the teacher's classroom + office layer only (FR1). A signed-in
-      // student/parent on web is sent to a calm "use the mobile app" screen that
-      // signs them out. Kept off in debug so Chrome dev can exercise every role.
-      if (kIsWeb && !kDebugMode && user.role != UserRole.teacher) {
-        return state.matchedLocation == '/mobile-only' ? null : '/mobile-only';
-      }
+      // TODO(demo): re-enable the teacher-only web gate before the demo.
+      // Web is the teacher's classroom + office layer only (FR1); the gate that
+      // sent a signed-in student/parent to /mobile-only is removed temporarily
+      // so every role can be tested on Chrome while the UI is being finished.
 
       // Routes reachable by any signed-in role (not role-specific sections).
       const sharedSignedInPaths = {'/account/profile'};
@@ -155,7 +155,21 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/student/story',
         parentNavigatorKey: _rootNavigatorKey,
-        builder: (context, state) => const StoryScreen(),
+        builder: (context, state) => const StoryHomeScreen(),
+      ),
+      // Story Mode episode (FR5). `extra` carries the story, episode and the
+      // student id (null id = teacher classroom mode).
+      GoRoute(
+        path: '/student/story/play',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) {
+          final args = state.extra as StoryPlayArgs;
+          return StoryPlayScreen(
+            studentId: args.studentId,
+            storyId: args.storyId,
+            level: args.level,
+          );
+        },
       ),
       GoRoute(
         path: '/student/mixmatch',
@@ -204,6 +218,21 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state) {
           final type = state.extra as MixMatchType;
           return MixMatchPlayScreen(type: type, studentId: null);
+        },
+      ),
+
+      // Teacher classroom projection of a story episode (FR5). Same play screen
+      // in classroom mode (null studentId) — every episode open, no record.
+      GoRoute(
+        path: '/teacher/story/play',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) {
+          final args = state.extra as StoryPlayArgs;
+          return StoryPlayScreen(
+            studentId: null,
+            storyId: args.storyId,
+            level: args.level,
+          );
         },
       ),
 

@@ -8,45 +8,12 @@ import '../../core/models/student.dart';
 import '../../core/providers/auth_provider.dart';
 import '../../core/providers/repository_providers.dart';
 import '../../core/widgets/calm_scaffold.dart';
-import '../../core/widgets/contact_card.dart';
-import '../../core/widgets/profile_header.dart';
-import '../../core/widgets/section_card.dart';
-import '../../core/widgets/sensory_read_only_view.dart';
-import '../journal/journal_section.dart';
-import '../schedule/schedule_section.dart';
+import '../../core/widgets/constrained_content.dart';
+import '../student_detail/student_detail_tabs.dart';
 
-class _StudentDetail {
-  const _StudentDetail({
-    required this.student,
-    required this.teachers,
-    required this.parents,
-  });
-  final Student student;
-  final List<AppUser> teachers;
-  final List<AppUser> parents;
-}
-
-final _studentDetailProvider = StreamProvider.family<_StudentDetail?, String>((
-  ref,
-  id,
-) async* {
-  final repo = ref.watch(studentRepositoryProvider);
-  final userRepo = ref.watch(userRepositoryProvider);
-  await for (final student in repo.watchStudent(id)) {
-    if (student == null) {
-      yield null;
-      continue;
-    }
-    final teachers = await userRepo.getUsersFor(student.teacherIds);
-    final parents = await userRepo.getUsersFor(student.parentIds);
-    yield _StudentDetail(
-      student: student,
-      teachers: teachers,
-      parents: parents,
-    );
-  }
-});
-
+/// Full-screen student detail, pushed from the roster on phones and narrow
+/// windows (`/teacher/students/student/:id`). The wide two-pane Students view
+/// embeds [StudentDetailPanel] directly instead.
 class StudentProfileDetailScreen extends ConsumerWidget {
   const StudentProfileDetailScreen({required this.studentId, super.key});
 
@@ -55,9 +22,7 @@ class StudentProfileDetailScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l = AppLocalizations.of(context);
-    final theme = Theme.of(context);
-    final detailAsync = ref.watch(_studentDetailProvider(studentId));
-    final detail = detailAsync.value;
+    final detail = ref.watch(studentDetailProvider(studentId)).value;
 
     return CalmScaffold(
       title: l.studentProfile,
@@ -66,204 +31,186 @@ class StudentProfileDetailScreen extends ConsumerWidget {
           detail == null
               ? null
               : [
-                PopupMenuButton<String>(
-                  icon: const Icon(Icons.more_vert_rounded),
-                  onSelected: (value) {
-                    if (value == 'delete') {
-                      _confirmDeleteStudent(context, ref, detail.student);
-                    }
+                StudentDeleteMenu(
+                  student: detail.student,
+                  onDeleted: () {
+                    final navigator = Navigator.of(context);
+                    if (navigator.canPop()) navigator.pop();
                   },
-                  itemBuilder:
-                      (_) => [
-                        PopupMenuItem(
-                          value: 'delete',
-                          child: Row(
-                            children: [
-                              Icon(
-                                Icons.person_remove_rounded,
-                                color: theme.colorScheme.error,
-                              ),
-                              const SizedBox(width: AppSpacing.sm),
-                              Text(l.studentDelete),
-                            ],
-                          ),
-                        ),
-                      ],
                 ),
               ],
-      body: detailAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (_, __) => Center(child: Text(l.comingSoon)),
-        data: (detail) {
-          if (detail == null) return Center(child: Text(l.comingSoon));
-          return _DetailBody(
-            detail: detail,
-            l: l,
-            onRemoveParent:
-                (parent) =>
-                    _confirmRemoveParent(context, ref, detail.student, parent),
-          );
-        },
-      ),
+      body: ConstrainedContent(child: StudentDetailPanel(studentId: studentId)),
     );
-  }
-
-  /// Deletes the student record and drops it from the teacher's own links, then
-  /// returns to the roster. Guarded by a confirm dialog (irreversible).
-  Future<void> _confirmDeleteStudent(
-    BuildContext context,
-    WidgetRef ref,
-    Student student,
-  ) async {
-    final l = AppLocalizations.of(context);
-    final messenger = ScaffoldMessenger.of(context);
-    final navigator = Navigator.of(context);
-    final confirmed = await _confirm(
-      context,
-      title: l.studentDelete,
-      message: l.studentDeleteConfirm(student.name),
-      actionLabel: l.actionDelete,
-    );
-    if (!confirmed) return;
-
-    await ref.read(studentRepositoryProvider).delete(student.id);
-    // Keep the teacher's own linkedStudentIds tidy so the roster query and
-    // rules stay consistent.
-    final me = ref.read(currentUserProvider);
-    if (me != null && me.linkedStudentIds.contains(student.id)) {
-      await ref
-          .read(userRepositoryProvider)
-          .upsert(
-            me.copyWith(
-              linkedStudentIds:
-                  me.linkedStudentIds.where((id) => id != student.id).toList(),
-            ),
-          );
-      ref.invalidate(userProfileProvider);
-    }
-    messenger.showSnackBar(SnackBar(content: Text(l.studentDeleted)));
-    if (navigator.canPop()) navigator.pop();
-  }
-
-  /// Removes [parent] from this student's `parentIds` (the parent card and any
-  /// messaging target disappear). Guarded by a confirm dialog.
-  Future<void> _confirmRemoveParent(
-    BuildContext context,
-    WidgetRef ref,
-    Student student,
-    AppUser parent,
-  ) async {
-    final l = AppLocalizations.of(context);
-    final confirmed = await _confirm(
-      context,
-      title: l.parentRemove,
-      message: l.parentRemoveConfirm(parent.name),
-      actionLabel: l.actionRemove,
-    );
-    if (!confirmed) return;
-    await ref
-        .read(studentRepositoryProvider)
-        .upsert(
-          student.copyWith(
-            parentIds:
-                student.parentIds.where((id) => id != parent.uid).toList(),
-          ),
-        );
-  }
-
-  Future<bool> _confirm(
-    BuildContext context, {
-    required String title,
-    required String message,
-    required String actionLabel,
-  }) async {
-    final l = AppLocalizations.of(context);
-    final theme = Theme.of(context);
-    final result = await showDialog<bool>(
-      context: context,
-      builder:
-          (ctx) => AlertDialog(
-            title: Text(title),
-            content: Text(message),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(ctx, false),
-                child: Text(l.cancelEdit),
-              ),
-              FilledButton(
-                style: FilledButton.styleFrom(
-                  backgroundColor: theme.colorScheme.error,
-                ),
-                onPressed: () => Navigator.pop(ctx, true),
-                child: Text(actionLabel),
-              ),
-            ],
-          ),
-    );
-    return result ?? false;
   }
 }
 
-class _DetailBody extends StatelessWidget {
-  const _DetailBody({
-    required this.detail,
-    required this.l,
-    required this.onRemoveParent,
-  });
+/// The provider-watching tabbed detail body, shared by the pushed route screen
+/// and the wide two-pane Students view. Teacher configuration: schedule
+/// editable, parents removable.
+class StudentDetailPanel extends ConsumerWidget {
+  const StudentDetailPanel({required this.studentId, super.key});
 
-  final _StudentDetail detail;
-  final AppLocalizations l;
-  final void Function(AppUser parent) onRemoveParent;
+  final String studentId;
 
   @override
-  Widget build(BuildContext context) {
-    final student = detail.student;
-    return ListView(
-      children: [
-        ProfileHeader(
-          name: student.name,
-          subtitle: student.age > 0 ? l.ageYearsOld(student.age) : null,
-          chipLabel: l.levelStars(student.level, student.stars),
-          avatarRadius: 48,
-        ),
-        const SizedBox(height: AppSpacing.lg),
-        SectionCard(
-          title: l.sensorySettings,
-          icon: Icons.tune_rounded,
-          child: SensoryReadOnlyView(settings: student.sensorySettings),
-        ),
-        if (detail.teachers.isNotEmpty) ...[
-          const SizedBox(height: AppSpacing.lg),
-          SectionCard(
-            title: l.teacherLabel,
-            icon: Icons.person_rounded,
-            child: Column(
-              children: [for (final u in detail.teachers) ContactCard(user: u)],
-            ),
-          ),
-        ],
-        if (detail.parents.isNotEmpty) ...[
-          const SizedBox(height: AppSpacing.lg),
-          SectionCard(
-            title: l.parentLabel,
-            icon: Icons.people_rounded,
-            child: Column(
-              children: [
-                for (final u in detail.parents)
-                  ContactCard(
-                    user: u,
-                    onRemove: () => onRemoveParent(u),
-                    removeTooltip: l.parentRemove,
-                  ),
-              ],
-            ),
-          ),
-        ],
-        const SizedBox(height: AppSpacing.lg),
-        StudentScheduleSection(studentId: student.id, canEdit: true),
-        const SizedBox(height: AppSpacing.lg),
-        JournalHistorySection(studentId: student.id),
-      ],
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l = AppLocalizations.of(context);
+    final detailAsync = ref.watch(studentDetailProvider(studentId));
+    return detailAsync.when(
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (_, __) => Center(child: Text(l.comingSoon)),
+      data: (detail) {
+        if (detail == null) return Center(child: Text(l.comingSoon));
+        return StudentDetailTabs(
+          key: ValueKey(detail.student.id),
+          student: detail.student,
+          teachers: detail.teachers,
+          parents: detail.parents,
+          canEditSchedule: true,
+          onRemoveParent:
+              (parent) =>
+                  confirmRemoveParent(context, ref, detail.student, parent),
+        );
+      },
     );
   }
+}
+
+/// The delete-student popup menu, shown in the route screen's app bar and in
+/// the two-pane header. [onDeleted] runs after a confirmed delete so each host
+/// can clean up its own navigation or selection state.
+class StudentDeleteMenu extends ConsumerWidget {
+  const StudentDeleteMenu({
+    required this.student,
+    required this.onDeleted,
+    super.key,
+  });
+
+  final Student student;
+  final VoidCallback onDeleted;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l = AppLocalizations.of(context);
+    final theme = Theme.of(context);
+    return PopupMenuButton<String>(
+      icon: const Icon(Icons.more_vert_rounded),
+      onSelected: (value) {
+        if (value == 'delete') {
+          confirmDeleteStudent(context, ref, student, onDeleted: onDeleted);
+        }
+      },
+      itemBuilder:
+          (_) => [
+            PopupMenuItem(
+              value: 'delete',
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.person_remove_rounded,
+                    color: theme.colorScheme.error,
+                  ),
+                  const SizedBox(width: AppSpacing.sm),
+                  Text(l.studentDelete),
+                ],
+              ),
+            ),
+          ],
+    );
+  }
+}
+
+/// Deletes the student record and drops it from the teacher's own links, then
+/// calls [onDeleted] (pop the route, or clear the two-pane selection). Guarded
+/// by a confirm dialog (irreversible).
+Future<void> confirmDeleteStudent(
+  BuildContext context,
+  WidgetRef ref,
+  Student student, {
+  VoidCallback? onDeleted,
+}) async {
+  final l = AppLocalizations.of(context);
+  final messenger = ScaffoldMessenger.of(context);
+  final confirmed = await _confirm(
+    context,
+    title: l.studentDelete,
+    message: l.studentDeleteConfirm(student.name),
+    actionLabel: l.actionDelete,
+  );
+  if (!confirmed) return;
+
+  await ref.read(studentRepositoryProvider).delete(student.id);
+  // Keep the teacher's own linkedStudentIds tidy so the roster query and
+  // rules stay consistent.
+  final me = ref.read(currentUserProvider);
+  if (me != null && me.linkedStudentIds.contains(student.id)) {
+    await ref
+        .read(userRepositoryProvider)
+        .upsert(
+          me.copyWith(
+            linkedStudentIds:
+                me.linkedStudentIds.where((id) => id != student.id).toList(),
+          ),
+        );
+    ref.invalidate(userProfileProvider);
+  }
+  messenger.showSnackBar(SnackBar(content: Text(l.studentDeleted)));
+  onDeleted?.call();
+}
+
+/// Removes [parent] from this student's `parentIds` (the parent card and any
+/// messaging target disappear). Guarded by a confirm dialog.
+Future<void> confirmRemoveParent(
+  BuildContext context,
+  WidgetRef ref,
+  Student student,
+  AppUser parent,
+) async {
+  final l = AppLocalizations.of(context);
+  final confirmed = await _confirm(
+    context,
+    title: l.parentRemove,
+    message: l.parentRemoveConfirm(parent.name),
+    actionLabel: l.actionRemove,
+  );
+  if (!confirmed) return;
+  await ref
+      .read(studentRepositoryProvider)
+      .upsert(
+        student.copyWith(
+          parentIds: student.parentIds.where((id) => id != parent.uid).toList(),
+        ),
+      );
+}
+
+Future<bool> _confirm(
+  BuildContext context, {
+  required String title,
+  required String message,
+  required String actionLabel,
+}) async {
+  final l = AppLocalizations.of(context);
+  final theme = Theme.of(context);
+  final result = await showDialog<bool>(
+    context: context,
+    builder:
+        (ctx) => AlertDialog(
+          title: Text(title),
+          content: Text(message),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: Text(l.cancelEdit),
+            ),
+            FilledButton(
+              style: FilledButton.styleFrom(
+                backgroundColor: theme.colorScheme.error,
+              ),
+              onPressed: () => Navigator.pop(ctx, true),
+              child: Text(actionLabel),
+            ),
+          ],
+        ),
+  );
+  return result ?? false;
 }

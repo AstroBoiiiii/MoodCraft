@@ -11,5 +11,6 @@ export 'observation_report.dart';
 export 'quiz_round.dart';
 export 'sensory_settings.dart';
 export 'session.dart';
+export 'story_progress.dart';
 export 'student.dart';
 export 'visual_schedule.dart';

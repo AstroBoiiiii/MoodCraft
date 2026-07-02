@@ -336,9 +336,7 @@ class _NarrateButton extends ConsumerWidget {
               speaking
                   ? () => service.stop()
                   : () => service.narrate(text, volume: volume),
-          icon: Icon(
-            speaking ? Icons.pause_rounded : Icons.play_arrow_rounded,
-          ),
+          icon: Icon(speaking ? Icons.pause_rounded : Icons.play_arrow_rounded),
           label: Text(speaking ? l.mixMatchListening : l.mixMatchListen),
         );
       },
@@ -438,7 +436,9 @@ class _CardFace extends StatelessWidget {
           // Round the picture's own corners so it reads as a smooth card, not a
           // sharp-edged rectangle sitting inside the frame.
           child: ClipRRect(
-            borderRadius: BorderRadius.circular(compact ? AppRadii.sm : AppRadii.md),
+            borderRadius: BorderRadius.circular(
+              compact ? AppRadii.sm : AppRadii.md,
+            ),
             child: Image.asset(
               card.assetPath!,
               filterQuality: FilterQuality.medium,

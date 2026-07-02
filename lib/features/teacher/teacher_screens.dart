@@ -4,9 +4,11 @@ import 'package:go_router/go_router.dart';
 import 'package:moodcraft/l10n/app_localizations.dart';
 
 import '../../app/theme/tokens.dart';
+import '../../core/models/student.dart';
 import '../../core/providers/auth_provider.dart';
 import '../../core/providers/repository_providers.dart';
 import '../../core/widgets/calm_scaffold.dart';
+import '../../core/widgets/constrained_content.dart';
 import '../../core/widgets/empty_state.dart';
 import '../../core/widgets/initial_avatar.dart';
 import '../../core/widgets/placeholder_screen.dart';
@@ -14,6 +16,8 @@ import '../../core/widgets/section_card.dart';
 import '../../core/widgets/sensory_settings_sheet.dart';
 import '../mix_match/mix_match_screen.dart';
 import '../quiz/quiz_home_screen.dart';
+import '../story/story_home_screen.dart';
+import 'student_profile_detail_screen.dart';
 
 /// Teacher dashboard — the landing screen for the web portal. Carries the
 /// account actions (sensory settings + sign out).
@@ -78,6 +82,36 @@ class TeacherProfilesScreen extends StatelessWidget {
               ),
               const SizedBox(height: AppSpacing.lg),
               SectionCard(
+                title: l.navStories,
+                icon: Icons.menu_book_rounded,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: AppSpacing.md),
+                      child: Text(
+                        l.storyClassroomHint,
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ),
+                    StoryPicker(
+                      onPick:
+                          (storyId, level) => context.push(
+                            '/teacher/story/play',
+                            extra: (
+                              studentId: null,
+                              storyId: storyId,
+                              level: level,
+                            ),
+                          ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: AppSpacing.lg),
+              SectionCard(
                 title: l.navQuiz,
                 icon: Icons.emoji_objects_rounded,
                 child: Column(
@@ -121,108 +155,214 @@ class TeacherClassroomScreen extends ConsumerStatefulWidget {
 class _TeacherClassroomScreenState
     extends ConsumerState<TeacherClassroomScreen> {
   bool _codeVisible = false;
+  String? _selectedStudentId;
+
+  /// Body width (not window width — the shell rail already eats ~80px at its
+  /// own 720 breakpoint) at which the roster and the selected student's detail
+  /// sit side by side instead of the roster pushing a full-screen detail.
+  static const double _twoPaneBreakpoint = 840;
+  static const double _rosterPaneWidth = 360;
 
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
-    final theme = Theme.of(context);
-    final classAsync = ref.watch(teacherClassProvider);
     final studentsAsync = ref.watch(classStudentsStreamProvider);
 
     return CalmScaffold(
       title: l.navStudents,
       icon: Icons.groups_rounded,
-      body: ListView(
-        children: [
-          // ── Class code ────────────────────────────────────────────────────
-          classAsync.when(
-            loading: () => const SizedBox.shrink(),
-            error: (_, __) => const SizedBox.shrink(),
-            data: (classroom) {
-              if (classroom == null) return const SizedBox.shrink();
-              return Padding(
-                padding: const EdgeInsets.only(bottom: AppSpacing.lg),
-                child: SectionCard(
-                  title: l.yourClassCode,
-                  icon: Icons.tag_rounded,
-                  trailing: TextButton.icon(
-                    onPressed:
-                        () => setState(() => _codeVisible = !_codeVisible),
-                    icon: Icon(
-                      _codeVisible
-                          ? Icons.visibility_off_rounded
-                          : Icons.visibility_rounded,
-                      size: 18,
-                    ),
-                    label: Text(_codeVisible ? l.hideCode : l.showCode),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      if (classroom.name.isNotEmpty)
-                        Padding(
-                          padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-                          child: Text(
-                            classroom.name,
-                            style: theme.textTheme.bodyMedium?.copyWith(
-                              color: theme.colorScheme.onSurfaceVariant,
-                            ),
-                          ),
-                        ),
-                      Center(
-                        child: SelectableText(
-                          _codeVisible ? classroom.classCode : '••••••',
-                          style: theme.textTheme.displaySmall?.copyWith(
-                            color: theme.colorScheme.primary,
-                            letterSpacing: 8,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          if (constraints.maxWidth < _twoPaneBreakpoint) {
+            return ConstrainedContent(
+              child: _rosterList(
+                onStudentTap:
+                    (student) =>
+                        context.push('/teacher/students/student/${student.id}'),
+              ),
+            );
+          }
+
+          // Wide (web/projector): master-detail. Selection is plain local
+          // state; the pushed /teacher/students/student/:id route still serves
+          // narrow windows and direct links unchanged. A stale selection (e.g.
+          // a deleted student) simply resolves to null and shows the hint.
+          final students = studentsAsync.value ?? const <Student>[];
+          Student? selected;
+          for (final student in students) {
+            if (student.id == _selectedStudentId) selected = student;
+          }
+          return Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              SizedBox(
+                width: _rosterPaneWidth,
+                child: _rosterList(
+                  onStudentTap:
+                      (student) =>
+                          setState(() => _selectedStudentId = student.id),
+                  selectedId: _selectedStudentId,
                 ),
-              );
-            },
-          ),
-          // ── Students ──────────────────────────────────────────────────────
-          Text(l.navStudents, style: theme.textTheme.titleMedium),
-          const SizedBox(height: AppSpacing.sm),
-          studentsAsync.when(
-            loading: () => const Center(child: CircularProgressIndicator()),
-            error: (_, __) => EmptyState(message: l.comingSoon, compact: true),
-            data: (students) {
-              if (students.isEmpty) {
-                return EmptyState(
-                  icon: Icons.groups_rounded,
-                  message: l.noStudentsYet,
-                  compact: true,
-                );
-              }
-              return Column(
-                children: [
-                  for (final student in students)
-                    Card(
-                      margin: const EdgeInsets.only(bottom: AppSpacing.sm),
-                      child: ListTile(
-                        leading: InitialAvatar(name: student.name),
-                        title: Text(student.name),
-                        subtitle: Text(
-                          student.age > 0
-                              ? '${l.ageYearsOld(student.age)} · ${l.levelStars(student.level, student.stars)}'
-                              : l.levelStars(student.level, student.stars),
+              ),
+              const SizedBox(width: AppSpacing.lg),
+              const VerticalDivider(width: 1),
+              const SizedBox(width: AppSpacing.lg),
+              Expanded(
+                child:
+                    selected == null
+                        ? EmptyState(
+                          icon: Icons.groups_rounded,
+                          message: l.selectStudentHint,
+                        )
+                        : _StudentDetailPane(
+                          student: selected,
+                          onDeleted:
+                              () => setState(() => _selectedStudentId = null),
                         ),
-                        trailing: const Icon(Icons.chevron_right_rounded),
-                        onTap:
-                            () => context.push(
-                              '/teacher/students/student/${student.id}',
-                            ),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  /// The class-code card + student roster, shared by the narrow single-column
+  /// layout and the wide master pane. [selectedId] highlights the student shown
+  /// in the detail pane.
+  Widget _rosterList({
+    required void Function(Student student) onStudentTap,
+    String? selectedId,
+  }) {
+    final l = AppLocalizations.of(context);
+    final theme = Theme.of(context);
+    final classAsync = ref.watch(teacherClassProvider);
+    final studentsAsync = ref.watch(classStudentsStreamProvider);
+
+    return ListView(
+      children: [
+        // ── Class code ────────────────────────────────────────────────────
+        classAsync.when(
+          loading: () => const SizedBox.shrink(),
+          error: (_, __) => const SizedBox.shrink(),
+          data: (classroom) {
+            if (classroom == null) return const SizedBox.shrink();
+            return Padding(
+              padding: const EdgeInsets.only(bottom: AppSpacing.lg),
+              child: SectionCard(
+                title: l.yourClassCode,
+                icon: Icons.tag_rounded,
+                trailing: TextButton.icon(
+                  onPressed: () => setState(() => _codeVisible = !_codeVisible),
+                  icon: Icon(
+                    _codeVisible
+                        ? Icons.visibility_off_rounded
+                        : Icons.visibility_rounded,
+                    size: 18,
+                  ),
+                  label: Text(_codeVisible ? l.hideCode : l.showCode),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (classroom.name.isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+                        child: Text(
+                          classroom.name,
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                      ),
+                    Center(
+                      child: SelectableText(
+                        _codeVisible ? classroom.classCode : '••••••',
+                        style: theme.textTheme.displaySmall?.copyWith(
+                          color: theme.colorScheme.primary,
+                          letterSpacing: 8,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
-                ],
+                  ],
+                ),
+              ),
+            );
+          },
+        ),
+        // ── Students ──────────────────────────────────────────────────────
+        Text(l.navStudents, style: theme.textTheme.titleMedium),
+        const SizedBox(height: AppSpacing.sm),
+        studentsAsync.when(
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (_, __) => EmptyState(message: l.comingSoon, compact: true),
+          data: (students) {
+            if (students.isEmpty) {
+              return EmptyState(
+                icon: Icons.groups_rounded,
+                message: l.noStudentsYet,
+                compact: true,
               );
-            },
+            }
+            return Column(
+              children: [
+                for (final student in students)
+                  Card(
+                    margin: const EdgeInsets.only(bottom: AppSpacing.sm),
+                    child: ListTile(
+                      selected: student.id == selectedId,
+                      leading: InitialAvatar(name: student.name),
+                      title: Text(student.name),
+                      subtitle: Text(
+                        student.age > 0
+                            ? '${l.ageYearsOld(student.age)} · ${l.levelStars(student.level, student.stars)}'
+                            : l.levelStars(student.level, student.stars),
+                      ),
+                      trailing: const Icon(Icons.chevron_right_rounded),
+                      onTap: () => onStudentTap(student),
+                    ),
+                  ),
+              ],
+            );
+          },
+        ),
+      ],
+    );
+  }
+}
+
+/// The right pane of the wide Students view: a small title row with the
+/// delete menu over the shared tabbed detail. Deleting clears the selection
+/// instead of popping (this pane lives inside the shell, not on a pushed
+/// route).
+class _StudentDetailPane extends StatelessWidget {
+  const _StudentDetailPane({required this.student, required this.onDeleted});
+
+  final Student student;
+  final VoidCallback onDeleted;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return ConstrainedContent(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  student.name,
+                  style: theme.textTheme.titleLarge,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              StudentDeleteMenu(student: student, onDeleted: onDeleted),
+            ],
           ),
+          const SizedBox(height: AppSpacing.sm),
+          Expanded(child: StudentDetailPanel(studentId: student.id)),
         ],
       ),
     );
@@ -255,29 +395,31 @@ class TeacherMessagesScreen extends ConsumerWidget {
               message: l.msgNoConversations,
             );
           }
-          return ListView.separated(
-            itemCount: conversations.length,
-            separatorBuilder: (_, __) => const Divider(height: 1),
-            itemBuilder: (context, i) {
-              final conv = conversations[i];
-              return _ConversationTile(
-                conv: conv,
-                myUid: ref.watch(currentUserProvider)?.uid,
-                onTap:
-                    () => context.push(
-                      '/teacher/messages/thread',
-                      extra: {
-                        'conversationId': conv.conversationId,
-                        'toUid': conv.parentUid,
-                        'studentId': conv.studentId,
-                        'title': l.msgConversationTitle(
-                          conv.parentName,
-                          conv.studentName,
-                        ),
-                      },
-                    ),
-              );
-            },
+          return ConstrainedContent(
+            child: ListView.separated(
+              itemCount: conversations.length,
+              separatorBuilder: (_, __) => const Divider(height: 1),
+              itemBuilder: (context, i) {
+                final conv = conversations[i];
+                return _ConversationTile(
+                  conv: conv,
+                  myUid: ref.watch(currentUserProvider)?.uid,
+                  onTap:
+                      () => context.push(
+                        '/teacher/messages/thread',
+                        extra: {
+                          'conversationId': conv.conversationId,
+                          'toUid': conv.parentUid,
+                          'studentId': conv.studentId,
+                          'title': l.msgConversationTitle(
+                            conv.parentName,
+                            conv.studentName,
+                          ),
+                        },
+                      ),
+                );
+              },
+            ),
           );
         },
       ),

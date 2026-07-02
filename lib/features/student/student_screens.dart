@@ -25,10 +25,25 @@ class StudentHomeScreen extends ConsumerWidget {
     final l = AppLocalizations.of(context);
     final theme = Theme.of(context);
     final student = ref.watch(activeStudentProvider).value;
+    // The Now/Next card renders nothing without a routine, so only show its
+    // "Today" heading when there is something for it to head.
+    final hasSchedule =
+        student != null &&
+        (ref
+                .watch(studentScheduleProvider(student.id))
+                .value
+                ?.sortedItems
+                .isNotEmpty ??
+            false);
 
     // (route, accent key, label, icon). Schedule is no longer a tile here — the
-    // "what's next" routine lives in the Now/Next card at the top.
+    // "what's next" routine lives in the Now/Next card at the top. Built
+    // activities come first; Companion and AR (calm placeholders for now)
+    // close the grid.
     final activities = <(String, String, String, IconData)>[
+      ('/student/story', 'story', l.navStories, Icons.menu_book_rounded),
+      ('/student/mixmatch', 'mixmatch', l.navMatch, Icons.extension_rounded),
+      ('/student/quiz', 'quiz', l.navQuiz, Icons.emoji_objects_rounded),
       (
         '/student/companion',
         'companion',
@@ -36,9 +51,6 @@ class StudentHomeScreen extends ConsumerWidget {
         Icons.chat_bubble_rounded,
       ),
       ('/student/ar', 'ar', l.navAr, Icons.view_in_ar_rounded),
-      ('/student/story', 'story', l.navStories, Icons.menu_book_rounded),
-      ('/student/mixmatch', 'mixmatch', l.navMatch, Icons.extension_rounded),
-      ('/student/quiz', 'quiz', l.navQuiz, Icons.emoji_objects_rounded),
     ];
 
     return CalmScaffold(
@@ -50,11 +62,17 @@ class StudentHomeScreen extends ConsumerWidget {
           constraints: const BoxConstraints(maxWidth: 560),
           child: ListView(
             children: [
-              if (student != null)
+              if (student != null) ...[
+                if (hasSchedule) ...[
+                  Text(l.homeTodayHeading, style: theme.textTheme.titleMedium),
+                  const SizedBox(height: AppSpacing.sm),
+                ],
+                // Carries its own bottom spacing and hides without a routine.
                 ScheduleNowNextCard(
                   studentId: student.id,
                   onTap: () => context.push('/student/schedule'),
                 ),
+              ],
               Text(l.homeActivities, style: theme.textTheme.titleMedium),
               const SizedBox(height: AppSpacing.sm),
               GridView.count(
@@ -63,7 +81,7 @@ class StudentHomeScreen extends ConsumerWidget {
                 physics: const NeverScrollableScrollPhysics(),
                 mainAxisSpacing: AppSpacing.md,
                 crossAxisSpacing: AppSpacing.md,
-                childAspectRatio: 1.05,
+                childAspectRatio: 0.95,
                 children: [
                   for (final (route, key, label, icon) in activities)
                     ActivityCard(
@@ -144,19 +162,6 @@ class CompanionScreen extends StatelessWidget {
   }
 }
 
-class StoryScreen extends StatelessWidget {
-  const StoryScreen({super.key});
-  @override
-  Widget build(BuildContext context) {
-    final l = AppLocalizations.of(context);
-    return PlaceholderScreen(
-      title: l.navStories,
-      icon: Icons.menu_book_rounded,
-      message: l.previewStory,
-    );
-  }
-}
-
 /// FR7 — the stress-free feelings quiz entry. Pick a day (Today / Yesterday /
 /// Day before) to play that day's set; the real date decides which set each day
 /// shows. Each day's round is one calm mix of look / listen / story, no score,
@@ -182,7 +187,8 @@ class QuizScreen extends ConsumerWidget {
               QuizDayPicker(
                 progressFor:
                     (setIndex) =>
-                        (student?.quizRounds[setIndex.toString()]?.answered ?? 0)
+                        (student?.quizRounds[setIndex.toString()]?.answered ??
+                                0)
                             .clamp(0, kQuizRoundSize),
                 onPick:
                     (setIndex) => context.push(

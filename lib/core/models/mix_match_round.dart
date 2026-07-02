@@ -22,7 +22,9 @@ class MixMatchRound {
     cards:
         (json['cards'] as List?)
             ?.whereType<Map>()
-            .map((e) => MixMatchRoundCard.fromJson(Map<String, dynamic>.from(e)))
+            .map(
+              (e) => MixMatchRoundCard.fromJson(Map<String, dynamic>.from(e)),
+            )
             .toList() ??
         const [],
   );

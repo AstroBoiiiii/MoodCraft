@@ -277,6 +277,27 @@ class AppLocalizationsMs extends AppLocalizations {
   String get childProfile => 'Profil Anak';
 
   @override
+  String get tabOverview => 'Overview';
+
+  @override
+  String get tabSchedule => 'Schedule';
+
+  @override
+  String get tabJournal => 'Journal';
+
+  @override
+  String get progressReport => 'Progress report';
+
+  @override
+  String get progressReportSoon => 'A progress report for this student is coming soon.';
+
+  @override
+  String get selectStudentHint => 'Select a student to see their details';
+
+  @override
+  String get homeTodayHeading => 'Today';
+
+  @override
   String get msgNoConversations => 'Belum ada perbualan';
 
   @override
@@ -509,9 +530,6 @@ class AppLocalizationsMs extends AppLocalizations {
   String get previewCompanion => 'A friendly companion will help you name feelings here.';
 
   @override
-  String get previewStory => 'Gentle stories that pause to ask how everyone feels.';
-
-  @override
   String get previewMatch => 'Match the faces to feelings here.';
 
   @override
@@ -618,4 +636,36 @@ class AppLocalizationsMs extends AppLocalizations {
 
   @override
   String get quizDayBefore => 'Day before';
+
+  @override
+  String get storyIntro => 'Pick a story to watch.';
+
+  @override
+  String storyEpisode(int n) {
+    return 'Episode $n';
+  }
+
+  @override
+  String get storyAskFeeling => 'How do they feel?';
+
+  @override
+  String get storyTryAgain => 'That\'s okay. Have another look.';
+
+  @override
+  String get storyContinue => 'Continue';
+
+  @override
+  String get storyDone => 'The end!';
+
+  @override
+  String get storyDoneBody => 'Great watching. The next episode is ready when you are.';
+
+  @override
+  String get storyDoneButton => 'Done';
+
+  @override
+  String get storyVideoUnavailable => 'This story is getting ready. Please try another one.';
+
+  @override
+  String get storyClassroomHint => 'Play a story episode on the class screen.';
 }

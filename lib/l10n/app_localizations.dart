@@ -623,6 +623,48 @@ abstract class AppLocalizations {
   /// **'Child Profile'**
   String get childProfile;
 
+  /// No description provided for @tabOverview.
+  ///
+  /// In en, this message translates to:
+  /// **'Overview'**
+  String get tabOverview;
+
+  /// No description provided for @tabSchedule.
+  ///
+  /// In en, this message translates to:
+  /// **'Schedule'**
+  String get tabSchedule;
+
+  /// No description provided for @tabJournal.
+  ///
+  /// In en, this message translates to:
+  /// **'Journal'**
+  String get tabJournal;
+
+  /// No description provided for @progressReport.
+  ///
+  /// In en, this message translates to:
+  /// **'Progress report'**
+  String get progressReport;
+
+  /// No description provided for @progressReportSoon.
+  ///
+  /// In en, this message translates to:
+  /// **'A progress report for this student is coming soon.'**
+  String get progressReportSoon;
+
+  /// No description provided for @selectStudentHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Select a student to see their details'**
+  String get selectStudentHint;
+
+  /// No description provided for @homeTodayHeading.
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get homeTodayHeading;
+
   /// No description provided for @msgNoConversations.
   ///
   /// In en, this message translates to:
@@ -1067,12 +1109,6 @@ abstract class AppLocalizations {
   /// **'A friendly companion will help you name feelings here.'**
   String get previewCompanion;
 
-  /// No description provided for @previewStory.
-  ///
-  /// In en, this message translates to:
-  /// **'Gentle stories that pause to ask how everyone feels.'**
-  String get previewStory;
-
   /// No description provided for @previewMatch.
   ///
   /// In en, this message translates to:
@@ -1288,6 +1324,66 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Day before'**
   String get quizDayBefore;
+
+  /// No description provided for @storyIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick a story to watch.'**
+  String get storyIntro;
+
+  /// No description provided for @storyEpisode.
+  ///
+  /// In en, this message translates to:
+  /// **'Episode {n}'**
+  String storyEpisode(int n);
+
+  /// No description provided for @storyAskFeeling.
+  ///
+  /// In en, this message translates to:
+  /// **'How do they feel?'**
+  String get storyAskFeeling;
+
+  /// No description provided for @storyTryAgain.
+  ///
+  /// In en, this message translates to:
+  /// **'That\'s okay. Have another look.'**
+  String get storyTryAgain;
+
+  /// No description provided for @storyContinue.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue'**
+  String get storyContinue;
+
+  /// No description provided for @storyDone.
+  ///
+  /// In en, this message translates to:
+  /// **'The end!'**
+  String get storyDone;
+
+  /// No description provided for @storyDoneBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Great watching. The next episode is ready when you are.'**
+  String get storyDoneBody;
+
+  /// No description provided for @storyDoneButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get storyDoneButton;
+
+  /// No description provided for @storyVideoUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'This story is getting ready. Please try another one.'**
+  String get storyVideoUnavailable;
+
+  /// No description provided for @storyClassroomHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Play a story episode on the class screen.'**
+  String get storyClassroomHint;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {
