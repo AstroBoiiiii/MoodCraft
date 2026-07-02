@@ -646,9 +646,6 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get storyAskFeeling => 'How do they feel?';
-
-  @override
   String get storyTryAgain => 'That\'s okay. Have another look.';
 
   @override

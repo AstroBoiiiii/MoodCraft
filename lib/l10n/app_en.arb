@@ -249,7 +249,6 @@
       "n": { "type": "int" }
     }
   },
-  "storyAskFeeling": "How do they feel?",
   "storyTryAgain": "That's okay. Have another look.",
   "storyContinue": "Continue",
   "storyDone": "The end!",

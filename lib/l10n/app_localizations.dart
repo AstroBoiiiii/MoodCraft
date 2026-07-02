@@ -1337,12 +1337,6 @@ abstract class AppLocalizations {
   /// **'Episode {n}'**
   String storyEpisode(int n);
 
-  /// No description provided for @storyAskFeeling.
-  ///
-  /// In en, this message translates to:
-  /// **'How do they feel?'**
-  String get storyAskFeeling;
-
   /// No description provided for @storyTryAgain.
   ///
   /// In en, this message translates to:

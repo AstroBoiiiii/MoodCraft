@@ -1,6 +1,4 @@
-import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart' show DeviceOrientation, SystemChrome;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:moodcraft/l10n/app_localizations.dart';
@@ -14,7 +12,6 @@ import '../../core/models/session.dart';
 import '../../core/models/story_progress.dart';
 import '../../core/providers/repository_providers.dart';
 import '../../core/providers/sensory_settings_provider.dart';
-import '../../core/services/narration_service.dart';
 import '../../core/widgets/calm_scaffold.dart';
 import '../journal/journal_section.dart' show emotionLabel;
 import 'story_data.dart';
@@ -23,11 +20,19 @@ import 'story_data.dart';
 /// teacher classroom mode, no record), which story and which episode (0-based).
 typedef StoryPlayArgs = ({String? studentId, String storyId, int level});
 
-/// FR5 — one story episode: a landscape video that pauses at emotional moments
-/// to ask how the character feels, quiz-style. Three feeling choices; a right
-/// tap speaks a warm tailored line (Continue cuts the narration and resumes the
-/// video), a wrong tap is a calm "look again" with another try. No timer, no
-/// score. The video never autoplays — the child taps play.
+/// FR5 — one story episode, laid out like a familiar video page on web and
+/// mobile alike: the film sits in its own contained frame with calm controls
+/// underneath (play/pause and a non-scrubbable progress line). Tapping the film
+/// itself also toggles play/pause. The film never autoplays — the child taps
+/// play. No full-screen mode: the contained page stays clean and predictable.
+///
+/// At each configured emotional moment the film pauses and asks its question
+/// quiz-style beneath the film: the pause's own `ask` line (naming who to think
+/// about), three feeling choices, a short friendly feedback line on a right tap
+/// (read, not narrated — story mode has no TTS), a calm "look again" on a wrong
+/// one. No timer, no score. The question is never painted *over* the video —
+/// on web the video is a real browser element layered above the Flutter
+/// canvas, and overlays drawn onto it can come out blank white.
 ///
 /// Progress has full parity with the quiz: each answered pause is saved the
 /// instant it is given (episode + pause point on `Student.storyProgress`), so
@@ -82,26 +87,13 @@ class _StoryPlayScreenState extends ConsumerState<StoryPlayScreen> {
         (widget.level >= 0 && widget.level < episodes.length)
             ? episodes[widget.level]
             : null;
-    // Landscape, like watching a little film (web stays as the browser is).
-    if (!kIsWeb) {
-      SystemChrome.setPreferredOrientations([
-        DeviceOrientation.landscapeLeft,
-        DeviceOrientation.landscapeRight,
-      ]);
-    }
-    ref.read(narrationServiceProvider).prewarm();
     _load();
   }
 
   @override
   void dispose() {
-    // Never let feedback narration trail into the next screen.
-    ref.read(narrationServiceProvider).stop();
     _controller?.removeListener(_onTick);
     _controller?.dispose();
-    if (!kIsWeb) {
-      SystemChrome.setPreferredOrientations(DeviceOrientation.values);
-    }
     super.dispose();
   }
 
@@ -146,7 +138,10 @@ class _StoryPlayScreenState extends ConsumerState<StoryPlayScreen> {
       return;
     }
     await controller.setVolume(ref.read(sensorySettingsProvider).masterVolume);
-    if (resumeMs > 0) await controller.seekTo(Duration(milliseconds: resumeMs));
+    // Open on the episode's segment start, or the exact saved pause point when
+    // resuming further in (all timestamps are absolute in the film).
+    final seekMs = resumeMs > episode.startMs ? resumeMs : episode.startMs;
+    if (seekMs > 0) await controller.seekTo(Duration(milliseconds: seekMs));
     controller.addListener(_onTick);
     setState(() {
       _controller = controller;
@@ -156,7 +151,7 @@ class _StoryPlayScreenState extends ConsumerState<StoryPlayScreen> {
   }
 
   /// Playback watcher: pauses the video the moment it reaches the next unasked
-  /// pause moment, and spots the natural end of the episode.
+  /// pause moment, and spots the end of the episode's segment.
   void _onTick() {
     final controller = _controller;
     final episode = _episode;
@@ -177,16 +172,26 @@ class _StoryPlayScreenState extends ConsumerState<StoryPlayScreen> {
       return;
     }
 
-    if (!_finished &&
-        !_inQuestion &&
-        v.duration > Duration.zero &&
-        v.position >= v.duration &&
-        !v.isPlaying) {
+    // The episode is over at its configured segment end, or at the natural end
+    // of the film for the last stretch.
+    final endMs = episode.endMs;
+    final segmentOver =
+        endMs != null
+            ? v.position.inMilliseconds >= endMs
+            : v.duration > Duration.zero &&
+                v.position >= v.duration &&
+                !v.isPlaying;
+    if (!_finished && !_inQuestion && segmentOver) {
+      controller.pause();
       _finish();
     }
   }
 
-  double get _volume => ref.read(sensorySettingsProvider).masterVolume;
+  void _togglePlay() {
+    final controller = _controller;
+    if (controller == null || _inQuestion) return;
+    controller.value.isPlaying ? controller.pause() : controller.play();
+  }
 
   void _onAnswer(StoryPause pause, Emotion pick) {
     if (_answered) return;
@@ -196,9 +201,6 @@ class _StoryPlayScreenState extends ConsumerState<StoryPlayScreen> {
       // Mark this pause answered right away, so a quit during the feedback
       // resumes after this pause, not by re-answering it.
       _saveProgress(pausesDone: _pausesDone + 1, positionMs: pause.atMs);
-      ref
-          .read(narrationServiceProvider)
-          .narrate(pause.feedback, volume: _volume);
     } else {
       // Gentle, no-penalty redirect: stay on the question for another try.
       setState(() {
@@ -208,10 +210,8 @@ class _StoryPlayScreenState extends ConsumerState<StoryPlayScreen> {
     }
   }
 
-  /// Hides the question and lets the film carry on. Cuts the feedback narration
-  /// the instant the child moves on.
+  /// Hides the question and lets the film carry on.
   void _continueStory() {
-    ref.read(narrationServiceProvider).stop();
     setState(() {
       _pausesDone++;
       _inQuestion = false;
@@ -273,6 +273,11 @@ class _StoryPlayScreenState extends ConsumerState<StoryPlayScreen> {
     }
   }
 
+  StoryPause? get _currentPause {
+    final pauses = _episode?.pauses ?? const <StoryPause>[];
+    return _pausesDone < pauses.length ? pauses[_pausesDone] : null;
+  }
+
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
@@ -308,100 +313,22 @@ class _StoryPlayScreenState extends ConsumerState<StoryPlayScreen> {
         body: const Center(child: CircularProgressIndicator()),
       );
     }
-    return _buildPlayer(context, l);
-  }
 
-  Widget _buildPlayer(BuildContext context, AppLocalizations l) {
-    final theme = Theme.of(context);
-    final controller = _controller!;
-    final episode = _episode!;
-    final pause =
-        _pausesDone < episode.pauses.length
-            ? episode.pauses[_pausesDone]
-            : null;
-    return Scaffold(
-      backgroundColor: theme.colorScheme.surfaceContainerLowest,
-      body: SafeArea(
-        child: Stack(
-          children: [
-            // The film, letterboxed like a video player. Tapping it is the one
-            // control: play when paused, pause when playing.
-            Positioned.fill(
-              child: ValueListenableBuilder<VideoPlayerValue>(
-                valueListenable: controller,
-                builder: (context, value, _) {
-                  return GestureDetector(
-                    onTap:
-                        _inQuestion
-                            ? null
-                            : () =>
-                                value.isPlaying
-                                    ? controller.pause()
-                                    : controller.play(),
-                    child: Stack(
-                      alignment: Alignment.center,
-                      children: [
-                        Center(
-                          child: AspectRatio(
-                            aspectRatio:
-                                value.aspectRatio > 0
-                                    ? value.aspectRatio
-                                    : 16 / 9,
-                            child: VideoPlayer(controller),
-                          ),
-                        ),
-                        // One big, calm play button when the film is waiting.
-                        if (!value.isPlaying && !_inQuestion)
-                          Container(
-                            width: 88,
-                            height: 88,
-                            decoration: BoxDecoration(
-                              color: theme.colorScheme.surface.withValues(
-                                alpha: 0.85,
-                              ),
-                              shape: BoxShape.circle,
-                            ),
-                            child: Icon(
-                              Icons.play_arrow_rounded,
-                              size: 56,
-                              color: theme.colorScheme.primary,
-                            ),
-                          ),
-                      ],
-                    ),
-                  );
-                },
-              ),
-            ),
-            // Soft progress line along the bottom — no scrubbing, so the film
-            // can never skip past a feelings moment.
-            Positioned(
-              left: 0,
-              right: 0,
-              bottom: 0,
-              child: VideoProgressIndicator(
-                controller,
-                allowScrubbing: false,
-                colors: VideoProgressColors(
-                  playedColor: activityAccent('story'),
-                  bufferedColor: theme.colorScheme.outlineVariant,
-                  backgroundColor: theme.colorScheme.surfaceContainerHighest,
-                ),
-              ),
-            ),
-            // Calm way back.
-            Positioned(
-              top: AppSpacing.sm,
-              left: AppSpacing.sm,
-              child: IconButton.filledTonal(
-                onPressed: () => context.pop(),
-                icon: const Icon(Icons.arrow_back_rounded),
-              ),
-            ),
-            // The pause-and-ask moment, over a softly dimmed film.
-            if (_inQuestion && pause != null)
-              Positioned.fill(
-                child: _PauseQuestion(
+    final pause = _currentPause;
+    return CalmScaffold(
+      title: title,
+      icon: Icons.menu_book_rounded,
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 860),
+          child: ListView(
+            children: [
+              _videoFrame(context),
+              const SizedBox(height: AppSpacing.sm),
+              _controlsRow(context),
+              const SizedBox(height: AppSpacing.md),
+              if (_inQuestion && pause != null)
+                _PauseQuestion(
                   pause: pause,
                   options: storyOptionsFor(
                     widget.storyId,
@@ -414,16 +341,111 @@ class _StoryPlayScreenState extends ConsumerState<StoryPlayScreen> {
                   onPick: (e) => _onAnswer(pause, e),
                   onContinue: _continueStory,
                 ),
-              ),
-          ],
+            ],
+          ),
         ),
       ),
     );
   }
+
+  /// The film in a rounded frame at its own aspect ratio, with one big calm
+  /// play button while it waits. A transparent Flutter tap layer sits above the
+  /// video, so tapping the film to play or pause always works — on web the
+  /// video itself is a browser element that can swallow taps.
+  Widget _videoFrame(BuildContext context) {
+    final theme = Theme.of(context);
+    final controller = _controller!;
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(AppRadii.md),
+      child: ValueListenableBuilder<VideoPlayerValue>(
+        valueListenable: controller,
+        builder: (context, value, _) {
+          return AspectRatio(
+            aspectRatio: value.aspectRatio > 0 ? value.aspectRatio : 16 / 9,
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                // The frame already matches the film's aspect ratio, so the
+                // video simply fills it.
+                SizedBox.expand(child: VideoPlayer(controller)),
+                Positioned.fill(
+                  child: GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: _togglePlay,
+                  ),
+                ),
+                // One big, calm play button when the film is waiting. It only
+                // signposts the tap layer underneath, so taps pass through.
+                if (!value.isPlaying && !_inQuestion)
+                  IgnorePointer(
+                    child: Container(
+                      width: 88,
+                      height: 88,
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.surface.withValues(
+                          alpha: 0.85,
+                        ),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        Icons.play_arrow_rounded,
+                        size: 56,
+                        color: theme.colorScheme.primary,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  /// Calm control strip under the film: play/pause and the episode's progress
+  /// line (non-scrubbable, so the film can never skip past a feelings moment).
+  /// The controls live *beside* the video, never over it, so they always work
+  /// on web where the video is a browser element.
+  Widget _controlsRow(BuildContext context) {
+    final theme = Theme.of(context);
+    final controller = _controller!;
+    final episode = _episode!;
+    return ValueListenableBuilder<VideoPlayerValue>(
+      valueListenable: controller,
+      builder: (context, value, _) {
+        final endMs = episode.endMs ?? value.duration.inMilliseconds;
+        final span = endMs - episode.startMs;
+        final played = value.position.inMilliseconds - episode.startMs;
+        return Row(
+          children: [
+            IconButton.filledTonal(
+              onPressed: _inQuestion ? null : _togglePlay,
+              icon: Icon(
+                value.isPlaying
+                    ? Icons.pause_rounded
+                    : Icons.play_arrow_rounded,
+              ),
+            ),
+            const SizedBox(width: AppSpacing.md),
+            Expanded(
+              child: LinearProgressIndicator(
+                minHeight: 6,
+                borderRadius: BorderRadius.circular(AppRadii.pill),
+                value: span > 0 ? (played / span).clamp(0.0, 1.0) : 0.0,
+                color: activityAccent('story'),
+                backgroundColor: theme.colorScheme.surfaceContainerHighest,
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
 }
 
-/// The quiz-style question shown while the film waits: three feeling choices,
-/// then a warm feedback panel with Continue. A wrong tap shows a gentle "look
+/// The quiz-style question shown beneath the paused film: the pause's own ask
+/// line (naming who to think about), three feeling choices, then a short
+/// friendly feedback line with Continue. A wrong tap shows a gentle "look
 /// again" and stays on the question.
 class _PauseQuestion extends StatelessWidget {
   const _PauseQuestion({
@@ -446,51 +468,42 @@ class _PauseQuestion extends StatelessWidget {
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
     final theme = Theme.of(context);
-    return Container(
-      color: theme.colorScheme.surface.withValues(alpha: 0.88),
-      alignment: Alignment.center,
-      padding: const EdgeInsets.all(AppSpacing.lg),
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 560),
-        child:
-            answered
-                ? _PauseFeedback(pause: pause, onContinue: onContinue)
-                : Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      l.storyAskFeeling,
-                      textAlign: TextAlign.center,
-                      style: theme.textTheme.headlineSmall,
-                    ),
-                    if (missed) ...[
-                      const SizedBox(height: AppSpacing.xs),
-                      Text(
-                        l.storyTryAgain,
-                        textAlign: TextAlign.center,
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                    ],
-                    const SizedBox(height: AppSpacing.lg),
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        for (var i = 0; i < options.length; i++) ...[
-                          if (i > 0) const SizedBox(width: AppSpacing.sm),
-                          Expanded(
-                            child: _FeelingTile(
-                              emotion: options[i],
-                              onTap: () => onPick(options[i]),
-                            ),
-                          ),
-                        ],
-                      ],
-                    ),
-                  ],
+    if (answered) {
+      return _PauseFeedback(pause: pause, onContinue: onContinue);
+    }
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          pause.ask,
+          textAlign: TextAlign.center,
+          style: theme.textTheme.headlineSmall,
+        ),
+        if (missed) ...[
+          const SizedBox(height: AppSpacing.xs),
+          Text(
+            l.storyTryAgain,
+            textAlign: TextAlign.center,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ],
+        const SizedBox(height: AppSpacing.lg),
+        Row(
+          children: [
+            for (var i = 0; i < options.length; i++) ...[
+              if (i > 0) const SizedBox(width: AppSpacing.sm),
+              Expanded(
+                child: _FeelingTile(
+                  emotion: options[i],
+                  onTap: () => onPick(options[i]),
                 ),
-      ),
+              ),
+            ],
+          ],
+        ),
+      ],
     );
   }
 }
@@ -546,7 +559,7 @@ class _FeelingTile extends StatelessWidget {
   }
 }
 
-/// Warm "you got it" panel: the feeling, the tailored line (also spoken), and a
+/// Warm "you got it" panel: the feeling, the short friendly line, and a
 /// Continue button that resumes the film whenever the child likes.
 class _PauseFeedback extends StatelessWidget {
   const _PauseFeedback({required this.pause, required this.onContinue});

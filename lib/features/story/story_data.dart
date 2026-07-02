@@ -4,27 +4,41 @@ import '../../core/constants/app_constants.dart';
 import '../../core/models/enums.dart';
 
 /// One pause-and-ask moment in an episode (FR5). The video pauses at [atMs] and
-/// asks how the character feels; [answer] is the right feeling and [feedback]
-/// is the short warm line spoken when the child gets it right.
+/// asks [ask] — the question names who to think about (the boy, the puppy), so
+/// the child always knows whose feeling is being asked. [answer] is the right
+/// feeling and [feedback] is the short warm line shown when the child gets it
+/// right (story mode is read-only: no narration, just short friendly text).
 class StoryPause {
   const StoryPause({
     required this.atMs,
+    required this.ask,
     required this.answer,
     required this.feedback,
   });
 
   final int atMs;
+  final String ask;
   final Emotion answer;
   final String feedback;
 }
 
-/// One episode of a story: its bundled video and the pause moments inside it,
-/// in playback order.
+/// One episode of a story: a segment of its bundled video ([startMs] up to
+/// [endMs], or the natural end of the file when [endMs] is null) and the pause
+/// moments inside it, in playback order. All timestamps, pauses included, are
+/// absolute positions in the video file, so one continuous film can be carved
+/// into episodes with no editing.
 class StoryEpisode {
-  const StoryEpisode({required this.videoAsset, required this.pauses});
+  const StoryEpisode({
+    required this.videoAsset,
+    required this.pauses,
+    this.startMs = 0,
+    this.endMs,
+  });
 
   final String videoAsset;
   final List<StoryPause> pauses;
+  final int startMs;
+  final int? endMs;
 }
 
 /// A cartoon story (FR5): [kStoryEpisodeCount] episodes that continue one plot,
@@ -41,162 +55,78 @@ class StoryInfo {
   final List<StoryEpisode> episodes;
 }
 
-/// The curated story catalogue (FR5). PLACEHOLDER CONTENT: every episode plays
-/// the same stand-in clip with stand-in pause timestamps and feedback lines.
-/// When the real story videos are ready, drop each mp4 under [kStoryVideoRoot]
-/// and update the entry here (file name, pause timestamps, feelings, feedback);
-/// nothing else in the feature changes. Titles and feedback are curated English
-/// teaching content like `kQuizStorySets` (BM is the deferred FR15 pass).
+/// The curated story catalogue (FR5). One story is wired so far: "The Present"
+/// (`the_present.mp4`), a single continuous film carved into three episodes by
+/// start/end timestamps; the story content ends at 3:22 and the episode is cut
+/// there, so nothing after it ever plays. Two more films are already bundled
+/// under [kStoryVideoRoot] (`pip.mp4`, `watermelon.mp4`) waiting for their
+/// pause timestamps — add each as a new [StoryInfo] entry here; nothing else in
+/// the feature changes. Titles, asks and feedback are curated English teaching
+/// content like `kQuizStorySets` (BM is the deferred FR15 pass); keep the lines
+/// short and easy for the child to read.
 const List<StoryInfo> kStoryCatalog = [
   StoryInfo(
-    id: 'lost_ball',
-    title: 'The Lost Ball',
+    id: 'the_present',
+    title: 'The Present',
     episodes: [
+      // Episode 1 — Mom's surprise gift (0:07.5 to 1:00).
       StoryEpisode(
-        videoAsset: '$kStoryVideoRoot/placeholder.mp4',
+        videoAsset: '$kStoryVideoRoot/the_present.mp4',
+        startMs: 7500,
+        endMs: 60000,
         pauses: [
           StoryPause(
-            atMs: 3000,
-            answer: Emotion.sad,
-            feedback: 'His ball rolled far away. He feels sad.',
-          ),
-          StoryPause(
-            atMs: 7000,
-            answer: Emotion.happy,
-            feedback: 'A friend came to help him look. He feels happy.',
-          ),
-        ],
-      ),
-      StoryEpisode(
-        videoAsset: '$kStoryVideoRoot/placeholder.mp4',
-        pauses: [
-          StoryPause(
-            atMs: 3000,
-            answer: Emotion.scared,
-            feedback: 'The bushes rustled in the dark. He feels scared.',
-          ),
-          StoryPause(
-            atMs: 7000,
+            atMs: 29000,
+            ask: 'How does the boy feel?',
             answer: Emotion.surprised,
-            feedback: 'The ball popped out of the bush. What a surprise!',
+            feedback: 'He is shocked by the surprise from Mom.',
+          ),
+          StoryPause(
+            atMs: 59000,
+            ask: 'How does the boy feel?',
+            answer: Emotion.happy,
+            feedback: 'He got a puppy. He feels happy.',
           ),
         ],
       ),
+      // Episode 2 — the puppy is pushed away (1:00 to 1:52).
       StoryEpisode(
-        videoAsset: '$kStoryVideoRoot/placeholder.mp4',
+        videoAsset: '$kStoryVideoRoot/the_present.mp4',
+        startMs: 60000,
+        endMs: 112000,
         pauses: [
           StoryPause(
-            atMs: 3000,
+            atMs: 70000,
+            ask: 'How does the boy feel?',
             answer: Emotion.angry,
-            feedback: 'Someone kicked his ball away again. He feels angry.',
+            feedback: 'He is mad the puppy has a missing leg.',
           ),
           StoryPause(
-            atMs: 7000,
-            answer: Emotion.happy,
-            feedback: 'They all played together in the end. He feels happy.',
-          ),
-        ],
-      ),
-    ],
-  ),
-  StoryInfo(
-    id: 'new_puppy',
-    title: 'The New Puppy',
-    episodes: [
-      StoryEpisode(
-        videoAsset: '$kStoryVideoRoot/placeholder.mp4',
-        pauses: [
-          StoryPause(
-            atMs: 3000,
-            answer: Emotion.surprised,
-            feedback: 'A puppy jumped out of the box. What a surprise!',
-          ),
-          StoryPause(
-            atMs: 7000,
-            answer: Emotion.happy,
-            feedback: 'The puppy licked her hand. She feels happy.',
-          ),
-        ],
-      ),
-      StoryEpisode(
-        videoAsset: '$kStoryVideoRoot/placeholder.mp4',
-        pauses: [
-          StoryPause(
-            atMs: 3000,
+            atMs: 110000,
+            ask: 'How does the puppy feel?',
             answer: Emotion.sad,
-            feedback: 'The puppy hid under the bed all day. She feels sad.',
-          ),
-          StoryPause(
-            atMs: 7000,
-            answer: Emotion.happy,
-            feedback: 'The puppy came out for a cuddle. She feels happy.',
+            feedback: 'The puppy is left all alone. It feels sad.',
           ),
         ],
       ),
+      // Episode 3 — warmth wins (1:52 to the end of the story at 3:22; the
+      // last ask sits just before the cut so the gift's warm ending lands).
       StoryEpisode(
-        videoAsset: '$kStoryVideoRoot/placeholder.mp4',
+        videoAsset: '$kStoryVideoRoot/the_present.mp4',
+        startMs: 112000,
+        endMs: 202000,
         pauses: [
           StoryPause(
-            atMs: 3000,
-            answer: Emotion.scared,
-            feedback: 'The thunder was very loud. The puppy feels scared.',
-          ),
-          StoryPause(
-            atMs: 7000,
+            atMs: 162000,
+            ask: 'How does the boy feel?',
             answer: Emotion.happy,
-            feedback: 'She kept the puppy safe and warm. They feel happy.',
+            feedback: 'The puppy won him over. He feels happy.',
           ),
-        ],
-      ),
-    ],
-  ),
-  StoryInfo(
-    id: 'big_party',
-    title: 'The Big Party',
-    episodes: [
-      StoryEpisode(
-        videoAsset: '$kStoryVideoRoot/placeholder.mp4',
-        pauses: [
           StoryPause(
-            atMs: 3000,
+            atMs: 201000,
+            ask: 'How does the boy feel about his gift?',
             answer: Emotion.happy,
-            feedback: 'He is baking a cake with Grandma. He feels happy.',
-          ),
-          StoryPause(
-            atMs: 7000,
-            answer: Emotion.angry,
-            feedback: 'His brother poked the cake and it sank. He feels angry.',
-          ),
-        ],
-      ),
-      StoryEpisode(
-        videoAsset: '$kStoryVideoRoot/placeholder.mp4',
-        pauses: [
-          StoryPause(
-            atMs: 3000,
-            answer: Emotion.sad,
-            feedback: 'It rained and the garden party stopped. He feels sad.',
-          ),
-          StoryPause(
-            atMs: 7000,
-            answer: Emotion.surprised,
-            feedback: 'Everyone moved the party inside. What a surprise!',
-          ),
-        ],
-      ),
-      StoryEpisode(
-        videoAsset: '$kStoryVideoRoot/placeholder.mp4',
-        pauses: [
-          StoryPause(
-            atMs: 3000,
-            answer: Emotion.surprised,
-            feedback:
-                'The lights came on and everyone cheered. What a surprise!',
-          ),
-          StoryPause(
-            atMs: 7000,
-            answer: Emotion.happy,
-            feedback: 'They sang together and shared the cake. He feels happy.',
+            feedback: 'He loves his gift. He feels warm and happy.',
           ),
         ],
       ),
