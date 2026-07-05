@@ -127,9 +127,9 @@ class _QuizPlayScreenState extends ConsumerState<QuizPlayScreen> {
       // child quits during the feedback they resume on the NEXT question, not by
       // re-answering this one.
       _saveRound(_index + 1);
-      // Speak the warm feedback (audio-first). The child can skip it any time by
-      // tapping Next, which cuts the narration.
-      ref.read(narrationServiceProvider).narrate(q.feedback, volume: _volume);
+      if (ref.read(sensorySettingsProvider).quizFeedbackNarration) {
+        ref.read(narrationServiceProvider).narrate(q.feedback, volume: _volume);
+      }
     } else {
       // Gentle, no-penalty redirect: stay on the question for another try.
       setState(() {
@@ -199,9 +199,28 @@ class _QuizPlayScreenState extends ConsumerState<QuizPlayScreen> {
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
+    final speak = ref.watch(
+      sensorySettingsProvider.select((s) => s.quizFeedbackNarration),
+    );
     return CalmScaffold(
       title: l.navQuiz,
       icon: Icons.emoji_objects_rounded,
+      actions: [
+        IconButton(
+          tooltip: speak ? l.quizMuteVoice : l.quizUnmuteVoice,
+          icon: Icon(
+            speak ? Icons.volume_up_rounded : Icons.volume_off_rounded,
+          ),
+          onPressed: () {
+            final on = !speak;
+            ref
+                .read(sensorySettingsProvider.notifier)
+                .setQuizFeedbackNarration(on);
+            // Silence any feedback already playing the moment it's turned off.
+            if (!on) ref.read(narrationServiceProvider).stop();
+          },
+        ),
+      ],
       body:
           _deck == null
               ? const Center(child: CircularProgressIndicator())

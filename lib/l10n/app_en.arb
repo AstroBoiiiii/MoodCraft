@@ -43,6 +43,7 @@
   "arMobileOnly": "AR is available on the mobile app.",
   "arPlaceholder": "AR placeholder. A 3D character will act out a feeling here.",
   "signIn": "Sign in",
+  "signInWelcome": "Welcome back. Sign in to continue.",
   "registerTitle": "Create account",
   "nameLabel": "Your name",
   "emailLabel": "Email",
@@ -254,6 +255,10 @@
   "storyDone": "The end!",
   "storyDoneBody": "Great watching. The next episode is ready when you are.",
   "storyDoneButton": "Done",
+  "storyNextEpisode": "Next Episode",
+  "quizFeedbackNarration": "Speak quiz answers",
+  "quizMuteVoice": "Turn off the voice",
+  "quizUnmuteVoice": "Turn on the voice",
   "storyVideoUnavailable": "This story is getting ready. Please try another one.",
   "storyClassroomHint": "Play a story episode on the class screen."
 }

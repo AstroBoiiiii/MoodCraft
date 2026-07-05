@@ -29,6 +29,9 @@ class SensorySettingsController extends Notifier<SensorySettings> {
   void setBackgroundTrack(BackgroundTrack track) =>
       state = state.copyWith(backgroundTrack: track);
 
+  void setQuizFeedbackNarration(bool enabled) =>
+      state = state.copyWith(quizFeedbackNarration: enabled);
+
   /// Replace all settings at once — used when a student profile loads.
   void replace(SensorySettings settings) => state = settings;
 

@@ -48,7 +48,10 @@ void main() {
         'face': MixMatchRound(
           placed: 1,
           cards: [
-            MixMatchRoundCard(answer: Emotion.happy, assetPath: 'a/happy_1.png'),
+            MixMatchRoundCard(
+              answer: Emotion.happy,
+              assetPath: 'a/happy_1.png',
+            ),
             MixMatchRoundCard(answer: Emotion.sad, text: 'A sad little story'),
           ],
         ),
@@ -75,7 +78,11 @@ void main() {
         ),
       },
       storyProgress: {
-        'lost_ball': StoryProgress(levelsDone: 1, pausesDone: 1, positionMs: 3000),
+        'lost_ball': StoryProgress(
+          levelsDone: 1,
+          pausesDone: 1,
+          positionMs: 3000,
+        ),
         'new_puppy': StoryProgress(),
       },
     );

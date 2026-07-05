@@ -125,6 +125,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get signIn => 'Sign in';
 
   @override
+  String get signInWelcome => 'Welcome back. Sign in to continue.';
+
+  @override
   String get registerTitle => 'Create account';
 
   @override
@@ -659,6 +662,18 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get storyDoneButton => 'Done';
+
+  @override
+  String get storyNextEpisode => 'Next Episode';
+
+  @override
+  String get quizFeedbackNarration => 'Speak quiz answers';
+
+  @override
+  String get quizMuteVoice => 'Turn off the voice';
+
+  @override
+  String get quizUnmuteVoice => 'Turn on the voice';
 
   @override
   String get storyVideoUnavailable => 'This story is getting ready. Please try another one.';

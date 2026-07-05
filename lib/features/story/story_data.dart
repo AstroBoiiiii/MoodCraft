@@ -55,15 +55,12 @@ class StoryInfo {
   final List<StoryEpisode> episodes;
 }
 
-/// The curated story catalogue (FR5). One story is wired so far: "The Present"
-/// (`the_present.mp4`), a single continuous film carved into three episodes by
-/// start/end timestamps; the story content ends at 3:22 and the episode is cut
-/// there, so nothing after it ever plays. Two more films are already bundled
-/// under [kStoryVideoRoot] (`pip.mp4`, `watermelon.mp4`) waiting for their
-/// pause timestamps — add each as a new [StoryInfo] entry here; nothing else in
-/// the feature changes. Titles, asks and feedback are curated English teaching
-/// content like `kQuizStorySets` (BM is the deferred FR15 pass); keep the lines
-/// short and easy for the child to read.
+/// The curated story catalogue (FR5). Three stories are wired: "The Present"
+/// (`the_present.mp4`), "Watermelon" (`watermelon.mp4`) and "Pip"
+/// (`pip.mp4`), each a single continuous film carved into three episodes by
+/// start/end timestamps. Titles, asks and feedback are curated English
+/// teaching content like `kQuizStorySets` (BM is the deferred FR15 pass); keep
+/// the lines short and easy for the child to read.
 const List<StoryInfo> kStoryCatalog = [
   StoryInfo(
     id: 'the_present',
@@ -76,16 +73,16 @@ const List<StoryInfo> kStoryCatalog = [
         endMs: 60000,
         pauses: [
           StoryPause(
-            atMs: 29000,
+            atMs: 30000,
             ask: 'How does the boy feel?',
             answer: Emotion.surprised,
             feedback: 'He is shocked by the surprise from Mom.',
           ),
           StoryPause(
-            atMs: 59000,
+            atMs: 60000,
             ask: 'How does the boy feel?',
-            answer: Emotion.happy,
-            feedback: 'He got a puppy. He feels happy.',
+            answer: Emotion.surprised,
+            feedback: 'A puppy! He did not expect that gift.',
           ),
         ],
       ),
@@ -96,13 +93,13 @@ const List<StoryInfo> kStoryCatalog = [
         endMs: 112000,
         pauses: [
           StoryPause(
-            atMs: 70000,
+            atMs: 71000,
             ask: 'How does the boy feel?',
             answer: Emotion.angry,
             feedback: 'He is mad the puppy has a missing leg.',
           ),
           StoryPause(
-            atMs: 110000,
+            atMs: 110600,
             ask: 'How does the puppy feel?',
             answer: Emotion.sad,
             feedback: 'The puppy is left all alone. It feels sad.',
@@ -127,6 +124,142 @@ const List<StoryInfo> kStoryCatalog = [
             ask: 'How does the boy feel about his gift?',
             answer: Emotion.happy,
             feedback: 'He loves his gift. He feels warm and happy.',
+          ),
+        ],
+      ),
+    ],
+  ),
+  StoryInfo(
+    id: 'watermelon',
+    title: 'Watermelon',
+    episodes: [
+      // Episode 1 — the sweet treat turns strange (0:03 to 0:56).
+      StoryEpisode(
+        videoAsset: '$kStoryVideoRoot/watermelon.mp4',
+        startMs: 3000,
+        endMs: 56000,
+        pauses: [
+          StoryPause(
+            atMs: 22000,
+            ask: 'How does the boy feel about eating the watermelon?',
+            answer: Emotion.happy,
+            feedback: 'The watermelon is sweet and yummy. He feels happy.',
+          ),
+          StoryPause(
+            atMs: 56000,
+            ask: 'How does the boy feel?',
+            answer: Emotion.scared,
+            feedback: 'A watermelon is growing on his body. He feels scared.',
+          ),
+        ],
+      ),
+      // Episode 2 — a loud class and a slippery floor (0:56 to 1:56).
+      StoryEpisode(
+        videoAsset: '$kStoryVideoRoot/watermelon.mp4',
+        startMs: 56000,
+        endMs: 116000,
+        pauses: [
+          StoryPause(
+            atMs: 71000,
+            ask: 'How does the boy feel?',
+            answer: Emotion.surprised,
+            feedback:
+                'The teacher smacked the table. The loud bang surprised him.',
+          ),
+          StoryPause(
+            atMs: 116000,
+            ask: 'How does the boy feel sliding around?',
+            answer: Emotion.happy,
+            feedback: 'Sliding around is so much fun. He feels happy.',
+          ),
+        ],
+      ),
+      // Episode 3 — the race and what comes next (1:56 to the natural end).
+      StoryEpisode(
+        videoAsset: '$kStoryVideoRoot/watermelon.mp4',
+        startMs: 116000,
+        pauses: [
+          StoryPause(
+            atMs: 132000,
+            ask: 'How does the boy feel about winning the race?',
+            answer: Emotion.happy,
+            feedback: 'He won the race. He feels happy and proud.',
+          ),
+          StoryPause(
+            atMs: 158000,
+            ask: 'How do you feel about what happens next?',
+            answer: Emotion.scared,
+            feedback:
+                'Everyone who ate the watermelon will grow one too. That feels scary.',
+          ),
+        ],
+      ),
+    ],
+  ),
+  StoryInfo(
+    id: 'pip',
+    title: 'Pip',
+    episodes: [
+      // Episode 1 — Pip's exam day (0:03 to 0:56).
+      StoryEpisode(
+        videoAsset: '$kStoryVideoRoot/pip.mp4',
+        startMs: 3000,
+        endMs: 56000,
+        pauses: [
+          StoryPause(
+            atMs: 38000,
+            ask: 'How does the dog feel?',
+            answer: Emotion.surprised,
+            feedback:
+                'Someone suddenly appeared in front of him. He feels surprised.',
+          ),
+          StoryPause(
+            atMs: 56000,
+            ask: 'How does the dog feel?',
+            answer: Emotion.happy,
+            feedback: 'He passed and is now qualified. He feels happy.',
+          ),
+        ],
+      ),
+      // Episode 2 — hard training and a rough exam (0:56 to 2:27).
+      StoryEpisode(
+        videoAsset: '$kStoryVideoRoot/pip.mp4',
+        startMs: 56000,
+        endMs: 147000,
+        pauses: [
+          StoryPause(
+            atMs: 92000,
+            ask: 'How does the dog feel about his training?',
+            answer: Emotion.sad,
+            feedback: 'His training is not going well. He feels sad.',
+          ),
+          StoryPause(
+            atMs: 147000,
+            ask: 'How does the dog feel about the exam?',
+            answer: Emotion.sad,
+            feedback: 'The exam did not go well. He feels sad.',
+          ),
+        ],
+      ),
+      // Episode 3 — a setback, then the happy ending (2:27 to 3:39; the story
+      // ends right after the last ask instead of running into whatever footage
+      // follows in the raw file).
+      StoryEpisode(
+        videoAsset: '$kStoryVideoRoot/pip.mp4',
+        startMs: 147000,
+        endMs: 219000,
+        pauses: [
+          StoryPause(
+            atMs: 167000,
+            ask: 'How does the dog feel?',
+            answer: Emotion.sad,
+            feedback: 'He did not get picked to be a helper dog. He feels sad.',
+          ),
+          StoryPause(
+            atMs: 218000,
+            ask: 'How does the dog feel in the end?',
+            answer: Emotion.happy,
+            feedback: 'He finally gets to be a helper dog. He feels happy.',
           ),
         ],
       ),

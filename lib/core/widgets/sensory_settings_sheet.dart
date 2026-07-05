@@ -123,6 +123,12 @@ class _SensorySettingsSheetState extends ConsumerState<_SensorySettingsSheet> {
                 }
               },
             ),
+            SwitchListTile(
+              contentPadding: EdgeInsets.zero,
+              title: Text(l.quizFeedbackNarration),
+              value: settings.quizFeedbackNarration,
+              onChanged: controller.setQuizFeedbackNarration,
+            ),
             if (settings.musicEnabled) ...[
               const SizedBox(height: AppSpacing.sm),
               Text(l.musicTrack),

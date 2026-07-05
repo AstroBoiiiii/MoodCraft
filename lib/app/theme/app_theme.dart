@@ -14,16 +14,41 @@ import 'tokens.dart';
 ThemeData buildTheme(SensorySettings settings) {
   final p = paletteFor(settings.colorTheme);
 
+  // Derived tones: secondary text/icons sit a step softer than onSurface, and
+  // outlines stay faint so nothing reads as a hard edge (CLAUDE.md section 4).
+  final onSurfaceVariant = Color.alphaBlend(
+    p.onSurface.withValues(alpha: 0.72),
+    p.surface,
+  );
+  final outline = Color.alphaBlend(
+    p.onSurface.withValues(alpha: 0.40),
+    p.surface,
+  );
+  final outlineVariant = Color.alphaBlend(
+    p.onSurface.withValues(alpha: 0.16),
+    p.surface,
+  );
+
   final scheme = ColorScheme(
     brightness: p.brightness,
     primary: p.primary,
     onPrimary: p.onPrimary,
+    primaryContainer: p.accent,
+    onPrimaryContainer: p.onSurface,
     secondary: p.secondary,
     onSecondary: p.onSurface,
+    secondaryContainer: p.accent,
+    onSecondaryContainer: p.onSurface,
     error: kMutedAlert,
     onError: Colors.white,
     surface: p.surface,
     onSurface: p.onSurface,
+    onSurfaceVariant: onSurfaceVariant,
+    surfaceContainerLow: p.surface,
+    surfaceContainerHigh: p.surfaceHigh,
+    surfaceContainerHighest: p.surfaceHigh,
+    outline: outline,
+    outlineVariant: outlineVariant,
   );
 
   final base = ThemeData(
@@ -33,13 +58,23 @@ ThemeData buildTheme(SensorySettings settings) {
     visualDensity: VisualDensity.comfortable,
   );
 
+  InputBorder fieldBorder(Color color, [double width = 1]) =>
+      OutlineInputBorder(
+        borderRadius: BorderRadius.circular(AppRadii.sm),
+        borderSide: BorderSide(color: color, width: width),
+      );
+
   return base.copyWith(
     scaffoldBackgroundColor: p.background,
     textTheme: _calmTextTheme(base.textTheme, p.onSurface),
+    // No scroll-under tint or elevation change — the app bar never shifts
+    // colour mid-scroll (predictable, no surprise motion).
     appBarTheme: AppBarTheme(
       backgroundColor: p.surface,
       foregroundColor: p.onSurface,
       elevation: 0,
+      scrolledUnderElevation: 0,
+      surfaceTintColor: Colors.transparent,
       centerTitle: false,
       titleTextStyle: TextStyle(
         color: p.onSurface,
@@ -66,12 +101,165 @@ ThemeData buildTheme(SensorySettings settings) {
         ),
       ),
     ),
+    filledButtonTheme: FilledButtonThemeData(
+      style: FilledButton.styleFrom(
+        backgroundColor: p.primary,
+        foregroundColor: p.onPrimary,
+        minimumSize: const Size(
+          AppConstants.minTapTarget,
+          AppConstants.minTapTarget,
+        ),
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.lg,
+          vertical: AppSpacing.md,
+        ),
+        textStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppRadii.lg),
+        ),
+      ),
+    ),
+    outlinedButtonTheme: OutlinedButtonThemeData(
+      style: OutlinedButton.styleFrom(
+        foregroundColor: p.primary,
+        side: BorderSide(color: p.primary.withValues(alpha: 0.55)),
+        minimumSize: const Size(48, 48),
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.lg,
+          vertical: AppSpacing.sm,
+        ),
+        textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppRadii.lg),
+        ),
+      ),
+    ),
+    textButtonTheme: TextButtonThemeData(
+      style: TextButton.styleFrom(
+        foregroundColor: p.primary,
+        minimumSize: const Size(48, 48),
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.md,
+          vertical: AppSpacing.sm,
+        ),
+        textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppRadii.md),
+        ),
+      ),
+    ),
+    floatingActionButtonTheme: FloatingActionButtonThemeData(
+      backgroundColor: p.primary,
+      foregroundColor: p.onPrimary,
+      elevation: 1,
+      focusElevation: 1,
+      hoverElevation: 2,
+      highlightElevation: 1,
+      extendedTextStyle: const TextStyle(
+        fontSize: 16,
+        fontWeight: FontWeight.w600,
+      ),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppRadii.md),
+      ),
+    ),
+    // Soft filled fields with a faint outline, so a field reads the same on
+    // the scaffold background, inside a card, and inside a sheet.
+    inputDecorationTheme: InputDecorationTheme(
+      filled: true,
+      fillColor: p.surfaceHigh.withValues(alpha: 0.45),
+      prefixIconColor: onSurfaceVariant,
+      suffixIconColor: onSurfaceVariant,
+      labelStyle: TextStyle(color: onSurfaceVariant),
+      hintStyle: TextStyle(color: onSurfaceVariant.withValues(alpha: 0.75)),
+      contentPadding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.md,
+        vertical: AppSpacing.md,
+      ),
+      border: fieldBorder(outlineVariant),
+      enabledBorder: fieldBorder(outlineVariant),
+      focusedBorder: fieldBorder(p.primary, 1.8),
+      errorBorder: fieldBorder(kMutedAlert),
+      focusedErrorBorder: fieldBorder(kMutedAlert, 1.8),
+    ),
     cardTheme: CardThemeData(
       color: p.surface,
       elevation: 0,
       margin: EdgeInsets.zero,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppRadii.md),
+        side: BorderSide(color: outlineVariant.withValues(alpha: 0.7)),
+      ),
+    ),
+    listTileTheme: ListTileThemeData(
+      iconColor: onSurfaceVariant,
+      selectedTileColor: p.accent.withValues(alpha: 0.28),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppRadii.md),
+      ),
+    ),
+    dividerTheme: DividerThemeData(color: outlineVariant, thickness: 1),
+    chipTheme: ChipThemeData(
+      backgroundColor: p.surface,
+      selectedColor: p.accent,
+      side: BorderSide(color: outlineVariant),
+      shape: const StadiumBorder(),
+      labelStyle: TextStyle(color: p.onSurface, fontSize: 15),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.sm,
+        vertical: AppSpacing.xs,
+      ),
+    ),
+    dialogTheme: DialogThemeData(
+      backgroundColor: p.surface,
+      surfaceTintColor: Colors.transparent,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppRadii.lg),
+      ),
+      titleTextStyle: TextStyle(
+        color: p.onSurface,
+        fontSize: 22,
+        fontWeight: FontWeight.w600,
+      ),
+      contentTextStyle: TextStyle(
+        color: p.onSurface,
+        fontSize: 16,
+        height: 1.3,
+      ),
+    ),
+    bottomSheetTheme: BottomSheetThemeData(
+      backgroundColor: p.surface,
+      modalBackgroundColor: p.surface,
+      surfaceTintColor: Colors.transparent,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadii.lg)),
+      ),
+    ),
+    snackBarTheme: SnackBarThemeData(
+      behavior: SnackBarBehavior.floating,
+      backgroundColor: p.onSurface,
+      contentTextStyle: TextStyle(color: p.surface, fontSize: 16),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppRadii.sm),
+      ),
+    ),
+    popupMenuTheme: PopupMenuThemeData(
+      color: p.surface,
+      surfaceTintColor: Colors.transparent,
+      textStyle: TextStyle(color: p.onSurface, fontSize: 16),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppRadii.sm),
+      ),
+    ),
+    progressIndicatorTheme: ProgressIndicatorThemeData(
+      color: p.primary,
+      linearTrackColor: p.surfaceHigh,
+    ),
+    segmentedButtonTheme: SegmentedButtonThemeData(
+      style: SegmentedButton.styleFrom(
+        side: BorderSide(color: outlineVariant),
+        selectedBackgroundColor: p.accent,
+        selectedForegroundColor: p.onSurface,
       ),
     ),
     navigationBarTheme: NavigationBarThemeData(
@@ -84,6 +272,21 @@ ThemeData buildTheme(SensorySettings settings) {
           color: p.onSurface,
           fontWeight: FontWeight.w600,
         ),
+      ),
+    ),
+    navigationRailTheme: NavigationRailThemeData(
+      backgroundColor: p.surface,
+      indicatorColor: p.accent,
+      selectedIconTheme: IconThemeData(color: p.onSurface),
+      unselectedIconTheme: IconThemeData(color: onSurfaceVariant),
+      selectedLabelTextStyle: TextStyle(
+        fontSize: 13,
+        color: p.onSurface,
+        fontWeight: FontWeight.w600,
+      ),
+      unselectedLabelTextStyle: TextStyle(
+        fontSize: 13,
+        color: onSurfaceVariant,
       ),
     ),
     // When animation is switched off, route changes are instant (no transition).

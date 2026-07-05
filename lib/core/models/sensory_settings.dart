@@ -10,6 +10,7 @@ class SensorySettings {
     this.colorTheme = AppColorTheme.calmBlue,
     this.animationIntensity = AnimationIntensity.full,
     this.backgroundTrack = BackgroundTrack.track1,
+    this.quizFeedbackNarration = true,
   });
 
   /// Calm-by-default settings (music off, gentle volume).
@@ -24,6 +25,7 @@ class SensorySettings {
 
   /// Which of the three background music tracks is selected.
   final BackgroundTrack backgroundTrack;
+  final bool quizFeedbackNarration;
 
   SensorySettings copyWith({
     bool? musicEnabled,
@@ -31,6 +33,7 @@ class SensorySettings {
     AppColorTheme? colorTheme,
     AnimationIntensity? animationIntensity,
     BackgroundTrack? backgroundTrack,
+    bool? quizFeedbackNarration,
   }) {
     return SensorySettings(
       musicEnabled: musicEnabled ?? this.musicEnabled,
@@ -38,6 +41,8 @@ class SensorySettings {
       colorTheme: colorTheme ?? this.colorTheme,
       animationIntensity: animationIntensity ?? this.animationIntensity,
       backgroundTrack: backgroundTrack ?? this.backgroundTrack,
+      quizFeedbackNarration:
+          quizFeedbackNarration ?? this.quizFeedbackNarration,
     );
   }
 
@@ -47,6 +52,7 @@ class SensorySettings {
     'colorTheme': colorTheme.name,
     'animationIntensity': animationIntensity.name,
     'backgroundTrack': backgroundTrack.name,
+    'quizFeedbackNarration': quizFeedbackNarration,
   };
 
   factory SensorySettings.fromJson(Map<String, dynamic>? json) {
@@ -69,6 +75,7 @@ class SensorySettings {
         json['backgroundTrack'],
         BackgroundTrack.track1,
       ),
+      quizFeedbackNarration: (json['quizFeedbackNarration'] as bool?) ?? true,
     );
   }
 
@@ -79,7 +86,8 @@ class SensorySettings {
       other.masterVolume == masterVolume &&
       other.colorTheme == colorTheme &&
       other.animationIntensity == animationIntensity &&
-      other.backgroundTrack == backgroundTrack;
+      other.backgroundTrack == backgroundTrack &&
+      other.quizFeedbackNarration == quizFeedbackNarration;
 
   @override
   int get hashCode => Object.hash(
@@ -88,5 +96,6 @@ class SensorySettings {
     colorTheme,
     animationIntensity,
     backgroundTrack,
+    quizFeedbackNarration,
   );
 }

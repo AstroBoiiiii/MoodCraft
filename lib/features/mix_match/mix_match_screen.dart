@@ -154,21 +154,29 @@ class MixMatchTypeGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GridView.count(
-      crossAxisCount: 2,
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      mainAxisSpacing: AppSpacing.md,
-      crossAxisSpacing: AppSpacing.md,
-      childAspectRatio: 1.0,
-      children: [
-        for (final type in MixMatchType.values)
-          _TypeTile(
-            type: type,
-            onTap: () => onPick(type),
-            progress: progressFor?.call(type),
-          ),
-      ],
+    // Fixed tile height (taller when the "X/5" count is shown) so tiles stay
+    // compact on a wide window instead of growing into big empty squares.
+    final tileHeight = progressFor != null ? 168.0 : 140.0;
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final tileWidth = (constraints.maxWidth - AppSpacing.md) / 2;
+        return GridView.count(
+          crossAxisCount: 2,
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          mainAxisSpacing: AppSpacing.md,
+          crossAxisSpacing: AppSpacing.md,
+          childAspectRatio: tileWidth / tileHeight,
+          children: [
+            for (final type in MixMatchType.values)
+              _TypeTile(
+                type: type,
+                onTap: () => onPick(type),
+                progress: progressFor?.call(type),
+              ),
+          ],
+        );
+      },
     );
   }
 }
@@ -188,13 +196,19 @@ class _TypeTile extends StatelessWidget {
     final theme = Theme.of(context);
     final accent = activityAccent('mixmatch');
     final done = progress != null && progress! >= kMixMatchRoundSize;
+    final surface = theme.colorScheme.surface;
+    final wash = Color.alphaBlend(accent.withValues(alpha: 0.10), surface);
 
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(AppRadii.lg),
       child: Ink(
         decoration: BoxDecoration(
-          color: theme.colorScheme.surface,
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [wash, surface],
+          ),
           borderRadius: BorderRadius.circular(AppRadii.lg),
           border: Border.all(color: accent.withValues(alpha: 0.35), width: 1.5),
         ),

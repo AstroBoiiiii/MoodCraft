@@ -68,6 +68,7 @@ class _StoryPlayScreenState extends ConsumerState<StoryPlayScreen> {
   /// mode leave progress untouched.
   bool _frontier = false;
 
+  int _level = 0;
   int _pausesDone = 0;
   bool _inQuestion = false;
   bool _answered = false; // current pause answered right -> feedback showing
@@ -81,12 +82,42 @@ class _StoryPlayScreenState extends ConsumerState<StoryPlayScreen> {
   @override
   void initState() {
     super.initState();
+    _level = widget.level;
     _story = storyById(widget.storyId);
+    _episode = _episodeForLevel(_level);
+    _load();
+  }
+
+  StoryEpisode? _episodeForLevel(int level) {
     final episodes = _story?.episodes ?? const [];
-    _episode =
-        (widget.level >= 0 && widget.level < episodes.length)
-            ? episodes[widget.level]
-            : null;
+    return (level >= 0 && level < episodes.length) ? episodes[level] : null;
+  }
+
+  bool get _hasNextEpisode {
+    final episodes = _story?.episodes ?? const [];
+    return _level + 1 < episodes.length;
+  }
+
+  void _goNextEpisode() {
+    _controller?.removeListener(_onTick);
+    _controller?.dispose();
+    setState(() {
+      _level++;
+      _episode = _episodeForLevel(_level);
+      _controller = null;
+      _ready = false;
+      _failed = false;
+      _frontier = false;
+      _pausesDone = 0;
+      _inQuestion = false;
+      _answered = false;
+      _missedCurrent = false;
+      _retries = 0;
+      _firstTryCorrect = 0;
+      _finished = false;
+      _sessionSaved = false;
+      _startedAt = DateTime.now();
+    });
     _load();
   }
 
@@ -115,7 +146,7 @@ class _StoryPlayScreenState extends ConsumerState<StoryPlayScreen> {
             .getStudent(studentId);
         final progress =
             student?.storyProgress[widget.storyId] ?? const StoryProgress();
-        _frontier = widget.level == progress.levelsDone;
+        _frontier = _level == progress.levelsDone;
         if (_frontier) {
           _pausesDone = progress.pausesDone.clamp(0, episode.pauses.length);
           resumeMs = progress.positionMs;
@@ -141,13 +172,36 @@ class _StoryPlayScreenState extends ConsumerState<StoryPlayScreen> {
     // Open on the episode's segment start, or the exact saved pause point when
     // resuming further in (all timestamps are absolute in the film).
     final seekMs = resumeMs > episode.startMs ? resumeMs : episode.startMs;
-    if (seekMs > 0) await controller.seekTo(Duration(milliseconds: seekMs));
+    if (seekMs > 0) {
+      final target = Duration(milliseconds: seekMs);
+      await controller.seekTo(target);
+      // On web (and any cold, unbuffered asset) seekTo resolves before the
+      // underlying <video> element has actually moved, so a play() right after
+      // would start from 0:00 and drop the seek. A large, never-before-loaded
+      // file can take several seconds to buffer far enough for the browser to
+      // honour a seek that far in, so keep re-issuing the seek and waiting for
+      // the reported position to land on the target before playing (a later
+      // replay, once the asset is cached, lands almost immediately).
+      for (var i = 0; i < 80 && mounted; i++) {
+        if (controller.value.position >=
+            target - const Duration(milliseconds: 200)) {
+          break;
+        }
+        await Future<void>.delayed(const Duration(milliseconds: 100));
+        await controller.seekTo(target);
+      }
+      if (!mounted) {
+        controller.dispose();
+        return;
+      }
+    }
     controller.addListener(_onTick);
     setState(() {
       _controller = controller;
       _ready = true;
       _startedAt = DateTime.now();
     });
+    await controller.play();
   }
 
   /// Playback watcher: pauses the video the moment it reaches the next unasked
@@ -236,7 +290,7 @@ class _StoryPlayScreenState extends ConsumerState<StoryPlayScreen> {
       if (student == null) return;
       final updated = Map<String, StoryProgress>.from(student.storyProgress)
         ..[widget.storyId] = StoryProgress(
-          levelsDone: episodeDone ? widget.level + 1 : widget.level,
+          levelsDone: episodeDone ? _level + 1 : _level,
           pausesDone: episodeDone ? 0 : pausesDone,
           positionMs: episodeDone ? 0 : positionMs,
         );
@@ -303,7 +357,10 @@ class _StoryPlayScreenState extends ConsumerState<StoryPlayScreen> {
       return CalmScaffold(
         title: title,
         icon: Icons.menu_book_rounded,
-        body: _StoryDone(onDone: () => context.pop()),
+        body: _StoryDone(
+          onDone: () => context.pop(),
+          onNextEpisode: _hasNextEpisode ? _goNextEpisode : null,
+        ),
       );
     }
     if (!_ready) {
@@ -332,7 +389,7 @@ class _StoryPlayScreenState extends ConsumerState<StoryPlayScreen> {
                   pause: pause,
                   options: storyOptionsFor(
                     widget.storyId,
-                    widget.level,
+                    _level,
                     _pausesDone,
                     pause.answer,
                   ),
@@ -607,11 +664,12 @@ class _PauseFeedback extends StatelessWidget {
 }
 
 /// Calm end-of-episode moment — no stars yet (FR11 rewards deferred). A warm
-/// "the end" and a way back to the story picker.
+/// "the end", an optional "Next Episode" jump when one exists, and a way back.
 class _StoryDone extends StatelessWidget {
-  const _StoryDone({required this.onDone});
+  const _StoryDone({required this.onDone, this.onNextEpisode});
 
   final VoidCallback onDone;
+  final VoidCallback? onNextEpisode;
 
   @override
   Widget build(BuildContext context) {
@@ -643,7 +701,16 @@ class _StoryDone extends StatelessWidget {
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: AppSpacing.xl),
-            FilledButton(onPressed: onDone, child: Text(l.storyDoneButton)),
+            if (onNextEpisode != null)
+              FilledButton(
+                onPressed: onNextEpisode,
+                child: Text(l.storyNextEpisode),
+              ),
+            if (onNextEpisode != null) const SizedBox(height: AppSpacing.sm),
+            FilledButton.tonal(
+              onPressed: onDone,
+              child: Text(l.storyDoneButton),
+            ),
           ],
         ),
       ),

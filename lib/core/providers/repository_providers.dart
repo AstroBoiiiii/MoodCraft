@@ -174,15 +174,25 @@ final parentChildDetailProvider = StreamProvider<ParentChildDetail?>((
 
 /// Hydrates [sensorySettingsProvider] when the signed-in student's profile
 /// loads. Must be watched once at app startup (see MoodCraftApp).
+///
+/// [activeStudentProvider] is a live stream that re-emits on every write to the
+/// student record (e.g. saving quiz progress). We only hydrate once per child,
+/// tracked by id, so a mid-session change the child makes live (narration
+/// toggle, theme, volume) is never clobbered by a routine profile write.
 final sensoryHydrationProvider = Provider<void>((ref) {
+  String? hydratedFor;
   ref.listen<AsyncValue<Student?>>(activeStudentProvider, (_, next) {
     next.whenData((student) {
-      if (student != null) {
-        // Never auto-play on sign-in — user must explicitly enable music each session.
-        ref
-            .read(sensorySettingsProvider.notifier)
-            .replace(student.sensorySettings.copyWith(musicEnabled: false));
+      if (student == null) {
+        hydratedFor = null;
+        return;
       }
+      if (student.id == hydratedFor) return; // already loaded this child
+      hydratedFor = student.id;
+      // Never auto-play on sign-in — user must explicitly enable music each session.
+      ref
+          .read(sensorySettingsProvider.notifier)
+          .replace(student.sensorySettings.copyWith(musicEnabled: false));
     });
   });
 });

@@ -323,6 +323,12 @@ abstract class AppLocalizations {
   /// **'Sign in'**
   String get signIn;
 
+  /// No description provided for @signInWelcome.
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome back. Sign in to continue.'**
+  String get signInWelcome;
+
   /// No description provided for @registerTitle.
   ///
   /// In en, this message translates to:
@@ -1366,6 +1372,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Done'**
   String get storyDoneButton;
+
+  /// No description provided for @storyNextEpisode.
+  ///
+  /// In en, this message translates to:
+  /// **'Next Episode'**
+  String get storyNextEpisode;
+
+  /// No description provided for @quizFeedbackNarration.
+  ///
+  /// In en, this message translates to:
+  /// **'Speak quiz answers'**
+  String get quizFeedbackNarration;
+
+  /// No description provided for @quizMuteVoice.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn off the voice'**
+  String get quizMuteVoice;
+
+  /// No description provided for @quizUnmuteVoice.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn on the voice'**
+  String get quizUnmuteVoice;
 
   /// No description provided for @storyVideoUnavailable.
   ///

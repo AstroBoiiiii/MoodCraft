@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:moodcraft/l10n/app_localizations.dart';
 
-import '../../app/theme/tokens.dart';
 import '../../core/providers/repository_providers.dart';
 import '../../core/widgets/calm_scaffold.dart';
 import '../../core/widgets/constrained_content.dart';
+import '../../core/widgets/empty_state.dart';
 import '../../core/widgets/sensory_settings_sheet.dart';
 import '../student_detail/student_detail_tabs.dart';
 import '../teacher/messaging_thread_screen.dart';
@@ -25,9 +25,16 @@ class ParentMonitoringScreen extends ConsumerWidget {
       actions: accountActions(context, ref),
       body: detailAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (_, __) => Center(child: Text(l.comingSoon)),
+        error:
+            (_, __) =>
+                EmptyState(icon: Icons.insights_rounded, message: l.comingSoon),
         data: (detail) {
-          if (detail == null) return Center(child: Text(l.noChildLinked));
+          if (detail == null) {
+            return EmptyState(
+              icon: Icons.family_restroom_rounded,
+              message: l.noChildLinked,
+            );
+          }
           // Same tabbed child view the teacher gets, minus teacher-only
           // actions: no parent removal and no delete menu. The schedule stays
           // editable (FR13 — set by teacher or parent).
@@ -64,24 +71,9 @@ class ParentMessagesScreen extends ConsumerWidget {
         if (conv == null) {
           return Scaffold(
             appBar: AppBar(title: Text(l.navMessages)),
-            body: Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    Icons.forum_outlined,
-                    size: 64,
-                    color: theme.colorScheme.outlineVariant,
-                  ),
-                  const SizedBox(height: AppSpacing.md),
-                  Text(
-                    l.msgNoLinkedTeacher,
-                    style: theme.textTheme.bodyLarge?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                ],
-              ),
+            body: EmptyState(
+              icon: Icons.forum_outlined,
+              message: l.msgNoLinkedTeacher,
             ),
           );
         }
