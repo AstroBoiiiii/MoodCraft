@@ -119,7 +119,13 @@ class AppLocalizationsMs extends AppLocalizations {
   String get arMobileOnly => 'AR boleh didapati pada aplikasi mudah alih.';
 
   @override
-  String get arPlaceholder => 'Ruang AR — watak 3D akan menunjukkan perasaan di sini.';
+  String get arStarting => 'Getting the camera ready.';
+
+  @override
+  String get arCameraNeeded => 'MoodCraft needs the camera to show AR. Please allow camera access.';
+
+  @override
+  String get arAllowCamera => 'Allow camera';
 
   @override
   String get signIn => 'Log masuk';

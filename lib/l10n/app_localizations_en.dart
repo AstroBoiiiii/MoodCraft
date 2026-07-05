@@ -119,7 +119,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get arMobileOnly => 'AR is available on the mobile app.';
 
   @override
-  String get arPlaceholder => 'AR placeholder. A 3D character will act out a feeling here.';
+  String get arStarting => 'Getting the camera ready.';
+
+  @override
+  String get arCameraNeeded => 'MoodCraft needs the camera to show AR. Please allow camera access.';
+
+  @override
+  String get arAllowCamera => 'Allow camera';
 
   @override
   String get signIn => 'Sign in';

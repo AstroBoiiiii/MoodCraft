@@ -311,11 +311,23 @@ abstract class AppLocalizations {
   /// **'AR is available on the mobile app.'**
   String get arMobileOnly;
 
-  /// No description provided for @arPlaceholder.
+  /// No description provided for @arStarting.
   ///
   /// In en, this message translates to:
-  /// **'AR placeholder. A 3D character will act out a feeling here.'**
-  String get arPlaceholder;
+  /// **'Getting the camera ready.'**
+  String get arStarting;
+
+  /// No description provided for @arCameraNeeded.
+  ///
+  /// In en, this message translates to:
+  /// **'MoodCraft needs the camera to show AR. Please allow camera access.'**
+  String get arCameraNeeded;
+
+  /// No description provided for @arAllowCamera.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow camera'**
+  String get arAllowCamera;
 
   /// No description provided for @signIn.
   ///

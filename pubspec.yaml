@@ -32,6 +32,8 @@ dependencies:
   flutter_linkify: ^6.0.0
   linkify: ^5.0.0
   http: ^1.6.0
+  flutter_inappwebview: ^6.1.5
+  permission_handler: ^12.0.3
 
 dev_dependencies:
   flutter_test:
@@ -52,6 +54,7 @@ flutter:
   # Asset directories. Real art is dropped in later without code changes
   # because every path is centralised in lib/core/constants/app_assets.dart.
   assets:
+    - assets/ar/
     - assets/images/
     - assets/images/mixmatch/face/
     - assets/images/mixmatch/body/
