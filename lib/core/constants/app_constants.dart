@@ -15,6 +15,12 @@ const bool kUseStubAuth = bool.fromEnvironment(
   defaultValue: false,
 );
 
+/// Google Cloud TTS key for the 3D companion's voice + lip-sync (FR3). Comes
+/// from the gitignored `env.json` via `--dart-define-from-file=env.json` — no
+/// secrets in the repo. Empty = the avatar stays silent and the companion
+/// falls back to device TTS.
+const String kTtsApiKey = String.fromEnvironment('TTS_API_KEY');
+
 class AppConstants {
   AppConstants._();
 

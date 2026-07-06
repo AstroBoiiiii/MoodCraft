@@ -4,20 +4,26 @@ import '../../../../app/theme/tokens.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/models/enums.dart';
 import '../../../../core/providers/sensory_settings_provider.dart';
+import 'companion_stage_controller.dart';
 
 /// Web fallback for the companion stage (FR3 is mobile in the final product;
 /// dev runs on Chrome). Shows the calm enum-keyed placeholder face — the same
 /// big soft circle the Milestone 1 screen used — so the screen stays fully
-/// usable on the web without any WebView or 3D dependency.
+/// usable on the web without any WebView or 3D dependency. The [controller]
+/// is never bound here, so the screen keeps narrating with device TTS.
 class CompanionStage extends StatelessWidget {
   const CompanionStage({
     required this.expression,
     required this.intensity,
+    required this.volume,
+    this.controller,
     super.key,
   });
 
   final Emotion expression;
   final AnimationIntensity intensity;
+  final double volume;
+  final CompanionStageController? controller;
 
   @override
   Widget build(BuildContext context) {

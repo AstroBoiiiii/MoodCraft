@@ -1,8 +1,12 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 
 import '../../../../app/theme/tokens.dart';
+import '../../../../core/constants/app_constants.dart';
 import '../../../../core/models/enums.dart';
+import 'companion_stage_controller.dart';
 
 /// The bundled TalkingHead page is served over http://localhost like the AR
 /// page (ES modules and fetch need an http origin, not file://; cleartext to
@@ -23,11 +27,20 @@ class CompanionStage extends StatefulWidget {
   const CompanionStage({
     required this.expression,
     required this.intensity,
+    required this.volume,
+    this.controller,
     super.key,
   });
 
   final Emotion expression;
   final AnimationIntensity intensity;
+
+  /// 0.0 to 1.0, the child's masterVolume sensory setting.
+  final double volume;
+
+  /// Bound once the avatar (and its TTS key) are ready, so the screen can
+  /// route spoken lines through the lip-synced avatar.
+  final CompanionStageController? controller;
 
   @override
   State<CompanionStage> createState() => _CompanionStageState();
@@ -53,20 +66,24 @@ class _CompanionStageState extends State<CompanionStage> {
     if (oldWidget.expression != widget.expression) {
       _pushExpression();
     }
-  }
-
-  /// Best-effort: a dropped frame of expression is invisible next to the
-  /// avatar's own idle motion, so failures are quietly ignored.
-  Future<void> _pushExpression() async {
-    if (!_stageReady) return;
-    try {
-      await _webView?.evaluateJavascript(
-        source: "window.mc && window.mc.setEmotion('${widget.expression.name}')",
-      );
-    } catch (_) {
-      // The page is reloading or gone; the next push catches up.
+    if (oldWidget.volume != widget.volume) {
+      _js("window.mc && window.mc.setVolume(${widget.volume})");
     }
   }
+
+  /// Fire-and-forget JS into the stage page; failures are quietly ignored
+  /// (the page may be reloading, and every push is re-sent on the next call).
+  Future<void> _js(String source) async {
+    if (!_stageReady) return;
+    try {
+      await _webView?.evaluateJavascript(source: source);
+    } catch (_) {
+      // Best-effort.
+    }
+  }
+
+  Future<void> _pushExpression() =>
+      _js("window.mc && window.mc.setEmotion('${widget.expression.name}')");
 
   Future<void> _start() async {
     if (!_server.isRunning()) {
@@ -77,6 +94,7 @@ class _CompanionStageState extends State<CompanionStage> {
 
   @override
   void dispose() {
+    widget.controller?.unbind();
     if (_server.isRunning()) {
       _server.close();
     }
@@ -93,7 +111,13 @@ class _CompanionStageState extends State<CompanionStage> {
         child:
             _ready
                 ? InAppWebView(
-                  initialUrlRequest: URLRequest(url: WebUri(_kStagePageUrl)),
+                  initialUrlRequest: URLRequest(
+                    url: WebUri(
+                      kTtsApiKey.isEmpty
+                          ? _kStagePageUrl
+                          : '$_kStagePageUrl?ttsKey=$kTtsApiKey',
+                    ),
+                  ),
                   initialSettings: InAppWebViewSettings(
                     mediaPlaybackRequiresUserGesture: false,
                     transparentBackground: true,
@@ -106,6 +130,22 @@ class _CompanionStageState extends State<CompanionStage> {
                         _stageReady = true;
                         // Catch the avatar up with whatever the screen shows.
                         _pushExpression();
+                        _js("window.mc && window.mc.setVolume(${widget.volume})");
+                        // The avatar only takes over the voice when it can
+                        // actually speak (key present); otherwise the screen
+                        // keeps using device narration.
+                        if (kTtsApiKey.isNotEmpty) {
+                          widget.controller?.bind(
+                            speak:
+                                (text) => _js(
+                                  "window.mc && window.mc.speak(${jsonEncode(text)})",
+                                ),
+                            stop:
+                                () => _js(
+                                  "window.mc && window.mc.stopSpeaking()",
+                                ),
+                          );
+                        }
                       },
                     );
                   },

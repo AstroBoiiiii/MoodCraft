@@ -18,6 +18,7 @@ import 'companion_chat_service.dart';
 import 'companion_data.dart';
 // The stage: full-body 3D TalkingHead avatar in a WebView on mobile; the calm
 // placeholder face on web (keeps the web build free of WebView/3D deps).
+import 'stage/companion_stage_controller.dart';
 import 'stage/companion_stage_web.dart'
     if (dart.library.io) 'stage/companion_stage_mobile.dart';
 
@@ -42,6 +43,10 @@ class _CompanionScreenState extends ConsumerState<CompanionScreen> {
   // the greeting, which is text-only — the companion never speaks unprompted.
   Emotion _expression = Emotion.happy;
   String? _bubbleText;
+
+  // Voice routing: when the 3D stage can speak (mobile, avatar ready, TTS key
+  // present) lines go through the lip-synced avatar; otherwise device TTS.
+  final CompanionStageController _stage = CompanionStageController();
 
   // Lesson walk-through (null emotion = no lesson running).
   Emotion? _lessonEmotion;
@@ -70,6 +75,7 @@ class _CompanionScreenState extends ConsumerState<CompanionScreen> {
   @override
   void dispose() {
     // Never let the companion's voice trail into the next screen.
+    _stage.stop();
     ref.read(narrationServiceProvider).stop();
     _speech.stop();
     _input.dispose();
@@ -85,7 +91,12 @@ class _CompanionScreenState extends ConsumerState<CompanionScreen> {
       _bubbleText = text;
       _expression = expression;
     });
-    ref.read(narrationServiceProvider).narrate(text, volume: _volume);
+    if (_stage.canSpeak) {
+      ref.read(narrationServiceProvider).stop();
+      _stage.speak(text);
+    } else {
+      ref.read(narrationServiceProvider).narrate(text, volume: _volume);
+    }
   }
 
   // ── Curated lessons ─────────────────────────────────────────────────────
@@ -154,6 +165,7 @@ class _CompanionScreenState extends ConsumerState<CompanionScreen> {
     final text = _input.text.trim();
     if (text.isEmpty || _sending) return;
     await _speech.stop();
+    _stage.stop();
     ref.read(narrationServiceProvider).stop();
     _input.clear();
     setState(() {
@@ -244,6 +256,9 @@ class _CompanionScreenState extends ConsumerState<CompanionScreen> {
     final intensity = ref.watch(
       sensorySettingsProvider.select((s) => s.animationIntensity),
     );
+    final volume = ref.watch(
+      sensorySettingsProvider.select((s) => s.masterVolume),
+    );
     final inLesson = _lessonEmotion != null;
     final lessonLines =
         inLesson ? kCompanionLessons[_lessonEmotion!]! : const <CompanionLine>[];
@@ -261,7 +276,12 @@ class _CompanionScreenState extends ConsumerState<CompanionScreen> {
                 child: ListView(
                   children: [
                     const SizedBox(height: AppSpacing.sm),
-                    CompanionStage(expression: _expression, intensity: intensity),
+                    CompanionStage(
+                      expression: _expression,
+                      intensity: intensity,
+                      volume: volume,
+                      controller: _stage,
+                    ),
                     const SizedBox(height: AppSpacing.md),
                     if (_childSaid != null) ...[
                       _ChildBubble(text: _childSaid!),
@@ -270,6 +290,7 @@ class _CompanionScreenState extends ConsumerState<CompanionScreen> {
                     _SpeechBubble(
                       text: _bubbleText ?? l.companionGreeting,
                       busy: _sending,
+                      speakOverride: _stage.canSpeak ? _stage.speak : null,
                     ),
                     const SizedBox(height: AppSpacing.lg),
                     if (inLesson) ...[
@@ -328,10 +349,14 @@ class _CompanionScreenState extends ConsumerState<CompanionScreen> {
 /// replay stays in the child's hands). While thinking it shows a tiny quiet
 /// spinner instead.
 class _SpeechBubble extends ConsumerWidget {
-  const _SpeechBubble({required this.text, required this.busy});
+  const _SpeechBubble({required this.text, required this.busy, this.speakOverride});
 
   final String text;
   final bool busy;
+
+  /// When the 3D stage voices lines itself, replay goes through it instead of
+  /// device narration.
+  final Future<void> Function(String text)? speakOverride;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -366,24 +391,31 @@ class _SpeechBubble extends ConsumerWidget {
             ),
             if (!busy) ...[
               const SizedBox(height: AppSpacing.sm),
-              ValueListenableBuilder<bool>(
-                valueListenable: narration.speaking,
-                builder: (context, speaking, _) {
-                  return TextButton.icon(
-                    onPressed:
+              if (speakOverride != null)
+                TextButton.icon(
+                  onPressed: () => speakOverride!(text),
+                  icon: const Icon(Icons.volume_up_rounded, size: 20),
+                  label: Text(l.companionHearAgain),
+                )
+              else
+                ValueListenableBuilder<bool>(
+                  valueListenable: narration.speaking,
+                  builder: (context, speaking, _) {
+                    return TextButton.icon(
+                      onPressed:
+                          speaking
+                              ? () => narration.stop()
+                              : () => narration.narrate(text, volume: volume),
+                      icon: Icon(
                         speaking
-                            ? () => narration.stop()
-                            : () => narration.narrate(text, volume: volume),
-                    icon: Icon(
-                      speaking
-                          ? Icons.stop_rounded
-                          : Icons.volume_up_rounded,
-                      size: 20,
-                    ),
-                    label: Text(l.companionHearAgain),
-                  );
-                },
-              ),
+                            ? Icons.stop_rounded
+                            : Icons.volume_up_rounded,
+                        size: 20,
+                      ),
+                      label: Text(l.companionHearAgain),
+                    );
+                  },
+                ),
             ],
           ],
         ),

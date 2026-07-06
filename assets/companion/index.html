@@ -37,6 +37,11 @@ import { TalkingHead } from "talkinghead";
 const note = document.getElementById('note');
 let head = null;
 
+// The Google Cloud TTS key is injected by the Flutter host as a query
+// parameter (it comes from a gitignored env file via dart-define, never the
+// repo). No key = the stage stays silent and the app falls back to device TTS.
+const ttsKey = new URLSearchParams(location.search).get('ttsKey');
+
 // App emotion -> TalkingHead mood. TalkingHead has no "surprised" mood, so
 // surprise rides the neutral mood plus the wide-eyed open-mouth expression —
 // on this avatar it reads as classic surprise (round eyes, big O mouth, the
@@ -83,6 +88,16 @@ window.mc = {
   setMood: (m) => { try { head?.setMood(m); } catch (e) { console.error('setMood', e); } },
   setView: (v) => { try { head?.setView(v); } catch (e) { console.error('setView', e); } },
   gesture: (g, dur) => { try { head?.playGesture(g, dur ?? 3); } catch (e) { console.error('gesture', e); } },
+  // Speech with lip-sync (Google Cloud TTS + TalkingHead's English module).
+  speak: (text) => {
+    try {
+      if (!head || !ttsKey || !text) return;
+      head.stopSpeaking();
+      head.speakText(text);
+    } catch (e) { console.error('speak', e); }
+  },
+  stopSpeaking: () => { try { head?.stopSpeaking(); } catch (e) { console.error('stopSpeaking', e); } },
+  setVolume: (v) => { try { head?.setMixerGain(v, null); } catch (e) { console.error('setVolume', e); } },
 };
 
 // Tell the Flutter host the stage is ready, so it can push the current
@@ -95,8 +110,8 @@ function notifyFlutter() {
 async function boot() {
   try {
     head = new TalkingHead(document.getElementById('avatar'), {
-      // Real TTS is wired in step 4; nothing speaks yet so the endpoint is a stub.
-      ttsEndpoint: '/tts-not-wired-yet',
+      ttsEndpoint: 'https://texttospeech.googleapis.com/v1beta1/text:synthesize',
+      ttsApikey: ttsKey,
       lipsyncModules: ['en'],
       cameraView: 'full',
       // The child never drives the camera; predictable framing only.
@@ -110,6 +125,10 @@ async function boot() {
         body: 'F',
         avatarMood: 'neutral',
         lipsyncLang: 'en',
+        // A soft, unhurried voice; retune here if it doesn't feel calm enough.
+        ttsLang: 'en-US',
+        ttsVoice: 'en-US-Neural2-F',
+        ttsRate: 0.85,
       },
       (ev) => {
         if (ev.lengthComputable) {
