@@ -572,6 +572,18 @@ class AppLocalizationsMs extends AppLocalizations {
   String get companionListening => 'I am listening';
 
   @override
+  String get companionPlayRound => 'Guess my feeling';
+
+  @override
+  String get companionRoundAsk => 'Look at me. How am I feeling?';
+
+  @override
+  String get companionRoundPick => 'Tap the feeling you see, or tell me';
+
+  @override
+  String get companionStopRound => 'Stop playing';
+
+  @override
   String get previewQuiz => 'A calm feelings quiz with no timer and no score.';
 
   @override

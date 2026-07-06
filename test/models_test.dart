@@ -112,9 +112,11 @@ void main() {
       correctCount: 1,
       retries: 2,
       durationMs: 45000,
+      note: 'Identified sad on attempt 2, needed the body clue.',
       timestamp: when,
     );
     expect(Session.fromJson(session.toJson()).toJson(), session.toJson());
+    expect(Session.fromJson(session.toJson()).note, session.note);
   });
 
   test('JournalEntry round-trips (optional fields null)', () {

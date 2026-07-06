@@ -1193,6 +1193,30 @@ abstract class AppLocalizations {
   /// **'I am listening'**
   String get companionListening;
 
+  /// No description provided for @companionPlayRound.
+  ///
+  /// In en, this message translates to:
+  /// **'Guess my feeling'**
+  String get companionPlayRound;
+
+  /// No description provided for @companionRoundAsk.
+  ///
+  /// In en, this message translates to:
+  /// **'Look at me. How am I feeling?'**
+  String get companionRoundAsk;
+
+  /// No description provided for @companionRoundPick.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap the feeling you see, or tell me'**
+  String get companionRoundPick;
+
+  /// No description provided for @companionStopRound.
+  ///
+  /// In en, this message translates to:
+  /// **'Stop playing'**
+  String get companionStopRound;
+
   /// No description provided for @previewQuiz.
   ///
   /// In en, this message translates to:

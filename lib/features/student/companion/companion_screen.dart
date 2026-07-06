@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:moodcraft/l10n/app_localizations.dart';
@@ -14,6 +16,7 @@ import '../../../core/services/narration_service.dart';
 import '../../../core/widgets/calm_scaffold.dart';
 import '../../../core/widgets/sensory_settings_sheet.dart';
 import '../../journal/journal_section.dart' show emotionLabel;
+import 'companion_brain.dart';
 import 'companion_chat_service.dart';
 import 'companion_data.dart';
 // The stage: full-body 3D TalkingHead avatar in a WebView on mobile; the calm
@@ -53,6 +56,19 @@ class _CompanionScreenState extends ConsumerState<CompanionScreen> {
   int _lessonStep = 0;
   DateTime _lessonStartedAt = DateTime.now();
   bool _savingLesson = false;
+
+  // Teaching round (the FR3 loop): the avatar demonstrates a feeling and asks;
+  // the child answers by tapping one of three choices or by talking; the brain
+  // judges gently; a right answer ends the round and logs it.
+  Emotion? _roundTarget;
+  Emotion? _lastRoundTarget;
+  List<Emotion> _roundChoices = const [];
+  int _roundAttempt = 1;
+  int _roundMisses = 0;
+  final List<String> _roundAnswers = [];
+  DateTime _roundStartedAt = DateTime.now();
+  bool _judging = false;
+  final Random _random = Random();
 
   // Chat.
   final TextEditingController _input = TextEditingController();
@@ -108,8 +124,109 @@ class _CompanionScreenState extends ConsumerState<CompanionScreen> {
       _lessonStep = 0;
       _lessonStartedAt = DateTime.now();
       _childSaid = null;
+      _roundTarget = null;
     });
     _say(line.text, line.expression);
+  }
+
+  // ── The teaching round (FR3's core loop) ────────────────────────────────
+
+  void _startRound() {
+    final l = AppLocalizations.of(context);
+    // A fresh feeling each time (never the same one twice in a row), with the
+    // right answer hidden among three choices like the quiz.
+    final pool =
+        kCompanionEmotions.where((e) => e != _lastRoundTarget).toList()
+          ..shuffle(_random);
+    final target = pool.first;
+    final distractors =
+        kCompanionEmotions.where((e) => e != target).toList()
+          ..shuffle(_random);
+    setState(() {
+      _lessonEmotion = null;
+      _childSaid = null;
+      _roundTarget = target;
+      _lastRoundTarget = target;
+      _roundChoices = [target, distractors[0], distractors[1]]
+        ..shuffle(_random);
+      _roundAttempt = 1;
+      _roundMisses = 0;
+      _roundAnswers.clear();
+      _roundStartedAt = DateTime.now();
+    });
+    // The demonstrate beat: expression push makes the avatar act the feeling
+    // out (face + body clip) while it asks the question aloud.
+    _say(l.companionRoundAsk, target);
+  }
+
+  Future<void> _answerRound(String answer, {required bool spoken}) async {
+    final l = AppLocalizations.of(context);
+    final target = _roundTarget;
+    if (target == null || _judging) return;
+    _roundAnswers.add(answer);
+    setState(() {
+      _judging = true;
+      _bubbleText = l.companionThinking;
+    });
+    final judgment = await ref
+        .read(companionBrainProvider)
+        .judge(
+          target: target,
+          answer: answer,
+          spoken: spoken,
+          attempt: _roundAttempt,
+        );
+    if (!mounted) return;
+    setState(() => _judging = false);
+    if (judgment.isCorrect) {
+      _recordRound(target, judgment.observationNote);
+      setState(() => _roundTarget = null);
+    } else {
+      // Gentle redirect: stay in the round, the avatar keeps demonstrating.
+      setState(() {
+        _roundAttempt++;
+        _roundMisses++;
+      });
+    }
+    _say(judgment.spokenResponse, judgment.characterEmotion);
+  }
+
+  void _stopRound() {
+    _stage.stop();
+    ref.read(narrationServiceProvider).stop();
+    setState(() {
+      _roundTarget = null;
+      _bubbleText = null;
+      _expression = Emotion.happy;
+    });
+  }
+
+  /// Logs the finished round for the teacher (FR8): which feeling, every
+  /// answer given, how many extra tries, and the brain's observation note.
+  Future<void> _recordRound(Emotion target, String note) async {
+    try {
+      final student = ref.read(activeStudentProvider).value;
+      if (student == null) return;
+      await ref
+          .read(sessionRepositoryProvider)
+          .add(
+            Session(
+              id: const Uuid().v4(),
+              studentId: student.id,
+              activityType: ActivityType.companion,
+              emotionsShown: [target],
+              responses: List.of(_roundAnswers),
+              correctCount: 1,
+              retries: _roundMisses,
+              durationMs:
+                  DateTime.now().difference(_roundStartedAt).inMilliseconds,
+              note: note,
+              timestamp: DateTime.now(),
+            ),
+          );
+    } catch (_) {
+      // The log is for the teacher; it never blocks the child.
+    }
   }
 
   void _advanceLesson() {
@@ -163,11 +280,21 @@ class _CompanionScreenState extends ConsumerState<CompanionScreen> {
   Future<void> _sendChat() async {
     final l = AppLocalizations.of(context);
     final text = _input.text.trim();
-    if (text.isEmpty || _sending) return;
+    if (text.isEmpty || _sending || _judging) return;
     await _speech.stop();
     _stage.stop();
     ref.read(narrationServiceProvider).stop();
     _input.clear();
+
+    // Mid-round, the child's words are their answer, not a chat message.
+    if (_roundTarget != null) {
+      setState(() {
+        _childSaid = text;
+        _listening = false;
+      });
+      await _answerRound(text, spoken: true);
+      return;
+    }
     setState(() {
       _childSaid = text;
       _sending = true;
@@ -289,7 +416,7 @@ class _CompanionScreenState extends ConsumerState<CompanionScreen> {
                     ],
                     _SpeechBubble(
                       text: _bubbleText ?? l.companionGreeting,
-                      busy: _sending,
+                      busy: _sending || _judging,
                       speakOverride: _stage.canSpeak ? _stage.speak : null,
                     ),
                     const SizedBox(height: AppSpacing.lg),
@@ -303,7 +430,47 @@ class _CompanionScreenState extends ConsumerState<CompanionScreen> {
                           label: Text(l.companionNext),
                         ),
                       ),
+                    ] else if (_roundTarget != null) ...[
+                      Text(
+                        l.companionRoundPick,
+                        textAlign: TextAlign.center,
+                        style: theme.textTheme.titleMedium,
+                      ),
+                      const SizedBox(height: AppSpacing.md),
+                      Wrap(
+                        alignment: WrapAlignment.center,
+                        spacing: AppSpacing.sm,
+                        runSpacing: AppSpacing.sm,
+                        children: [
+                          for (final emotion in _roundChoices)
+                            _FeelingTile(
+                              emotion: emotion,
+                              enabled: !_judging,
+                              onTap:
+                                  () => _answerRound(
+                                    emotion.name,
+                                    spoken: false,
+                                  ),
+                            ),
+                        ],
+                      ),
+                      const SizedBox(height: AppSpacing.sm),
+                      Center(
+                        child: TextButton(
+                          onPressed: _judging ? null : _stopRound,
+                          child: Text(l.companionStopRound),
+                        ),
+                      ),
                     ] else ...[
+                      Center(
+                        child: FilledButton.icon(
+                          onPressed:
+                              (_sending || _judging) ? null : _startRound,
+                          icon: const Icon(Icons.emoji_emotions_rounded),
+                          label: Text(l.companionPlayRound),
+                        ),
+                      ),
+                      const SizedBox(height: AppSpacing.lg),
                       Text(
                         l.companionPickFeeling,
                         textAlign: TextAlign.center,
@@ -331,7 +498,7 @@ class _CompanionScreenState extends ConsumerState<CompanionScreen> {
               if (!inLesson)
                 _ChatInputRow(
                   controller: _input,
-                  sending: _sending,
+                  sending: _sending || _judging,
                   listening: _listening,
                   micHidden: _micHidden,
                   onMic: _toggleMic,
