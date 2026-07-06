@@ -68,6 +68,7 @@ flutter:
     - assets/ar/
     - assets/companion/
     - assets/companion/avatar/
+    - assets/companion/poses/
     - assets/companion/libs/
     - assets/companion/libs/three/
     - assets/companion/libs/three/addons/controls/

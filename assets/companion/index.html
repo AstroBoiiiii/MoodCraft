@@ -50,6 +50,17 @@ const EMOTION_TO_MOOD = {
   neutral: 'neutral',
 };
 
+// Mixamo body-language clips (assets/companion/poses), one per feeling —
+// the body half of FR3's face + body teaching. Neutral has no clip on
+// purpose: neutral is the calm idle the mood already provides.
+const EMOTION_POSE = {
+  happy: './poses/happy.fbx',
+  sad: './poses/sad.fbx',
+  scared: './poses/scared.fbx',
+  angry: './poses/angry.fbx',
+  surprised: './poses/surprised.fbx',
+};
+
 // Dart-facing bridge: safe no-ops until the avatar is ready.
 window.mc = {
   ready: false,
@@ -58,7 +69,16 @@ window.mc = {
       if (!head) return;
       head.setMood(EMOTION_TO_MOOD[e] || 'neutral');
       if (e === 'surprised') head.playGesture('😱', 4);
+      // Demonstrate with the whole body, then settle back into the mood idle.
+      window.mc.playPose(e, 8);
     } catch (err) { console.error('setEmotion', err); }
+  },
+  playPose: (e, dur) => {
+    try {
+      const url = EMOTION_POSE[e];
+      if (url) head?.playAnimation(url, null, dur ?? 8);
+      else head?.stopAnimation();
+    } catch (err) { console.error('playPose', err); }
   },
   setMood: (m) => { try { head?.setMood(m); } catch (e) { console.error('setMood', e); } },
   setView: (v) => { try { head?.setView(v); } catch (e) { console.error('setView', e); } },
