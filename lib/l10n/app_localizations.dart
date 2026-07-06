@@ -1121,17 +1121,77 @@ abstract class AppLocalizations {
   /// **'Stars and badges will appear here as you play.'**
   String get previewRewards;
 
-  /// No description provided for @previewCompanion.
-  ///
-  /// In en, this message translates to:
-  /// **'A friendly companion will help you name feelings here.'**
-  String get previewCompanion;
-
   /// No description provided for @previewMatch.
   ///
   /// In en, this message translates to:
   /// **'Match the faces to feelings here.'**
   String get previewMatch;
+
+  /// No description provided for @companionGreeting.
+  ///
+  /// In en, this message translates to:
+  /// **'Hello! I am Momo. We can learn about feelings together.'**
+  String get companionGreeting;
+
+  /// No description provided for @companionPickFeeling.
+  ///
+  /// In en, this message translates to:
+  /// **'Which feeling shall we learn?'**
+  String get companionPickFeeling;
+
+  /// No description provided for @companionNext.
+  ///
+  /// In en, this message translates to:
+  /// **'Next'**
+  String get companionNext;
+
+  /// No description provided for @companionLessonDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Well done! Now you know this feeling. Pick another one when you are ready.'**
+  String get companionLessonDone;
+
+  /// No description provided for @companionThinking.
+  ///
+  /// In en, this message translates to:
+  /// **'Let me think.'**
+  String get companionThinking;
+
+  /// No description provided for @companionRestLine.
+  ///
+  /// In en, this message translates to:
+  /// **'My chat is having a little rest. Let\'s learn a feeling together instead.'**
+  String get companionRestLine;
+
+  /// No description provided for @companionInputHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Ask me about a feeling'**
+  String get companionInputHint;
+
+  /// No description provided for @companionSend.
+  ///
+  /// In en, this message translates to:
+  /// **'Send'**
+  String get companionSend;
+
+  /// No description provided for @companionHearAgain.
+  ///
+  /// In en, this message translates to:
+  /// **'Hear it again'**
+  String get companionHearAgain;
+
+  /// No description provided for @companionTalk.
+  ///
+  /// In en, this message translates to:
+  /// **'Talk to me'**
+  String get companionTalk;
+
+  /// No description provided for @companionListening.
+  ///
+  /// In en, this message translates to:
+  /// **'I am listening'**
+  String get companionListening;
 
   /// No description provided for @previewQuiz.
   ///

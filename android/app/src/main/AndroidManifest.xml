@@ -5,6 +5,8 @@
     <uses-permission android:name="android.permission.CAMERA"/>
     <!-- Firebase. The AR page's JS is bundled locally (assets/ar), no CDN. -->
     <uses-permission android:name="android.permission.INTERNET"/>
+    <!-- Spoken input for the AI companion's chat (FR3, speech_to_text). -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO"/>
     <application
         android:label="moodcraft"
         android:name="${applicationName}"
@@ -61,6 +63,11 @@
              used for story narration in Mix-and-Match. -->
         <intent>
             <action android:name="android.intent.action.TTS_SERVICE"/>
+        </intent>
+        <!-- Lets speech_to_text find the speech recognition service (Android
+             11+), used for the companion's spoken input (FR3). -->
+        <intent>
+            <action android:name="android.speech.RecognitionService"/>
         </intent>
     </queries>
 </manifest>

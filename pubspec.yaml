@@ -34,6 +34,17 @@ dependencies:
   http: ^1.6.0
   flutter_inappwebview: ^6.1.5
   permission_handler: ^12.0.3
+  # Pinned below 3.12: from 3.12 the package's live_session.dart uses @internal
+  # expecting a newer Flutter foundation.dart that re-exports it, so 3.12+ does
+  # not compile on our Flutter 3.29 SDK.
+  firebase_ai: '>=3.11.0 <3.12.0'
+  speech_to_text: ^7.4.0
+
+# firebase_ai 3.11 declares firebase_core_platform_interface ^6 while our
+# cloud_firestore needs ^7; the newer interface is source-compatible with what
+# firebase_ai actually uses (verified by compile + tests), so force it.
+dependency_overrides:
+  firebase_core_platform_interface: ^7.1.0
 
 dev_dependencies:
   flutter_test:

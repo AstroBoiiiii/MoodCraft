@@ -536,10 +536,40 @@ class AppLocalizationsMs extends AppLocalizations {
   String get previewRewards => 'Stars and badges will appear here as you play.';
 
   @override
-  String get previewCompanion => 'A friendly companion will help you name feelings here.';
+  String get previewMatch => 'Match the faces to feelings here.';
 
   @override
-  String get previewMatch => 'Match the faces to feelings here.';
+  String get companionGreeting => 'Hello! I am Momo. We can learn about feelings together.';
+
+  @override
+  String get companionPickFeeling => 'Which feeling shall we learn?';
+
+  @override
+  String get companionNext => 'Next';
+
+  @override
+  String get companionLessonDone => 'Well done! Now you know this feeling. Pick another one when you are ready.';
+
+  @override
+  String get companionThinking => 'Let me think.';
+
+  @override
+  String get companionRestLine => 'My chat is having a little rest. Let\'s learn a feeling together instead.';
+
+  @override
+  String get companionInputHint => 'Ask me about a feeling';
+
+  @override
+  String get companionSend => 'Send';
+
+  @override
+  String get companionHearAgain => 'Hear it again';
+
+  @override
+  String get companionTalk => 'Talk to me';
+
+  @override
+  String get companionListening => 'I am listening';
 
   @override
   String get previewQuiz => 'A calm feelings quiz with no timer and no score.';

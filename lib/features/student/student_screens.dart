@@ -38,9 +38,7 @@ class StudentHomeScreen extends ConsumerWidget {
             false);
 
     // (route, accent key, label, icon). Schedule is no longer a tile here — the
-    // "what's next" routine lives in the Now/Next card at the top. Built
-    // activities come first; Companion and AR (calm placeholders for now)
-    // close the grid.
+    // "what's next" routine lives in the Now/Next card at the top.
     final activities = <(String, String, String, IconData)>[
       ('/student/story', 'story', l.navStories, Icons.menu_book_rounded),
       ('/student/mixmatch', 'mixmatch', l.navMatch, Icons.extension_rounded),
@@ -151,19 +149,6 @@ class StudentRewardsScreen extends StatelessWidget {
       title: l.navRewards,
       icon: Icons.star_rounded,
       message: l.previewRewards,
-    );
-  }
-}
-
-class CompanionScreen extends StatelessWidget {
-  const CompanionScreen({super.key});
-  @override
-  Widget build(BuildContext context) {
-    final l = AppLocalizations.of(context);
-    return PlaceholderScreen(
-      title: l.navCompanion,
-      icon: Icons.chat_bubble_rounded,
-      message: l.previewCompanion,
     );
   }
 }
