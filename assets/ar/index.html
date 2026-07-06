@@ -8,9 +8,13 @@
       Milestone 2: animated emotion characters anchored on MindAR's sample
       card marker (assets/ar/card.png, printed on matte paper). A calm picker
       at the bottom swaps the character on the card (happy / sad / scared /
-      angry / surprised). Models are 3-28 MB each, so only the chosen one is
-      loaded (on demand, with a small "getting ready" chip) instead of
-      preloading all five; on a low-end phone that matters.
+      angry / surprised). Only the chosen model is loaded (on demand, with a
+      small "getting ready" chip) instead of preloading all five. The GLBs
+      are compressed via gltf-transform (mesh simplify + KHR_mesh_quantization
+      + 1024px WebP textures, 0.16-1.7 MB each, originals were 3-28 MB) --
+      lighter models keep the WebView render loop fast on a low-end phone,
+      which directly reduces tracking jitter. Re-run the same pipeline on any
+      new model before adding it.
 
       The three JS libraries are bundled locally in assets/ar/ so the demo
       never depends on venue WiFi. Bundled versions: A-Frame 1.6.0,
@@ -232,7 +236,8 @@
           // Faces dead-front at yaw -60 (checked in renders; -90 shows its
           // left side).
           src: './scared.glb',
-          position: '0 0 -0.3',
+          // Y -0.35 sits the ghost lower on the card.
+          position: '0 -0.35 -0.3',
           rotation: '10 -60 0',
           scale: '0.45 0.45 0.45',
         },
