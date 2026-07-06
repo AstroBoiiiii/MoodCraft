@@ -176,7 +176,12 @@ class _CompanionScreenState extends ConsumerState<CompanionScreen> {
   Future<void> _toggleMic() async {
     if (_listening) {
       await _speech.stop();
-      if (mounted) setState(() => _listening = false);
+      if (mounted) {
+        setState(() => _listening = false);
+        // The child chose to stop talking — their words go straight out, no
+        // second tap needed (safe: _sendChat no-ops on an empty field).
+        _sendChat();
+      }
       return;
     }
     if (!_speechReady) {
@@ -186,6 +191,8 @@ class _CompanionScreenState extends ConsumerState<CompanionScreen> {
           onStatus: (status) {
             if ((status == 'notListening' || status == 'done') && mounted) {
               setState(() => _listening = false);
+              // Listening ended (pause or timeout) — send whatever was heard.
+              _sendChat();
             }
           },
           onError: (_) {
@@ -208,6 +215,13 @@ class _CompanionScreenState extends ConsumerState<CompanionScreen> {
       onResult: (result) {
         _input.text = result.recognizedWords;
         _input.selection = TextSelection.collapsed(offset: _input.text.length);
+        // The recogniser decided the child finished talking — send right
+        // away. Duplicate triggers are harmless: the first send clears the
+        // field and _sendChat ignores an empty one.
+        if (result.finalResult && mounted) {
+          setState(() => _listening = false);
+          _sendChat();
+        }
       },
       listenOptions: SpeechListenOptions(
         partialResults: true,

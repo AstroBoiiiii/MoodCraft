@@ -9,6 +9,7 @@ library;
 import 'dart:convert';
 
 import 'package:firebase_ai/firebase_ai.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/constants/app_constants.dart';
@@ -70,17 +71,28 @@ class CompanionChatService {
   Future<CompanionReply?> send(String message) async {
     final text = message.trim();
     if (text.isEmpty) return null;
-    try {
-      final response = await _ensureChat()
-          .sendMessage(Content.text(text))
-          .timeout(const Duration(seconds: 15));
-      return _parse(response.text);
-    } catch (_) {
-      // A failed turn can leave the session in a bad state — drop it so the
-      // next message starts a fresh chat instead of failing forever.
-      _chat = null;
-      return null;
+    // Two attempts: the Gemini Developer API sometimes returns a transient
+    // "overloaded" error, and one quiet retry shouldn't cost the child (or a
+    // live demo) the whole exchange.
+    for (var attempt = 0; attempt < 2; attempt++) {
+      try {
+        final response = await _ensureChat()
+            .sendMessage(Content.text(text))
+            .timeout(const Duration(seconds: 15));
+        return _parse(response.text);
+      } catch (e) {
+        // Dev-only visibility into WHY the calm fallback showed (403 = AI
+        // Logic not enabled in the console). Never surfaces to the child.
+        if (kDebugMode) debugPrint('Companion chat failed: $e');
+        // A failed turn can leave the session in a bad state — drop it so the
+        // retry (and any later message) starts a fresh chat.
+        _chat = null;
+        if (attempt == 0) {
+          await Future<void>.delayed(const Duration(milliseconds: 1500));
+        }
+      }
     }
+    return null;
   }
 
   /// Defensive parse of the structured reply. Anything unexpected -> null.
