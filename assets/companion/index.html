@@ -37,12 +37,40 @@ import { TalkingHead } from "talkinghead";
 const note = document.getElementById('note');
 let head = null;
 
-// Minimal Dart-facing bridge (step 2 grows this): safe no-ops until ready.
+// App emotion -> TalkingHead mood. TalkingHead has no "surprised" mood, so
+// surprise rides the neutral mood plus the wide-eyed open-mouth expression —
+// on this avatar it reads as classic surprise (round eyes, big O mouth, the
+// exact face the lesson describes), not as fright.
+const EMOTION_TO_MOOD = {
+  happy: 'happy',
+  sad: 'sad',
+  angry: 'angry',
+  scared: 'fear',
+  surprised: 'neutral',
+  neutral: 'neutral',
+};
+
+// Dart-facing bridge: safe no-ops until the avatar is ready.
 window.mc = {
   ready: false,
+  setEmotion: (e) => {
+    try {
+      if (!head) return;
+      head.setMood(EMOTION_TO_MOOD[e] || 'neutral');
+      if (e === 'surprised') head.playGesture('😱', 4);
+    } catch (err) { console.error('setEmotion', err); }
+  },
   setMood: (m) => { try { head?.setMood(m); } catch (e) { console.error('setMood', e); } },
   setView: (v) => { try { head?.setView(v); } catch (e) { console.error('setView', e); } },
+  gesture: (g, dur) => { try { head?.playGesture(g, dur ?? 3); } catch (e) { console.error('gesture', e); } },
 };
+
+// Tell the Flutter host the stage is ready, so it can push the current
+// expression. The handler only exists inside the app's InAppWebView; in a
+// plain browser this quietly does nothing.
+function notifyFlutter() {
+  try { window.flutter_inappwebview?.callHandler('stageReady'); } catch (_) {}
+}
 
 async function boot() {
   try {
@@ -72,6 +100,11 @@ async function boot() {
     note.style.display = 'none';
     window.mc.ready = true;
     console.log('companion: avatar ready');
+    if (window.flutter_inappwebview?.callHandler) {
+      notifyFlutter();
+    } else {
+      window.addEventListener('flutterInAppWebViewPlatformReady', notifyFlutter);
+    }
   } catch (e) {
     // Calm failure: no error styling, just a quiet line. The Flutter host
     // keeps working (lessons and chat never depend on the stage).

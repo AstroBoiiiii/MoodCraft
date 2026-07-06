@@ -12,12 +12,13 @@ const int _kStageServerPort = 8478;
 const String _kStagePageUrl =
     'http://localhost:$_kStageServerPort/assets/companion/index.html';
 
-/// FR3 Milestone 2, step 1 — the 3D companion stage on mobile: the full-body
+/// FR3 Milestone 2 — the 3D companion stage on mobile: the full-body
 /// TalkingHead avatar (assets/companion/index.html) in an InAppWebView.
 ///
-/// [expression] and [intensity] are accepted now so call sites don't change
-/// when step 2 wires the Dart to JS bridge (mood + camera + poses); the stage
-/// does not react to them yet.
+/// Step 2 bridge: the page calls the `stageReady` handler once the avatar has
+/// loaded, then every [expression] change is pushed into the page via
+/// `window.mc.setEmotion(...)` so the avatar's face and posture follow the
+/// lesson and chat flow. [intensity] is reserved for later motion scaling.
 class CompanionStage extends StatefulWidget {
   const CompanionStage({
     required this.expression,
@@ -37,11 +38,34 @@ class _CompanionStageState extends State<CompanionStage> {
     port: _kStageServerPort,
   );
   bool _ready = false;
+  InAppWebViewController? _webView;
+  bool _stageReady = false;
 
   @override
   void initState() {
     super.initState();
     _start();
+  }
+
+  @override
+  void didUpdateWidget(CompanionStage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.expression != widget.expression) {
+      _pushExpression();
+    }
+  }
+
+  /// Best-effort: a dropped frame of expression is invisible next to the
+  /// avatar's own idle motion, so failures are quietly ignored.
+  Future<void> _pushExpression() async {
+    if (!_stageReady) return;
+    try {
+      await _webView?.evaluateJavascript(
+        source: "window.mc && window.mc.setEmotion('${widget.expression.name}')",
+      );
+    } catch (_) {
+      // The page is reloading or gone; the next push catches up.
+    }
   }
 
   Future<void> _start() async {
@@ -74,6 +98,17 @@ class _CompanionStageState extends State<CompanionStage> {
                     mediaPlaybackRequiresUserGesture: false,
                     transparentBackground: true,
                   ),
+                  onWebViewCreated: (controller) {
+                    _webView = controller;
+                    controller.addJavaScriptHandler(
+                      handlerName: 'stageReady',
+                      callback: (_) {
+                        _stageReady = true;
+                        // Catch the avatar up with whatever the screen shows.
+                        _pushExpression();
+                      },
+                    );
+                  },
                 )
                 : ColoredBox(
                   color: theme.colorScheme.surfaceContainerHighest,
