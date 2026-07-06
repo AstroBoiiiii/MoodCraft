@@ -66,6 +66,16 @@ flutter:
   # because every path is centralised in lib/core/constants/app_assets.dart.
   assets:
     - assets/ar/
+    - assets/companion/
+    - assets/companion/avatar/
+    - assets/companion/libs/
+    - assets/companion/libs/three/
+    - assets/companion/libs/three/addons/controls/
+    - assets/companion/libs/three/addons/curves/
+    - assets/companion/libs/three/addons/environments/
+    - assets/companion/libs/three/addons/libs/
+    - assets/companion/libs/three/addons/loaders/
+    - assets/companion/libs/three/addons/utils/
     - assets/images/
     - assets/images/mixmatch/face/
     - assets/images/mixmatch/body/

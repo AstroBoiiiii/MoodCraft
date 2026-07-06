@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<title>MoodCraft Companion</title>
+<style>
+  /* Calm, quiet stage. The soft tone matches the app's calm surfaces so the
+     WebView blends into the screen around it. */
+  html, body { margin:0; padding:0; width:100%; height:100%; overflow:hidden; background:#e8eff2; }
+  #avatar { width:100%; height:100%; }
+  #note {
+    position:absolute; top:50%; left:0; right:0; transform:translateY(-50%);
+    text-align:center; font-family:sans-serif; color:#5c6b73; font-size:15px;
+    pointer-events:none;
+  }
+</style>
+<!-- All modules are bundled locally (no CDN/WiFi dependency, house rule).
+     Renamed .mjs to .js so every server/MIME table treats them as JavaScript;
+     the lipsync dynamic import inside talkinghead.js is patched to match. -->
+<script type="importmap">
+{
+  "imports": {
+    "three": "./libs/three/three.module.js",
+    "three/addons/": "./libs/three/addons/",
+    "talkinghead": "./libs/talkinghead.js"
+  }
+}
+</script>
+</head>
+<body>
+<div id="avatar"></div>
+<div id="note">Getting ready&hellip;</div>
+<script type="module">
+import { TalkingHead } from "talkinghead";
+
+const note = document.getElementById('note');
+let head = null;
+
+// Minimal Dart-facing bridge (step 2 grows this): safe no-ops until ready.
+window.mc = {
+  ready: false,
+  setMood: (m) => { try { head?.setMood(m); } catch (e) { console.error('setMood', e); } },
+  setView: (v) => { try { head?.setView(v); } catch (e) { console.error('setView', e); } },
+};
+
+async function boot() {
+  try {
+    head = new TalkingHead(document.getElementById('avatar'), {
+      // Real TTS is wired in step 4; nothing speaks yet so the endpoint is a stub.
+      ttsEndpoint: '/tts-not-wired-yet',
+      lipsyncModules: ['en'],
+      cameraView: 'full',
+      // The child never drives the camera; predictable framing only.
+      cameraRotateEnable: false,
+      cameraPanEnable: false,
+      cameraZoomEnable: false,
+    });
+    await head.showAvatar(
+      {
+        url: './avatar/companion.glb',
+        body: 'F',
+        avatarMood: 'neutral',
+        lipsyncLang: 'en',
+      },
+      (ev) => {
+        if (ev.lengthComputable) {
+          note.textContent = 'Getting ready… ' + Math.round(100 * ev.loaded / ev.total) + '%';
+        }
+      },
+    );
+    note.style.display = 'none';
+    window.mc.ready = true;
+    console.log('companion: avatar ready');
+  } catch (e) {
+    // Calm failure: no error styling, just a quiet line. The Flutter host
+    // keeps working (lessons and chat never depend on the stage).
+    note.textContent = 'The companion is resting.';
+    console.error('companion boot failed', e);
+  }
+}
+boot();
+</script>
+</body>
+</html>

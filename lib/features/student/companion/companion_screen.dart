@@ -16,6 +16,10 @@ import '../../../core/widgets/sensory_settings_sheet.dart';
 import '../../journal/journal_section.dart' show emotionLabel;
 import 'companion_chat_service.dart';
 import 'companion_data.dart';
+// The stage: full-body 3D TalkingHead avatar in a WebView on mobile; the calm
+// placeholder face on web (keeps the web build free of WebView/3D deps).
+import 'stage/companion_stage_web.dart'
+    if (dart.library.io) 'stage/companion_stage_mobile.dart';
 
 /// FR3 — the AI companion. One calm screen: the companion's face up top, what
 /// it is saying beneath, and the child's two gentle ways in below that.
@@ -257,7 +261,7 @@ class _CompanionScreenState extends ConsumerState<CompanionScreen> {
                 child: ListView(
                   children: [
                     const SizedBox(height: AppSpacing.sm),
-                    _CompanionFace(expression: _expression, intensity: intensity),
+                    CompanionStage(expression: _expression, intensity: intensity),
                     const SizedBox(height: AppSpacing.md),
                     if (_childSaid != null) ...[
                       _ChildBubble(text: _childSaid!),
@@ -314,39 +318,6 @@ class _CompanionScreenState extends ConsumerState<CompanionScreen> {
                 ),
             ],
           ),
-        ),
-      ),
-    );
-  }
-}
-
-/// The companion's placeholder face: one big soft circle whose icon and tint
-/// are enum-keyed per expression, so the Rive state machine can replace it
-/// later with no call-site changes (asset strategy, CLAUDE.md section 9).
-class _CompanionFace extends StatelessWidget {
-  const _CompanionFace({required this.expression, required this.intensity});
-
-  final Emotion expression;
-  final AnimationIntensity intensity;
-
-  @override
-  Widget build(BuildContext context) {
-    final color = kEmotionColor[expression]!;
-    return Center(
-      child: AnimatedSwitcher(
-        duration: effectiveDuration(intensity, AppDurations.normal),
-        switchInCurve: Curves.easeOut,
-        switchOutCurve: Curves.easeIn,
-        child: Container(
-          key: ValueKey(expression),
-          width: 148,
-          height: 148,
-          decoration: BoxDecoration(
-            color: color.withValues(alpha: 0.18),
-            shape: BoxShape.circle,
-            border: Border.all(color: color.withValues(alpha: 0.55), width: 2),
-          ),
-          child: Icon(kEmotionIcon[expression], size: 88, color: color),
         ),
       ),
     );
