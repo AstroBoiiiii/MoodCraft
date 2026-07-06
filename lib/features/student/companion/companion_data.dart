@@ -18,6 +18,31 @@ const List<Emotion> kCompanionEmotions = [
   Emotion.surprised,
 ];
 
+/// Words a child might use for each feeling. The teaching brain's offline
+/// fallback (and any local pre-check) accepts these as a correct answer, so a
+/// child saying "mad" for angry is never told otherwise just because the
+/// device lost its connection.
+const Map<Emotion, List<String>> kCompanionSynonyms = {
+  Emotion.happy: ['happy', 'glad', 'joy', 'joyful', 'smiling', 'good'],
+  Emotion.sad: ['sad', 'unhappy', 'crying', 'cry', 'down', 'upset'],
+  Emotion.scared: ['scared', 'afraid', 'frightened', 'fear', 'scary', 'terrified'],
+  Emotion.angry: ['angry', 'mad', 'cross', 'grumpy', 'furious'],
+  Emotion.surprised: ['surprised', 'surprise', 'shocked', 'shock', 'wow', 'startled'],
+  Emotion.neutral: ['okay', 'ok', 'fine', 'calm', 'neutral'],
+};
+
+/// One short body or face clue per feeling, used for the gentle redirect when
+/// the child has not spotted it yet ("Good try. Look again..."). Matches the
+/// wording of the lessons so the teaching stays consistent.
+const Map<Emotion, String> kCompanionRedirectClue = {
+  Emotion.happy: 'Look at my big smile.',
+  Emotion.sad: 'Look at my head hanging down.',
+  Emotion.scared: 'Look at my wide eyes and how I hold myself tight.',
+  Emotion.angry: 'Look at my crossed arms and scrunched face.',
+  Emotion.surprised: 'Look at my round eyes and my big O mouth.',
+  Emotion.neutral: 'Look at my calm, still face.',
+};
+
 /// One step of a lesson: a short line the companion says while showing
 /// [expression] on its face. The expression is enum-keyed so the placeholder
 /// face swaps for the Rive state machine later with no data change.
