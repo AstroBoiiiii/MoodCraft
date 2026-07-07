@@ -139,10 +139,7 @@ class CompanionBrain {
               enumValues: app.Emotion.values.map((e) => e.name).toList(),
             ),
             'bodyAnimation': Schema.enumString(
-              enumValues: [
-                ...app.Emotion.values.map((e) => e.name),
-                'none',
-              ],
+              enumValues: [...app.Emotion.values.map((e) => e.name), 'none'],
             ),
             'observationNote': Schema.string(),
           },

@@ -5,7 +5,6 @@ import 'package:moodcraft/l10n/app_localizations.dart';
 import '../../app/theme/tokens.dart';
 import '../constants/app_constants.dart';
 import '../models/enums.dart';
-import '../providers/sensory_settings_provider.dart';
 import '../services/rewards_service.dart';
 
 /// Localised name for a reward badge (FR11). Feeling badges read as the feeling
@@ -45,8 +44,7 @@ RewardBadge? rewardBadgeById(String id) {
 /// (FR11). It keeps the same warm "all done" as before, and *adds* the stars
 /// just earned and a soft reveal of any new badge. Nothing flashes and nothing
 /// is ever taken away — a gentle, predictable celebration (design principles 1
-/// and 2). All motion runs through [effectiveDuration], so with animation set to
-/// "off" it simply appears, static.
+/// and 2).
 ///
 /// [outcome] null means the award is still being written (or failed offline): the
 /// moment shows without stars, never blocking the child.
@@ -92,10 +90,7 @@ class _RewardCelebrationState extends ConsumerState<RewardCelebration> {
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
     final theme = Theme.of(context);
-    final intensity = ref.watch(
-      sensorySettingsProvider.select((s) => s.animationIntensity),
-    );
-    final motion = effectiveDuration(intensity, AppDurations.slow);
+    const motion = AppDurations.slow;
     final outcome = widget.outcome;
     final newBadges = [
       for (final id in outcome?.newBadges ?? const <String>[])
@@ -137,7 +132,10 @@ class _RewardCelebrationState extends ConsumerState<RewardCelebration> {
                 ),
                 if (outcome != null && outcome.starsEarned > 0) ...[
                   const SizedBox(height: AppSpacing.lg),
-                  _StarsRow(count: outcome.starsEarned, label: l.rewardStarsEarned(outcome.starsEarned)),
+                  _StarsRow(
+                    count: outcome.starsEarned,
+                    label: l.rewardStarsEarned(outcome.starsEarned),
+                  ),
                 ],
                 if (newBadges.isNotEmpty) ...[
                   const SizedBox(height: AppSpacing.lg),
@@ -153,7 +151,10 @@ class _RewardCelebrationState extends ConsumerState<RewardCelebration> {
                     runSpacing: AppSpacing.sm,
                     children: [
                       for (final badge in newBadges)
-                        _BadgeChip(badge: badge, label: rewardBadgeLabel(badge, l)),
+                        _BadgeChip(
+                          badge: badge,
+                          label: rewardBadgeLabel(badge, l),
+                        ),
                     ],
                   ),
                 ],
@@ -238,7 +239,10 @@ class _BadgeChip extends StatelessWidget {
           decoration: BoxDecoration(
             color: badge.color.withValues(alpha: 0.18),
             shape: BoxShape.circle,
-            border: Border.all(color: badge.color.withValues(alpha: 0.6), width: 2),
+            border: Border.all(
+              color: badge.color.withValues(alpha: 0.6),
+              width: 2,
+            ),
           ),
           child: Icon(badge.icon, size: 34, color: badge.color),
         ),

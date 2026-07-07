@@ -6,7 +6,8 @@ import 'initial_avatar.dart';
 
 /// A linked teacher/parent contact: avatar, name, @username and phone. Shared by
 /// the parent monitoring, student-detail and account-profile screens so contacts
-/// look identical everywhere. Pass [onRemove] to show an unlink button.
+/// look identical everywhere. Pass [onRemove] to show an unlink button, and
+/// [onMessage] to show a "message" button that opens a thread with this contact.
 ///
 /// Filled with `surfaceContainerHighest` so it reads a level above both the
 /// scaffold background and a [SectionCard] surface.
@@ -15,12 +16,19 @@ class ContactCard extends StatelessWidget {
     required this.user,
     this.onRemove,
     this.removeTooltip,
+    this.onMessage,
+    this.messageTooltip,
     super.key,
   });
 
   final AppUser user;
   final VoidCallback? onRemove;
   final String? removeTooltip;
+
+  /// When set, a message button appears that opens a conversation with this
+  /// contact (teacher → parent about the student).
+  final VoidCallback? onMessage;
+  final String? messageTooltip;
 
   @override
   Widget build(BuildContext context) {
@@ -69,6 +77,15 @@ class ContactCard extends StatelessWidget {
               ],
             ),
           ),
+          if (onMessage != null)
+            IconButton(
+              tooltip: messageTooltip,
+              icon: Icon(
+                Icons.message_rounded,
+                color: theme.colorScheme.primary,
+              ),
+              onPressed: onMessage,
+            ),
           if (onRemove != null)
             IconButton(
               tooltip: removeTooltip,

@@ -3,6 +3,7 @@
 library;
 
 import '../../models/app_user.dart';
+import '../../models/assignment.dart';
 import '../../models/journal_entry.dart';
 import '../../models/message.dart';
 import '../../models/session.dart';
@@ -53,6 +54,19 @@ abstract interface class MessageRepository {
 
   /// Marks all messages in [conversationId] addressed to [myUid] as read.
   Future<void> markThreadRead(String conversationId, String myUid);
+}
+
+abstract interface class AssignmentRepository {
+  /// Homework tasks a teacher created, newest-first.
+  Stream<List<Assignment>> watchForTeacher(String teacherId);
+
+  /// Homework tasks handed to a student (their `studentIds` contains [studentId]),
+  /// newest-first. Drives the parent's task view and the child's "to do" card.
+  Stream<List<Assignment>> watchForStudent(String studentId);
+
+  Future<void> upsert(Assignment assignment);
+
+  Future<void> delete(String id);
 }
 
 abstract interface class VisualScheduleRepository {

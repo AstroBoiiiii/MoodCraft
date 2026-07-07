@@ -27,8 +27,9 @@ class ArView extends StatefulWidget {
 }
 
 class _ArViewState extends State<ArView> with WidgetsBindingObserver {
-  final InAppLocalhostServer _server =
-      InAppLocalhostServer(port: _kArServerPort);
+  final InAppLocalhostServer _server = InAppLocalhostServer(
+    port: _kArServerPort,
+  );
   _ArStage _stage = _ArStage.starting;
   bool _mustOpenSettings = false;
 
@@ -106,8 +107,8 @@ class _ArViewState extends State<ArView> with WidgetsBindingObserver {
           ),
           // Second camera gate: the WebView asks again for getUserMedia even
           // though the OS permission is already granted.
-          onPermissionRequest: (controller, request) async =>
-              PermissionResponse(
+          onPermissionRequest:
+              (controller, request) async => PermissionResponse(
                 resources: request.resources,
                 action: PermissionResponseAction.GRANT,
               ),

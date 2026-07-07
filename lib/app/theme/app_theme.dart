@@ -1,12 +1,10 @@
 /// Builds a [ThemeData] from the current [SensorySettings] so every activity
-/// inherits the chosen calm palette and the animation-intensity preference
-/// (CLAUDE.md sections 3, 4, 8).
+/// inherits the chosen calm palette (CLAUDE.md sections 3, 4, 8).
 library;
 
 import 'package:flutter/material.dart';
 
 import '../../core/constants/app_constants.dart';
-import '../../core/models/enums.dart';
 import '../../core/models/sensory_settings.dart';
 import 'palettes.dart';
 import 'tokens.dart';
@@ -289,29 +287,17 @@ ThemeData buildTheme(SensorySettings settings) {
         color: onSurfaceVariant,
       ),
     ),
-    // When animation is switched off, route changes are instant (no transition).
-    pageTransitionsTheme:
-        settings.animationIntensity == AnimationIntensity.off
-            ? const PageTransitionsTheme(
-              builders: {
-                TargetPlatform.android: _NoTransitionsBuilder(),
-                TargetPlatform.iOS: _NoTransitionsBuilder(),
-                TargetPlatform.linux: _NoTransitionsBuilder(),
-                TargetPlatform.macOS: _NoTransitionsBuilder(),
-                TargetPlatform.windows: _NoTransitionsBuilder(),
-                TargetPlatform.fuchsia: _NoTransitionsBuilder(),
-              },
-            )
-            : const PageTransitionsTheme(
-              builders: {
-                TargetPlatform.android: FadeUpwardsPageTransitionsBuilder(),
-                TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
-                TargetPlatform.linux: FadeUpwardsPageTransitionsBuilder(),
-                TargetPlatform.macOS: CupertinoPageTransitionsBuilder(),
-                TargetPlatform.windows: FadeUpwardsPageTransitionsBuilder(),
-                TargetPlatform.fuchsia: FadeUpwardsPageTransitionsBuilder(),
-              },
-            ),
+    // Gentle fade transitions between routes on every platform.
+    pageTransitionsTheme: const PageTransitionsTheme(
+      builders: {
+        TargetPlatform.android: FadeUpwardsPageTransitionsBuilder(),
+        TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
+        TargetPlatform.linux: FadeUpwardsPageTransitionsBuilder(),
+        TargetPlatform.macOS: CupertinoPageTransitionsBuilder(),
+        TargetPlatform.windows: FadeUpwardsPageTransitionsBuilder(),
+        TargetPlatform.fuchsia: FadeUpwardsPageTransitionsBuilder(),
+      },
+    ),
   );
 }
 
@@ -332,20 +318,4 @@ TextTheme _calmTextTheme(TextTheme base, Color onSurface) {
     bodyMedium: s(base.bodyMedium, 16, FontWeight.w400),
     labelLarge: s(base.labelLarge, 18, FontWeight.w600),
   );
-}
-
-/// Instant page transition used when animations are turned off.
-class _NoTransitionsBuilder extends PageTransitionsBuilder {
-  const _NoTransitionsBuilder();
-
-  @override
-  Widget buildTransitions<T>(
-    PageRoute<T> route,
-    BuildContext context,
-    Animation<double> animation,
-    Animation<double> secondaryAnimation,
-    Widget child,
-  ) {
-    return child;
-  }
 }

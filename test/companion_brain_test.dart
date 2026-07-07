@@ -97,7 +97,10 @@ void main() {
       expect(j.isCorrect, isFalse);
       expect(j.characterEmotion, Emotion.scared);
       expect(j.bodyAnimation, Emotion.scared);
-      expect(j.spokenResponse, contains(kCompanionRedirectClue[Emotion.scared]));
+      expect(
+        j.spokenResponse,
+        contains(kCompanionRedirectClue[Emotion.scared]),
+      );
       expect(j.spokenResponse.toLowerCase(), isNot(contains('wrong')));
       expect(j.spokenResponse.toLowerCase(), isNot(contains('no.')));
     });

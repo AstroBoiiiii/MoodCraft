@@ -4,9 +4,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../core/constants/app_constants.dart';
+import '../core/models/assignment.dart';
 import '../core/models/enums.dart';
 import '../core/providers/auth_provider.dart';
 import '../features/account/account_profile_screen.dart';
+import '../features/assignments/parent_tasks_screen.dart';
+import '../features/assignments/teacher_tasks_screen.dart';
 import '../features/auth/dev_role_picker_screen.dart';
 import '../features/auth/login_screen.dart';
 import '../features/auth/register_screen.dart';
@@ -250,6 +253,21 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         },
       ),
 
+      // Teacher homework: create form and per-student completion detail, both
+      // pushed full-screen over the shell (root navigator).
+      GoRoute(
+        path: '/teacher/tasks/new',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const TeacherCreateTaskScreen(),
+      ),
+      GoRoute(
+        path: '/teacher/tasks/detail',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder:
+            (context, state) =>
+                TeacherTaskDetailScreen(assignment: state.extra as Assignment),
+      ),
+
       // Teacher messaging thread — pushed full-screen over the shell so the
       // nav rail disappears while chatting (mirrors mobile DM conventions).
       GoRoute(
@@ -319,10 +337,18 @@ final goRouterProvider = Provider<GoRouter>((ref) {
               ),
             ],
           ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/teacher/tasks',
+                builder: (context, state) => const TeacherTasksScreen(),
+              ),
+            ],
+          ),
         ],
       ),
 
-      // ---- Parent (bottom nav: Progress / Messages) ----
+      // ---- Parent (bottom nav: Progress / Messages / Tasks) ----
       StatefulShellRoute.indexedStack(
         builder: (context, state, shell) => ParentShell(shell),
         branches: [
@@ -339,6 +365,14 @@ final goRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: '/parent/messages',
                 builder: (context, state) => const ParentMessagesScreen(),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/parent/tasks',
+                builder: (context, state) => const ParentTasksScreen(),
               ),
             ],
           ),

@@ -68,6 +68,7 @@ class StudentDetailTabs extends StatefulWidget {
     required this.parents,
     required this.canEditSchedule,
     this.onRemoveParent,
+    this.onMessageParent,
     super.key,
   });
 
@@ -78,6 +79,10 @@ class StudentDetailTabs extends StatefulWidget {
 
   /// When set (teacher view), parent contact cards get a remove button.
   final void Function(AppUser parent)? onRemoveParent;
+
+  /// When set (teacher view), parent contact cards get a message button that
+  /// opens a conversation with that parent about this student (FR10).
+  final void Function(AppUser parent)? onMessageParent;
 
   @override
   State<StudentDetailTabs> createState() => _StudentDetailTabsState();
@@ -182,6 +187,11 @@ class _StudentDetailTabsState extends State<StudentDetailTabs> {
               for (final u in widget.parents)
                 ContactCard(
                   user: u,
+                  onMessage:
+                      widget.onMessageParent == null
+                          ? null
+                          : () => widget.onMessageParent!(u),
+                  messageTooltip: l.messageParent,
                   onRemove:
                       widget.onRemoveParent == null
                           ? null

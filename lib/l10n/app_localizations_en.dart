@@ -33,18 +33,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get colourTheme => 'Colour theme';
 
   @override
-  String get animation => 'Animation';
-
-  @override
-  String get animationFull => 'Full';
-
-  @override
-  String get animationReduced => 'Reduced';
-
-  @override
-  String get animationOff => 'Off';
-
-  @override
   String get music => 'Background music';
 
   @override
@@ -122,7 +110,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get arStarting => 'Getting the camera ready.';
 
   @override
-  String get arCameraNeeded => 'MoodCraft needs the camera to show AR. Please allow camera access.';
+  String get arCameraNeeded =>
+      'MoodCraft needs the camera to show AR. Please allow camera access.';
 
   @override
   String get arAllowCamera => 'Allow camera';
@@ -200,7 +189,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get classNameLabel => 'Class name (optional)';
 
   @override
-  String get classCodeNotFound => 'We couldn\'t find that class code. Your teacher can add you later.';
+  String get classCodeNotFound =>
+      'We couldn\'t find that class code. Your teacher can add you later.';
 
   @override
   String get yourClassCode => 'Class code';
@@ -218,7 +208,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get webMobileOnlyTitle => 'Mobile app';
 
   @override
-  String get webMobileOnlyBody => 'Please use the MoodCraft mobile app to continue. The web app is for teachers.';
+  String get webMobileOnlyBody =>
+      'Please use the MoodCraft mobile app to continue. The web app is for teachers.';
 
   @override
   String get usernameLabel => 'Username';
@@ -298,7 +289,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get progressReport => 'Progress report';
 
   @override
-  String get progressReportSoon => 'A progress report for this student is coming soon.';
+  String get progressReportSoon =>
+      'A progress report for this student is coming soon.';
 
   @override
   String get selectStudentHint => 'Select a student to see their details';
@@ -348,6 +340,110 @@ class AppLocalizationsEn extends AppLocalizations {
   String msgConversationTitle(String parentName, String studentName) {
     return '$parentName · $studentName';
   }
+
+  @override
+  String get navTasks => 'Tasks';
+
+  @override
+  String get taskNewTitle => 'New task';
+
+  @override
+  String get taskName => 'Task name';
+
+  @override
+  String get taskNameHint => 'e.g. This week\'s practice';
+
+  @override
+  String get taskUntitled => 'Homework';
+
+  @override
+  String get taskNoteLabel => 'Note (optional)';
+
+  @override
+  String get taskNoteHint => 'Anything you want to tell them';
+
+  @override
+  String get taskAudienceQuestion => 'Who is this for?';
+
+  @override
+  String get taskAudienceClass => 'Whole class';
+
+  @override
+  String get taskAudienceStudents => 'Chosen students';
+
+  @override
+  String get taskActivitiesHeading => 'Activities to do';
+
+  @override
+  String get taskStudentsHeading => 'Choose students';
+
+  @override
+  String get taskHandOut => 'Hand out task';
+
+  @override
+  String get taskAnnouncement => 'Announcement';
+
+  @override
+  String get taskPersonal => 'Personal';
+
+  @override
+  String get taskForClass => 'Whole class';
+
+  @override
+  String taskForStudents(int count) {
+    return '$count students';
+  }
+
+  @override
+  String taskDoneOf(int done, int total) {
+    return '$done of $total done';
+  }
+
+  @override
+  String taskStudentsFinished(int done, int total) {
+    return '$done/$total finished it';
+  }
+
+  @override
+  String get taskEmptyTeacher =>
+      'No tasks yet. Hand one out with the button below.';
+
+  @override
+  String get taskEmptyParent => 'No tasks from the teacher yet.';
+
+  @override
+  String get taskProgressHeading => 'Who\'s done it';
+
+  @override
+  String get taskDelete => 'Delete task';
+
+  @override
+  String get taskDeleteConfirm =>
+      'Delete this task for everyone? This can\'t be undone.';
+
+  @override
+  String get taskCreated => 'Task handed out';
+
+  @override
+  String get taskDeleted => 'Task deleted';
+
+  @override
+  String get taskNeedActivity => 'Pick at least one activity';
+
+  @override
+  String get taskNeedStudent => 'Pick at least one student';
+
+  @override
+  String get taskNoStudentsInClass => 'No students in your class yet';
+
+  @override
+  String get todoHeading => 'Things to do';
+
+  @override
+  String get todoAllDone => 'All done. Great work!';
+
+  @override
+  String get messageParent => 'Message';
 
   @override
   String get ageLabel => 'Age';
@@ -419,7 +515,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get scheduleNext => 'Next';
 
   @override
-  String get scheduleFreeNow => 'You are free right now. Try out one of our activities!';
+  String get scheduleFreeNow =>
+      'You are free right now. Try out one of our activities!';
 
   @override
   String get scheduleClashError => 'That time overlaps another activity';
@@ -482,7 +579,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get journalCommentTitle => 'Add a comment';
 
   @override
-  String get journalCommentHint => 'A short comment about this feeling (optional)';
+  String get journalCommentHint =>
+      'A short comment about this feeling (optional)';
 
   @override
   String get emotionHappy => 'Happy';
@@ -524,13 +622,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeActivities => 'Activities';
 
   @override
-  String get previewDashboard => 'Your students\' progress and difficulty areas will appear here.';
+  String get previewDashboard =>
+      'Your students\' progress and difficulty areas will appear here.';
 
   @override
-  String get previewClassroom => 'Project an activity to the whole class from here.';
+  String get previewClassroom =>
+      'Project an activity to the whole class from here.';
 
   @override
-  String get previewReports => 'Gentle progress reports you can share will appear here.';
+  String get previewReports =>
+      'Gentle progress reports you can share will appear here.';
 
   @override
   String get previewRewards => 'Stars and badges will appear here as you play.';
@@ -576,7 +677,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get previewMatch => 'Match the faces to feelings here.';
 
   @override
-  String get companionGreeting => 'Hello! I am Momo. We can learn about feelings together.';
+  String get companionGreeting =>
+      'Hello! I am Momo. We can learn about feelings together.';
 
   @override
   String get companionPickFeeling => 'Which feeling shall we learn?';
@@ -585,13 +687,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get companionNext => 'Next';
 
   @override
-  String get companionLessonDone => 'Well done! Now you know this feeling. You can tell me your answer, or pick another feeling when you are ready.';
+  String get companionLessonDone =>
+      'Well done! Now you know this feeling. You can tell me your answer, or pick another feeling when you are ready.';
 
   @override
   String get companionThinking => 'Let me think.';
 
   @override
-  String get companionRestLine => 'My chat is having a little rest. Let\'s learn a feeling together instead.';
+  String get companionRestLine =>
+      'My chat is having a little rest. Let\'s learn a feeling together instead.';
 
   @override
   String get companionInputHint => 'Ask me about a feeling';
@@ -702,7 +806,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get quizDone => 'All done!';
 
   @override
-  String get quizDoneBody => 'Great feeling spotting. You can play again any time.';
+  String get quizDoneBody =>
+      'Great feeling spotting. You can play again any time.';
 
   @override
   String get quizDoneButton => 'Done';
@@ -711,7 +816,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get quizStart => 'Start quiz';
 
   @override
-  String get quizClassroomHint => 'Play a calm feelings quiz on the class screen.';
+  String get quizClassroomHint =>
+      'Play a calm feelings quiz on the class screen.';
 
   @override
   String get quizPickDay => 'Pick a day to play.';
@@ -743,7 +849,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get storyDone => 'The end!';
 
   @override
-  String get storyDoneBody => 'Great watching. The next episode is ready when you are.';
+  String get storyDoneBody =>
+      'Great watching. The next episode is ready when you are.';
 
   @override
   String get storyDoneButton => 'Done';
@@ -761,7 +868,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get quizUnmuteVoice => 'Turn on the voice';
 
   @override
-  String get storyVideoUnavailable => 'This story is getting ready. Please try another one.';
+  String get storyVideoUnavailable =>
+      'This story is getting ready. Please try another one.';
 
   @override
   String get storyClassroomHint => 'Play a story episode on the class screen.';

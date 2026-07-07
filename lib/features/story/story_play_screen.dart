@@ -71,6 +71,17 @@ class _StoryPlayScreenState extends ConsumerState<StoryPlayScreen> {
   bool _frontier = false;
 
   int _level = 0;
+
+  /// Where this run is meant to open in the film (the episode's segment start,
+  /// or the saved resume point). Kept so playback can be snapped back here if a
+  /// cold, unbuffered first load lets the film start from 0:00 instead.
+  int _segmentStartMs = 0;
+
+  /// True once real playback has genuinely moved past [_segmentStartMs]. Until
+  /// then the start guard in [_onTick] watches for a dropped opening seek; after
+  /// then it never fires again, so it can't disturb the pause moments.
+  bool _startReached = false;
+
   int _pausesDone = 0;
   bool _inQuestion = false;
   bool _answered = false; // current pause answered right -> feedback showing
@@ -176,6 +187,8 @@ class _StoryPlayScreenState extends ConsumerState<StoryPlayScreen> {
     // Open on the episode's segment start, or the exact saved pause point when
     // resuming further in (all timestamps are absolute in the film).
     final seekMs = resumeMs > episode.startMs ? resumeMs : episode.startMs;
+    _segmentStartMs = seekMs;
+    _startReached = seekMs <= 0;
     if (seekMs > 0) {
       final target = Duration(milliseconds: seekMs);
       await controller.seekTo(target);
@@ -217,6 +230,22 @@ class _StoryPlayScreenState extends ConsumerState<StoryPlayScreen> {
     final v = controller.value;
     if (!v.isInitialized) return;
 
+    // Cold-load start guard: on the very first, unbuffered play the opening
+    // seek can be dropped and the film begins from 0:00. Watch the *real*
+    // reported playback (not the optimistic post-seek value) and snap it back
+    // to where this episode should begin. Once playback has truly moved past
+    // that point, disarm the guard so it can never touch the pause moments,
+    // which all sit further into the film.
+    if (!_startReached) {
+      final posMs = v.position.inMilliseconds;
+      if (posMs > _segmentStartMs + 150) {
+        _startReached = true;
+      } else if (v.isPlaying && posMs < _segmentStartMs - 300) {
+        controller.seekTo(Duration(milliseconds: _segmentStartMs));
+        return;
+      }
+    }
+
     if (!_inQuestion &&
         !_finished &&
         _pausesDone < episode.pauses.length &&
@@ -248,7 +277,18 @@ class _StoryPlayScreenState extends ConsumerState<StoryPlayScreen> {
   void _togglePlay() {
     final controller = _controller;
     if (controller == null || _inQuestion) return;
-    controller.value.isPlaying ? controller.pause() : controller.play();
+    if (controller.value.isPlaying) {
+      controller.pause();
+      return;
+    }
+    // First play after a cold load (autoplay is blocked on web, so the child's
+    // tap is the real first play): make sure we roll from the episode's start,
+    // not 0:00, if the opening seek hadn't taken yet.
+    if (!_startReached &&
+        controller.value.position.inMilliseconds < _segmentStartMs - 300) {
+      controller.seekTo(Duration(milliseconds: _segmentStartMs));
+    }
+    controller.play();
   }
 
   void _onAnswer(StoryPause pause, Emotion pick) {
@@ -683,4 +723,3 @@ class _PauseFeedback extends StatelessWidget {
     );
   }
 }
-

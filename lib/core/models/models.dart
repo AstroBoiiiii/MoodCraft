@@ -2,6 +2,7 @@
 library;
 
 export 'app_user.dart';
+export 'assignment.dart';
 export 'emotion_content.dart';
 export 'enums.dart';
 export 'journal_entry.dart';

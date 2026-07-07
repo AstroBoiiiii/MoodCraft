@@ -219,7 +219,11 @@ class _RecentRow extends StatelessWidget {
               color: accent.withValues(alpha: 0.16),
               shape: BoxShape.circle,
             ),
-            child: Icon(_activityIcon(session.activityType), size: 20, color: accent),
+            child: Icon(
+              _activityIcon(session.activityType),
+              size: 20,
+              color: accent,
+            ),
           ),
           const SizedBox(width: AppSpacing.sm),
           Expanded(
@@ -229,7 +233,9 @@ class _RecentRow extends StatelessWidget {
             ),
           ),
           Text(
-            MaterialLocalizations.of(context).formatMediumDate(session.timestamp),
+            MaterialLocalizations.of(
+              context,
+            ).formatMediumDate(session.timestamp),
             style: theme.textTheme.labelMedium?.copyWith(
               color: theme.colorScheme.onSurfaceVariant,
             ),

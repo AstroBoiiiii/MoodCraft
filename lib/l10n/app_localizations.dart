@@ -62,7 +62,8 @@ import 'app_localizations_ms.dart';
 /// be consistent with the languages listed in the AppLocalizations.supportedLocales
 /// property.
 abstract class AppLocalizations {
-  AppLocalizations(String locale) : localeName = intl.Intl.canonicalizedLocale(locale.toString());
+  AppLocalizations(String locale)
+    : localeName = intl.Intl.canonicalizedLocale(locale.toString());
 
   final String localeName;
 
@@ -70,7 +71,8 @@ abstract class AppLocalizations {
     return Localizations.of<AppLocalizations>(context, AppLocalizations)!;
   }
 
-  static const LocalizationsDelegate<AppLocalizations> delegate = _AppLocalizationsDelegate();
+  static const LocalizationsDelegate<AppLocalizations> delegate =
+      _AppLocalizationsDelegate();
 
   /// A list of this localizations delegate along with the default localizations
   /// delegates.
@@ -82,17 +84,18 @@ abstract class AppLocalizations {
   /// Additional delegates can be added by appending to this list in
   /// MaterialApp. This list does not have to be used at all if a custom list
   /// of delegates is preferred or required.
-  static const List<LocalizationsDelegate<dynamic>> localizationsDelegates = <LocalizationsDelegate<dynamic>>[
-    delegate,
-    GlobalMaterialLocalizations.delegate,
-    GlobalCupertinoLocalizations.delegate,
-    GlobalWidgetsLocalizations.delegate,
-  ];
+  static const List<LocalizationsDelegate<dynamic>> localizationsDelegates =
+      <LocalizationsDelegate<dynamic>>[
+        delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+      ];
 
   /// A list of this localizations delegate's supported locales.
   static const List<Locale> supportedLocales = <Locale>[
     Locale('en'),
-    Locale('ms')
+    Locale('ms'),
   ];
 
   /// No description provided for @appName.
@@ -142,30 +145,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Colour theme'**
   String get colourTheme;
-
-  /// No description provided for @animation.
-  ///
-  /// In en, this message translates to:
-  /// **'Animation'**
-  String get animation;
-
-  /// No description provided for @animationFull.
-  ///
-  /// In en, this message translates to:
-  /// **'Full'**
-  String get animationFull;
-
-  /// No description provided for @animationReduced.
-  ///
-  /// In en, this message translates to:
-  /// **'Reduced'**
-  String get animationReduced;
-
-  /// No description provided for @animationOff.
-  ///
-  /// In en, this message translates to:
-  /// **'Off'**
-  String get animationOff;
 
   /// No description provided for @music.
   ///
@@ -760,6 +739,198 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{parentName} · {studentName}'**
   String msgConversationTitle(String parentName, String studentName);
+
+  /// No description provided for @navTasks.
+  ///
+  /// In en, this message translates to:
+  /// **'Tasks'**
+  String get navTasks;
+
+  /// No description provided for @taskNewTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'New task'**
+  String get taskNewTitle;
+
+  /// No description provided for @taskName.
+  ///
+  /// In en, this message translates to:
+  /// **'Task name'**
+  String get taskName;
+
+  /// No description provided for @taskNameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. This week\'s practice'**
+  String get taskNameHint;
+
+  /// No description provided for @taskUntitled.
+  ///
+  /// In en, this message translates to:
+  /// **'Homework'**
+  String get taskUntitled;
+
+  /// No description provided for @taskNoteLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Note (optional)'**
+  String get taskNoteLabel;
+
+  /// No description provided for @taskNoteHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Anything you want to tell them'**
+  String get taskNoteHint;
+
+  /// No description provided for @taskAudienceQuestion.
+  ///
+  /// In en, this message translates to:
+  /// **'Who is this for?'**
+  String get taskAudienceQuestion;
+
+  /// No description provided for @taskAudienceClass.
+  ///
+  /// In en, this message translates to:
+  /// **'Whole class'**
+  String get taskAudienceClass;
+
+  /// No description provided for @taskAudienceStudents.
+  ///
+  /// In en, this message translates to:
+  /// **'Chosen students'**
+  String get taskAudienceStudents;
+
+  /// No description provided for @taskActivitiesHeading.
+  ///
+  /// In en, this message translates to:
+  /// **'Activities to do'**
+  String get taskActivitiesHeading;
+
+  /// No description provided for @taskStudentsHeading.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose students'**
+  String get taskStudentsHeading;
+
+  /// No description provided for @taskHandOut.
+  ///
+  /// In en, this message translates to:
+  /// **'Hand out task'**
+  String get taskHandOut;
+
+  /// No description provided for @taskAnnouncement.
+  ///
+  /// In en, this message translates to:
+  /// **'Announcement'**
+  String get taskAnnouncement;
+
+  /// No description provided for @taskPersonal.
+  ///
+  /// In en, this message translates to:
+  /// **'Personal'**
+  String get taskPersonal;
+
+  /// No description provided for @taskForClass.
+  ///
+  /// In en, this message translates to:
+  /// **'Whole class'**
+  String get taskForClass;
+
+  /// No description provided for @taskForStudents.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} students'**
+  String taskForStudents(int count);
+
+  /// No description provided for @taskDoneOf.
+  ///
+  /// In en, this message translates to:
+  /// **'{done} of {total} done'**
+  String taskDoneOf(int done, int total);
+
+  /// No description provided for @taskStudentsFinished.
+  ///
+  /// In en, this message translates to:
+  /// **'{done}/{total} finished it'**
+  String taskStudentsFinished(int done, int total);
+
+  /// No description provided for @taskEmptyTeacher.
+  ///
+  /// In en, this message translates to:
+  /// **'No tasks yet. Hand one out with the button below.'**
+  String get taskEmptyTeacher;
+
+  /// No description provided for @taskEmptyParent.
+  ///
+  /// In en, this message translates to:
+  /// **'No tasks from the teacher yet.'**
+  String get taskEmptyParent;
+
+  /// No description provided for @taskProgressHeading.
+  ///
+  /// In en, this message translates to:
+  /// **'Who\'s done it'**
+  String get taskProgressHeading;
+
+  /// No description provided for @taskDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete task'**
+  String get taskDelete;
+
+  /// No description provided for @taskDeleteConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this task for everyone? This can\'t be undone.'**
+  String get taskDeleteConfirm;
+
+  /// No description provided for @taskCreated.
+  ///
+  /// In en, this message translates to:
+  /// **'Task handed out'**
+  String get taskCreated;
+
+  /// No description provided for @taskDeleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Task deleted'**
+  String get taskDeleted;
+
+  /// No description provided for @taskNeedActivity.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick at least one activity'**
+  String get taskNeedActivity;
+
+  /// No description provided for @taskNeedStudent.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick at least one student'**
+  String get taskNeedStudent;
+
+  /// No description provided for @taskNoStudentsInClass.
+  ///
+  /// In en, this message translates to:
+  /// **'No students in your class yet'**
+  String get taskNoStudentsInClass;
+
+  /// No description provided for @todoHeading.
+  ///
+  /// In en, this message translates to:
+  /// **'Things to do'**
+  String get todoHeading;
+
+  /// No description provided for @todoAllDone.
+  ///
+  /// In en, this message translates to:
+  /// **'All done. Great work!'**
+  String get todoAllDone;
+
+  /// No description provided for @messageParent.
+  ///
+  /// In en, this message translates to:
+  /// **'Message'**
+  String get messageParent;
 
   /// No description provided for @ageLabel.
   ///
@@ -1572,7 +1743,8 @@ abstract class AppLocalizations {
   String get storyClassroomHint;
 }
 
-class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {
+class _AppLocalizationsDelegate
+    extends LocalizationsDelegate<AppLocalizations> {
   const _AppLocalizationsDelegate();
 
   @override
@@ -1581,25 +1753,26 @@ class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> 
   }
 
   @override
-  bool isSupported(Locale locale) => <String>['en', 'ms'].contains(locale.languageCode);
+  bool isSupported(Locale locale) =>
+      <String>['en', 'ms'].contains(locale.languageCode);
 
   @override
   bool shouldReload(_AppLocalizationsDelegate old) => false;
 }
 
 AppLocalizations lookupAppLocalizations(Locale locale) {
-
-
   // Lookup logic when only language code is specified.
   switch (locale.languageCode) {
-    case 'en': return AppLocalizationsEn();
-    case 'ms': return AppLocalizationsMs();
+    case 'en':
+      return AppLocalizationsEn();
+    case 'ms':
+      return AppLocalizationsMs();
   }
 
   throw FlutterError(
     'AppLocalizations.delegate failed to load unsupported locale "$locale". This is likely '
     'an issue with the localizations generation tool. Please file an issue '
     'on GitHub with a reproducible sample app and the gen-l10n configuration '
-    'that was used.'
+    'that was used.',
   );
 }

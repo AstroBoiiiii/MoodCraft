@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../../constants/app_constants.dart';
 import '../../models/app_user.dart';
+import '../../models/assignment.dart';
 import '../../models/journal_entry.dart';
 import '../../models/message.dart';
 import '../../models/session.dart';
@@ -187,6 +188,39 @@ class FirestoreMessageRepository implements MessageRepository {
     }
     await batch.commit();
   }
+}
+
+class FirestoreAssignmentRepository implements AssignmentRepository {
+  FirestoreAssignmentRepository(this._db);
+  final FirebaseFirestore _db;
+
+  CollectionReference<Map<String, dynamic>> get _col =>
+      _db.collection(FirestoreCollections.assignments);
+
+  @override
+  Stream<List<Assignment>> watchForTeacher(String teacherId) =>
+      _col.where('teacherId', isEqualTo: teacherId).snapshots().map((s) {
+        final items =
+            s.docs.map((d) => Assignment.fromJson(_decode(d))).toList();
+        items.sort((a, b) => b.createdAt.compareTo(a.createdAt)); // newest
+        return items;
+      });
+
+  @override
+  Stream<List<Assignment>> watchForStudent(String studentId) =>
+      _col.where('studentIds', arrayContains: studentId).snapshots().map((s) {
+        final items =
+            s.docs.map((d) => Assignment.fromJson(_decode(d))).toList();
+        items.sort((a, b) => b.createdAt.compareTo(a.createdAt)); // newest
+        return items;
+      });
+
+  @override
+  Future<void> upsert(Assignment assignment) =>
+      _col.doc(assignment.id).set(_encode(assignment.toJson()));
+
+  @override
+  Future<void> delete(String id) => _col.doc(id).delete();
 }
 
 class FirestoreVisualScheduleRepository implements VisualScheduleRepository {

@@ -127,6 +127,21 @@ service cloud.firestore {
         && resource.data.fromUid == request.auth.uid; // sender removes own message
     }
 
+    // Homework tasks — a teacher hands them out to a class or specific students;
+    // the linked parent and child read them. Completion is read live from the
+    // student's sessions, never written back here, so only the owning teacher
+    // ever writes. Read is allowed to the creator or anyone linked to one of the
+    // target students.
+    match /assignments/{id} {
+      allow read: if isSignedIn()
+        && (resource.data.teacherId == request.auth.uid
+            || resource.data.studentIds.hasAny(userData().linkedStudentIds));
+      allow create: if isSignedIn() && role() == 'teacher'
+        && request.resource.data.teacherId == request.auth.uid;
+      allow update, delete: if isSignedIn()
+        && resource.data.teacherId == request.auth.uid;
+    }
+
     // AI observation reports — linked users read; teachers create.
     match /observationReports/{id} {
       allow read: if isLinkedTo(resource.data.studentId);

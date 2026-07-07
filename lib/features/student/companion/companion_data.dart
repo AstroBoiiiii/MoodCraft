@@ -25,9 +25,23 @@ const List<Emotion> kCompanionEmotions = [
 const Map<Emotion, List<String>> kCompanionSynonyms = {
   Emotion.happy: ['happy', 'glad', 'joy', 'joyful', 'smiling', 'good'],
   Emotion.sad: ['sad', 'unhappy', 'crying', 'cry', 'down', 'upset'],
-  Emotion.scared: ['scared', 'afraid', 'frightened', 'fear', 'scary', 'terrified'],
+  Emotion.scared: [
+    'scared',
+    'afraid',
+    'frightened',
+    'fear',
+    'scary',
+    'terrified',
+  ],
   Emotion.angry: ['angry', 'mad', 'cross', 'grumpy', 'furious'],
-  Emotion.surprised: ['surprised', 'surprise', 'shocked', 'shock', 'wow', 'startled'],
+  Emotion.surprised: [
+    'surprised',
+    'surprise',
+    'shocked',
+    'shock',
+    'wow',
+    'startled',
+  ],
   Emotion.neutral: ['okay', 'ok', 'fine', 'calm', 'neutral'],
 };
 
@@ -72,10 +86,7 @@ const Map<Emotion, List<CompanionLine>> kCompanionLessons = {
       'Look at my face. My smile is big and my eyes go soft and crinkly.',
       focusFace: true,
     ),
-    CompanionLine(
-      Emotion.happy,
-      'My body feels light. My arms open up wide.',
-    ),
+    CompanionLine(Emotion.happy, 'My body feels light. My arms open up wide.'),
     CompanionLine(
       Emotion.happy,
       'Playing with a friend at school can make me happy. What makes you happy?',
@@ -120,10 +131,7 @@ const Map<Emotion, List<CompanionLine>> kCompanionLessons = {
       'Look at my face. My eyebrows push down and my face scrunches up.',
       focusFace: true,
     ),
-    CompanionLine(
-      Emotion.angry,
-      'My body goes tight. My arms cross hard.',
-    ),
+    CompanionLine(Emotion.angry, 'My body goes tight. My arms cross hard.'),
     CompanionLine(
       Emotion.angry,
       'A broken tower can make me angry. Slow breaths help me feel calm again. What makes you angry?',

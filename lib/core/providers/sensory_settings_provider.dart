@@ -17,9 +17,6 @@ class SensorySettingsController extends Notifier<SensorySettings> {
   void setColorTheme(AppColorTheme theme) =>
       state = state.copyWith(colorTheme: theme);
 
-  void setAnimationIntensity(AnimationIntensity intensity) =>
-      state = state.copyWith(animationIntensity: intensity);
-
   void setMusicEnabled(bool enabled) =>
       state = state.copyWith(musicEnabled: enabled);
 
@@ -48,16 +45,3 @@ final sensorySettingsProvider =
     NotifierProvider<SensorySettingsController, SensorySettings>(
       SensorySettingsController.new,
     );
-
-/// Scales a base motion [Duration] by the current animation-intensity setting:
-/// full = unchanged, reduced = halved, off = zero (instant).
-Duration effectiveDuration(AnimationIntensity intensity, Duration base) {
-  switch (intensity) {
-    case AnimationIntensity.full:
-      return base;
-    case AnimationIntensity.reduced:
-      return base * 0.5;
-    case AnimationIntensity.off:
-      return Duration.zero;
-  }
-}

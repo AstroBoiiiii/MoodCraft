@@ -8,10 +8,6 @@
   "signOut": "Sign out",
   "sensorySettings": "Sensory settings",
   "colourTheme": "Colour theme",
-  "animation": "Animation",
-  "animationFull": "Full",
-  "animationReduced": "Reduced",
-  "animationOff": "Off",
   "music": "Background music",
   "musicTrack": "Choose a track",
   "musicTrack1": "Calm Bells",
@@ -133,6 +129,55 @@
       "studentName": { "type": "String" }
     }
   },
+  "navTasks": "Tasks",
+  "taskNewTitle": "New task",
+  "taskName": "Task name",
+  "taskNameHint": "e.g. This week's practice",
+  "taskUntitled": "Homework",
+  "taskNoteLabel": "Note (optional)",
+  "taskNoteHint": "Anything you want to tell them",
+  "taskAudienceQuestion": "Who is this for?",
+  "taskAudienceClass": "Whole class",
+  "taskAudienceStudents": "Chosen students",
+  "taskActivitiesHeading": "Activities to do",
+  "taskStudentsHeading": "Choose students",
+  "taskHandOut": "Hand out task",
+  "taskAnnouncement": "Announcement",
+  "taskPersonal": "Personal",
+  "taskForClass": "Whole class",
+  "taskForStudents": "{count} students",
+  "@taskForStudents": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "taskDoneOf": "{done} of {total} done",
+  "@taskDoneOf": {
+    "placeholders": {
+      "done": { "type": "int" },
+      "total": { "type": "int" }
+    }
+  },
+  "taskStudentsFinished": "{done}/{total} finished it",
+  "@taskStudentsFinished": {
+    "placeholders": {
+      "done": { "type": "int" },
+      "total": { "type": "int" }
+    }
+  },
+  "taskEmptyTeacher": "No tasks yet. Hand one out with the button below.",
+  "taskEmptyParent": "No tasks from the teacher yet.",
+  "taskProgressHeading": "Who's done it",
+  "taskDelete": "Delete task",
+  "taskDeleteConfirm": "Delete this task for everyone? This can't be undone.",
+  "taskCreated": "Task handed out",
+  "taskDeleted": "Task deleted",
+  "taskNeedActivity": "Pick at least one activity",
+  "taskNeedStudent": "Pick at least one student",
+  "taskNoStudentsInClass": "No students in your class yet",
+  "todoHeading": "Things to do",
+  "todoAllDone": "All done. Great work!",
+  "messageParent": "Message",
   "ageLabel": "Age",
   "errAge": "Please enter a valid age (3 to 18)",
   "ageYearsOld": "{age} years old",

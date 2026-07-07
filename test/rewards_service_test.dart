@@ -38,19 +38,22 @@ class _FakeStudents implements StudentRepository {
 void main() {
   const base = Student(id: 's1', name: 'Adam');
 
-  test('finishing a round always grants the same stars (participation)', () async {
-    final repo = _FakeStudents(base);
-    final service = RewardsService(repo);
+  test(
+    'finishing a round always grants the same stars (participation)',
+    () async {
+      final repo = _FakeStudents(base);
+      final service = RewardsService(repo);
 
-    final out = await service.awardForSession(
-      studentId: 's1',
-      activity: ActivityType.mixmatch,
-      emotionsShown: const [Emotion.happy],
-    );
+      final out = await service.awardForSession(
+        studentId: 's1',
+        activity: ActivityType.mixmatch,
+        emotionsShown: const [Emotion.happy],
+      );
 
-    expect(out.starsEarned, kStarsPerRound);
-    expect((await repo.getStudent('s1'))!.stars, kStarsPerRound);
-  });
+      expect(out.starsEarned, kStarsPerRound);
+      expect((await repo.getStudent('s1'))!.stars, kStarsPerRound);
+    },
+  );
 
   test('stars only ever go up across rounds (never lost)', () async {
     final repo = _FakeStudents(base);
@@ -97,7 +100,10 @@ void main() {
     final student = (await repo.getStudent('s1'))!;
     // No duplicates in the stored list.
     expect(student.badges.toSet().length, student.badges.length);
-    expect(student.badges, containsAll(<String>['act_story', 'feel_happy', 'feel_sad']));
+    expect(
+      student.badges,
+      containsAll(<String>['act_story', 'feel_happy', 'feel_sad']),
+    );
   });
 
   test('neutral earns no feeling badge', () async {
@@ -114,18 +120,21 @@ void main() {
     expect((await repo.getStudent('s1'))!.badges, ['act_companion']);
   });
 
-  test('a failed read degrades to a no-op outcome (never blocks the child)', () async {
-    final repo = _FakeStudents(base)..throwOnRead = true;
-    final service = RewardsService(repo);
+  test(
+    'a failed read degrades to a no-op outcome (never blocks the child)',
+    () async {
+      final repo = _FakeStudents(base)..throwOnRead = true;
+      final service = RewardsService(repo);
 
-    final out = await service.awardForSession(
-      studentId: 's1',
-      activity: ActivityType.mixmatch,
-      emotionsShown: const [Emotion.happy],
-    );
+      final out = await service.awardForSession(
+        studentId: 's1',
+        activity: ActivityType.mixmatch,
+        emotionsShown: const [Emotion.happy],
+      );
 
-    expect(out.isEmpty, isTrue);
-    expect(out.starsEarned, 0);
-    expect(out.newBadges, isEmpty);
-  });
+      expect(out.isEmpty, isTrue);
+      expect(out.starsEarned, 0);
+      expect(out.newBadges, isEmpty);
+    },
+  );
 }

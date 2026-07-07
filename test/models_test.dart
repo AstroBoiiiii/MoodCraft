@@ -18,12 +18,29 @@ void main() {
     expect(AppUser.fromJson(user.toJson()).toJson(), user.toJson());
   });
 
+  test('Assignment round-trips', () {
+    final assignment = Assignment(
+      id: 'a1',
+      teacherId: 't1',
+      classId: 'c1',
+      audience: AssignmentAudience.announcement,
+      title: "This week's practice",
+      note: 'Try the story before bed',
+      studentIds: ['s1', 's2'],
+      activities: [ActivityType.story, ActivityType.quiz],
+      createdAt: when,
+    );
+    expect(
+      Assignment.fromJson(assignment.toJson()).toJson(),
+      assignment.toJson(),
+    );
+  });
+
   test('SensorySettings round-trips and equals', () {
     const settings = SensorySettings(
       musicEnabled: true,
       masterVolume: 0.3,
       colorTheme: AppColorTheme.softGreen,
-      animationIntensity: AnimationIntensity.reduced,
     );
     expect(SensorySettings.fromJson(settings.toJson()), settings);
   });
@@ -39,9 +56,7 @@ void main() {
       avatar: 'avatar_01',
       teacherIds: ['t1'],
       parentIds: ['p1'],
-      sensorySettings: SensorySettings(
-        animationIntensity: AnimationIntensity.off,
-      ),
+      sensorySettings: SensorySettings(masterVolume: 0.4),
       level: 3,
       stars: 12,
       badges: ['act_story', 'feel_happy'],

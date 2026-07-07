@@ -14,8 +14,6 @@ enum Emotion { happy, sad, scared, angry, surprised, neutral }
 /// `QuizRound` can name it without depending on the quiz feature.
 enum QuizModality { look, listen, story }
 
-enum AnimationIntensity { full, reduced, off }
-
 enum AppColorTheme { calmBlue, softGreen, warmNeutral, lowStimGrey }
 
 enum AppLanguage { en, ms }

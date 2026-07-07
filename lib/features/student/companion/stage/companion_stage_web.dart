@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import '../../../../app/theme/tokens.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/models/enums.dart';
-import '../../../../core/providers/sensory_settings_provider.dart';
 import 'companion_stage_controller.dart';
 
 /// Web fallback for the companion stage (FR3 is mobile in the final product;
@@ -14,7 +13,6 @@ import 'companion_stage_controller.dart';
 class CompanionStage extends StatelessWidget {
   const CompanionStage({
     required this.expression,
-    required this.intensity,
     required this.volume,
     this.focusFace = false,
     this.demonstrate = false,
@@ -23,7 +21,6 @@ class CompanionStage extends StatelessWidget {
   });
 
   final Emotion expression;
-  final AnimationIntensity intensity;
   final double volume;
 
   /// The 3D stage zooms to the avatar's head for face lines and loops the
@@ -38,7 +35,7 @@ class CompanionStage extends StatelessWidget {
     final color = kEmotionColor[expression]!;
     return Center(
       child: AnimatedSwitcher(
-        duration: effectiveDuration(intensity, AppDurations.normal),
+        duration: AppDurations.normal,
         switchInCurve: Curves.easeOut,
         switchOutCurve: Curves.easeIn,
         child: Container(

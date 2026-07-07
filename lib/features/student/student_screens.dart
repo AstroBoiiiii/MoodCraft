@@ -11,6 +11,7 @@ import '../../core/widgets/activity_card.dart';
 import '../../core/widgets/calm_scaffold.dart';
 import '../../core/widgets/empty_state.dart';
 import '../../core/widgets/sensory_settings_sheet.dart';
+import '../assignments/student_todo_card.dart';
 import '../journal/journal_section.dart';
 import '../quiz/quiz_home_screen.dart';
 import '../schedule/schedule_section.dart';
@@ -70,6 +71,9 @@ class StudentHomeScreen extends ConsumerWidget {
                   studentId: student.id,
                   onTap: () => context.push('/student/schedule'),
                 ),
+                // Homework handed out by the teacher. Carries its own bottom
+                // spacing and hides itself when there's nothing left to do.
+                StudentTodoCard(studentId: student.id),
               ],
               Text(l.homeActivities, style: theme.textTheme.titleMedium),
               const SizedBox(height: AppSpacing.sm),

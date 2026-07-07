@@ -60,29 +60,30 @@ class CompanionChatService {
     // Vertex AI backend: bills the project's Cloud billing account (trial
     // credits apply there); the Gemini Developer API's prepaid wallet does not
     // accept trial credits, so googleAI() is deliberately not used.
-    return _chat ??= FirebaseAI.vertexAI()
-        .generativeModel(
-          model: AppConstants.geminiModel,
-          systemInstruction: Content.system(_kCompanionSystemPrompt),
-          generationConfig: GenerationConfig(
-            responseMimeType: 'application/json',
-            responseSchema: Schema.object(
-              properties: {
-                'reply': Schema.string(),
-                'feeling': Schema.enumString(
-                  enumValues:
-                      app.Emotion.values.map((e) => e.name).toList(),
+    return _chat ??=
+        FirebaseAI.vertexAI()
+            .generativeModel(
+              model: AppConstants.geminiModel,
+              systemInstruction: Content.system(_kCompanionSystemPrompt),
+              generationConfig: GenerationConfig(
+                responseMimeType: 'application/json',
+                responseSchema: Schema.object(
+                  properties: {
+                    'reply': Schema.string(),
+                    'feeling': Schema.enumString(
+                      enumValues:
+                          app.Emotion.values.map((e) => e.name).toList(),
+                    ),
+                    'zoomFace': Schema.boolean(),
+                  },
                 ),
-                'zoomFace': Schema.boolean(),
-              },
-            ),
-            // Warm enough to vary its wording between turns; the schema and
-            // system prompt keep it on the rails.
-            temperature: 0.7,
-            maxOutputTokens: 256,
-          ),
-        )
-        .startChat();
+                // Warm enough to vary its wording between turns; the schema and
+                // system prompt keep it on the rails.
+                temperature: 0.7,
+                maxOutputTokens: 256,
+              ),
+            )
+            .startChat();
   }
 
   Future<CompanionReply?> send(String message) async {

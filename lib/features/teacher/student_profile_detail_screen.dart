@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:moodcraft/l10n/app_localizations.dart';
 
 import '../../app/theme/tokens.dart';
 import '../../core/models/app_user.dart';
+import '../../core/models/message.dart';
 import '../../core/models/student.dart';
 import '../../core/providers/auth_provider.dart';
 import '../../core/providers/repository_providers.dart';
@@ -67,6 +69,9 @@ class StudentDetailPanel extends ConsumerWidget {
           teachers: detail.teachers,
           parents: detail.parents,
           canEditSchedule: true,
+          onMessageParent:
+              (parent) =>
+                  openParentThread(context, ref, detail.student, parent),
           onRemoveParent:
               (parent) =>
                   confirmRemoveParent(context, ref, detail.student, parent),
@@ -156,6 +161,34 @@ Future<void> confirmDeleteStudent(
   }
   messenger.showSnackBar(SnackBar(content: Text(l.studentDeleted)));
   onDeleted?.call();
+}
+
+/// Opens (or starts) the teacher↔parent conversation about [student] from the
+/// parent's contact card. The conversation id is the deterministic
+/// (student, teacher, parent) trio, so it's the very same thread the parent
+/// sees and the teacher inbox lists (FR10).
+void openParentThread(
+  BuildContext context,
+  WidgetRef ref,
+  Student student,
+  AppUser parent,
+) {
+  final l = AppLocalizations.of(context);
+  final myUid = ref.read(currentUserProvider)?.uid;
+  if (myUid == null) return;
+  context.push(
+    '/teacher/messages/thread',
+    extra: {
+      'conversationId': Message.buildConversationId(
+        student.id,
+        myUid,
+        parent.uid,
+      ),
+      'toUid': parent.uid,
+      'studentId': student.id,
+      'title': l.msgConversationTitle(parent.name, student.name),
+    },
+  );
 }
 
 /// Removes [parent] from this student's `parentIds` (the parent card and any

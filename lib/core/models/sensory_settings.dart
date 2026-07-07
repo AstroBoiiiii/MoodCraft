@@ -8,7 +8,6 @@ class SensorySettings {
     this.musicEnabled = false,
     this.masterVolume = 0.6,
     this.colorTheme = AppColorTheme.calmBlue,
-    this.animationIntensity = AnimationIntensity.full,
     this.backgroundTrack = BackgroundTrack.track1,
     this.quizFeedbackNarration = true,
   });
@@ -21,7 +20,6 @@ class SensorySettings {
   /// 0.0–1.0.
   final double masterVolume;
   final AppColorTheme colorTheme;
-  final AnimationIntensity animationIntensity;
 
   /// Which of the three background music tracks is selected.
   final BackgroundTrack backgroundTrack;
@@ -31,7 +29,6 @@ class SensorySettings {
     bool? musicEnabled,
     double? masterVolume,
     AppColorTheme? colorTheme,
-    AnimationIntensity? animationIntensity,
     BackgroundTrack? backgroundTrack,
     bool? quizFeedbackNarration,
   }) {
@@ -39,7 +36,6 @@ class SensorySettings {
       musicEnabled: musicEnabled ?? this.musicEnabled,
       masterVolume: masterVolume ?? this.masterVolume,
       colorTheme: colorTheme ?? this.colorTheme,
-      animationIntensity: animationIntensity ?? this.animationIntensity,
       backgroundTrack: backgroundTrack ?? this.backgroundTrack,
       quizFeedbackNarration:
           quizFeedbackNarration ?? this.quizFeedbackNarration,
@@ -50,7 +46,6 @@ class SensorySettings {
     'musicEnabled': musicEnabled,
     'masterVolume': masterVolume,
     'colorTheme': colorTheme.name,
-    'animationIntensity': animationIntensity.name,
     'backgroundTrack': backgroundTrack.name,
     'quizFeedbackNarration': quizFeedbackNarration,
   };
@@ -64,11 +59,6 @@ class SensorySettings {
         AppColorTheme.values,
         json['colorTheme'],
         AppColorTheme.calmBlue,
-      ),
-      animationIntensity: enumFromName(
-        AnimationIntensity.values,
-        json['animationIntensity'],
-        AnimationIntensity.full,
       ),
       backgroundTrack: enumFromName(
         BackgroundTrack.values,
@@ -85,7 +75,6 @@ class SensorySettings {
       other.musicEnabled == musicEnabled &&
       other.masterVolume == masterVolume &&
       other.colorTheme == colorTheme &&
-      other.animationIntensity == animationIntensity &&
       other.backgroundTrack == backgroundTrack &&
       other.quizFeedbackNarration == quizFeedbackNarration;
 
@@ -94,7 +83,6 @@ class SensorySettings {
     musicEnabled,
     masterVolume,
     colorTheme,
-    animationIntensity,
     backgroundTrack,
     quizFeedbackNarration,
   );

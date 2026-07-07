@@ -28,6 +28,7 @@ class TeacherShell extends StatelessWidget {
       (icon: Icons.cast_for_education_rounded, label: l.navClassroom),
       (icon: Icons.message_rounded, label: l.navMessages),
       (icon: Icons.assessment_rounded, label: l.navReports),
+      (icon: Icons.assignment_turned_in_rounded, label: l.navTasks),
     ];
 
     return LayoutBuilder(

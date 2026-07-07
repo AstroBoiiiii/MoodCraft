@@ -29,6 +29,10 @@ class ParentShell extends StatelessWidget {
             icon: const Icon(Icons.message_rounded),
             label: l.navMessages,
           ),
+          NavigationDestination(
+            icon: const Icon(Icons.assignment_turned_in_rounded),
+            label: l.navTasks,
+          ),
         ],
       ),
     );

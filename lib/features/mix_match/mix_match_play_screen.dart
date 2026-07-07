@@ -119,13 +119,9 @@ class _MixMatchPlayScreenState extends ConsumerState<MixMatchPlayScreen> {
         _missedCurrent = false;
       });
       // Clear the brief bucket glow.
-      final settings = ref.read(sensorySettingsProvider);
-      Future.delayed(
-        effectiveDuration(settings.animationIntensity, AppDurations.slow),
-        () {
-          if (mounted) setState(() => _justAccepted = null);
-        },
-      );
+      Future.delayed(AppDurations.slow, () {
+        if (mounted) setState(() => _justAccepted = null);
+      });
       // Persist the round (deck + how many placed) as each card lands, so the
       // child resumes the exact same question after leaving or signing out. On
       // the final card, let the round save land *before* awarding stars, so the
@@ -528,4 +524,3 @@ class _EmotionBucket extends StatelessWidget {
     );
   }
 }
-

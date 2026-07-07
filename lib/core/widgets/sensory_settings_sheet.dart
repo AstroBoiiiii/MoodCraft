@@ -87,28 +87,6 @@ class _SensorySettingsSheetState extends ConsumerState<_SensorySettingsSheet> {
               ],
             ),
             const SizedBox(height: AppSpacing.lg),
-            Text(l.animation),
-            const SizedBox(height: AppSpacing.sm),
-            SegmentedButton<AnimationIntensity>(
-              segments: [
-                ButtonSegment(
-                  value: AnimationIntensity.full,
-                  label: Text(l.animationFull),
-                ),
-                ButtonSegment(
-                  value: AnimationIntensity.reduced,
-                  label: Text(l.animationReduced),
-                ),
-                ButtonSegment(
-                  value: AnimationIntensity.off,
-                  label: Text(l.animationOff),
-                ),
-              ],
-              selected: {settings.animationIntensity},
-              onSelectionChanged:
-                  (s) => controller.setAnimationIntensity(s.first),
-            ),
-            const SizedBox(height: AppSpacing.sm),
             SwitchListTile(
               contentPadding: EdgeInsets.zero,
               title: Text(l.music),

@@ -95,38 +95,41 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('progress summary shows stars, badge count, feelings and recent', (
-    tester,
-  ) async {
-    const student = Student(
-      id: 's1',
-      name: 'Adam',
-      stars: 9,
-      badges: ['act_quiz', 'feel_happy', 'feel_sad'],
-    );
-    final sessions = [
-      Session(
-        id: 'a',
-        studentId: 's1',
-        activityType: ActivityType.quiz,
-        timestamp: DateTime(2026, 6, 24),
-      ),
-    ];
+  testWidgets(
+    'progress summary shows stars, badge count, feelings and recent',
+    (tester) async {
+      const student = Student(
+        id: 's1',
+        name: 'Adam',
+        stars: 9,
+        badges: ['act_quiz', 'feel_happy', 'feel_sad'],
+      );
+      final sessions = [
+        Session(
+          id: 'a',
+          studentId: 's1',
+          activityType: ActivityType.quiz,
+          timestamp: DateTime(2026, 6, 24),
+        ),
+      ];
 
-    await tester.pumpWidget(
-      ProviderScope(
-        overrides: [
-          sessionRepositoryProvider.overrideWithValue(_FakeSessions(sessions)),
-        ],
-        child: _app(const StudentProgressSummary(student: student)),
-      ),
-    );
-    await tester.pumpAndSettle();
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            sessionRepositoryProvider.overrideWithValue(
+              _FakeSessions(sessions),
+            ),
+          ],
+          child: _app(const StudentProgressSummary(student: student)),
+        ),
+      );
+      await tester.pumpAndSettle();
 
-    expect(find.text('9'), findsOneWidget); // stars total
-    expect(find.text('3/9'), findsOneWidget); // 3 of 9 badges
-    expect(find.text('Recent activity'), findsOneWidget);
-    expect(find.text('Quiz'), findsOneWidget); // recent session label
-    expect(tester.takeException(), isNull);
-  });
+      expect(find.text('9'), findsOneWidget); // stars total
+      expect(find.text('3/9'), findsOneWidget); // 3 of 9 badges
+      expect(find.text('Recent activity'), findsOneWidget);
+      expect(find.text('Quiz'), findsOneWidget); // recent session label
+      expect(tester.takeException(), isNull);
+    },
+  );
 }

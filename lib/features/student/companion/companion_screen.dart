@@ -462,9 +462,6 @@ class _CompanionScreenState extends ConsumerState<CompanionScreen> {
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
     final theme = Theme.of(context);
-    final intensity = ref.watch(
-      sensorySettingsProvider.select((s) => s.animationIntensity),
-    );
     final volume = ref.watch(
       sensorySettingsProvider.select((s) => s.masterVolume),
     );
@@ -506,7 +503,6 @@ class _CompanionScreenState extends ConsumerState<CompanionScreen> {
                             inLesson ||
                             _roundTarget != null ||
                             _chatDemonstrate,
-                        intensity: intensity,
                         volume: volume,
                         controller: _stage,
                       ),

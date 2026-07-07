@@ -22,11 +22,10 @@ const String _kStagePageUrl =
 /// Step 2 bridge: the page calls the `stageReady` handler once the avatar has
 /// loaded, then every [expression] change is pushed into the page via
 /// `window.mc.setEmotion(...)` so the avatar's face and posture follow the
-/// lesson and chat flow. [intensity] is reserved for later motion scaling.
+/// lesson and chat flow.
 class CompanionStage extends StatefulWidget {
   const CompanionStage({
     required this.expression,
-    required this.intensity,
     required this.volume,
     this.focusFace = false,
     this.demonstrate = false,
@@ -35,7 +34,6 @@ class CompanionStage extends StatefulWidget {
   });
 
   final Emotion expression;
-  final AnimationIntensity intensity;
 
   /// True while the current line talks about the face: the camera dollies to
   /// the avatar's head so the expression is actually readable, then pulls
@@ -195,7 +193,9 @@ class _CompanionStageState extends State<CompanionStage> {
                         // Catch the avatar up with whatever the screen shows.
                         _pushExpression();
                         _pushView();
-                        _js("window.mc && window.mc.setVolume(${widget.volume})");
+                        _js(
+                          "window.mc && window.mc.setVolume(${widget.volume})",
+                        );
                         // The avatar only takes over the voice when it can
                         // actually speak (key present); otherwise the screen
                         // keeps using device narration.
