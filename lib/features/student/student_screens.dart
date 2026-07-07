@@ -10,7 +10,6 @@ import '../../core/providers/repository_providers.dart';
 import '../../core/widgets/activity_card.dart';
 import '../../core/widgets/calm_scaffold.dart';
 import '../../core/widgets/empty_state.dart';
-import '../../core/widgets/placeholder_screen.dart';
 import '../../core/widgets/sensory_settings_sheet.dart';
 import '../journal/journal_section.dart';
 import '../quiz/quiz_home_screen.dart';
@@ -136,19 +135,6 @@ class StudentJournalScreen extends ConsumerWidget {
                           ],
                         ),
           ),
-    );
-  }
-}
-
-class StudentRewardsScreen extends StatelessWidget {
-  const StudentRewardsScreen({super.key});
-  @override
-  Widget build(BuildContext context) {
-    final l = AppLocalizations.of(context);
-    return PlaceholderScreen(
-      title: l.navRewards,
-      icon: Icons.star_rounded,
-      message: l.previewRewards,
     );
   }
 }

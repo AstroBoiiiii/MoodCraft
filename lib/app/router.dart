@@ -20,6 +20,7 @@ import '../features/story/story_home_screen.dart';
 import '../features/story/story_play_screen.dart';
 import '../features/student/ar/ar_screen.dart';
 import '../features/student/companion/companion_screen.dart';
+import '../features/student/rewards/rewards_screen.dart';
 import '../features/student/student_screens.dart';
 import '../features/student/student_shell.dart';
 import '../features/teacher/messaging_thread_screen.dart';

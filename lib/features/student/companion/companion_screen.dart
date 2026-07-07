@@ -13,6 +13,7 @@ import '../../../core/models/session.dart';
 import '../../../core/providers/repository_providers.dart';
 import '../../../core/providers/sensory_settings_provider.dart';
 import '../../../core/services/narration_service.dart';
+import '../../../core/services/rewards_service.dart';
 import '../../../core/widgets/calm_scaffold.dart';
 import '../../../core/widgets/sensory_settings_sheet.dart';
 import '../../journal/journal_section.dart' show emotionLabel;
@@ -266,6 +267,16 @@ class _CompanionScreenState extends ConsumerState<CompanionScreen> {
               timestamp: DateTime.now(),
             ),
           );
+      // FR11: grant participation stars + any new badges. No inline popup on the
+      // companion — the avatar's spoken praise is the celebration here; the
+      // stars show on the Rewards tab and the progress card.
+      await ref
+          .read(rewardsServiceProvider)
+          .awardForSession(
+            studentId: student.id,
+            activity: ActivityType.companion,
+            emotionsShown: [target],
+          );
     } catch (_) {
       // The log is for the teacher; it never blocks the child.
     }
@@ -309,6 +320,15 @@ class _CompanionScreenState extends ConsumerState<CompanionScreen> {
                   DateTime.now().difference(_lessonStartedAt).inMilliseconds,
               timestamp: DateTime.now(),
             ),
+          );
+      // FR11: finishing a lesson also earns participation stars + the feeling
+      // badge (silent here — the companion praises aloud instead of popping up).
+      await ref
+          .read(rewardsServiceProvider)
+          .awardForSession(
+            studentId: student.id,
+            activity: ActivityType.companion,
+            emotionsShown: [emotion],
           );
     } catch (_) {
       // Recording is a nicety, never a blocker for the child.

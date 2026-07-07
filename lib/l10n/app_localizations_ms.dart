@@ -536,6 +536,43 @@ class AppLocalizationsMs extends AppLocalizations {
   String get previewRewards => 'Stars and badges will appear here as you play.';
 
   @override
+  String rewardStarsEarned(int count) {
+    return 'You earned $count stars';
+  }
+
+  @override
+  String get rewardNewBadge => 'New badge!';
+
+  @override
+  String get rewardStarTotal => 'Stars so far';
+
+  @override
+  String get rewardBadgesTitle => 'Your badges';
+
+  @override
+  String rewardBadgesCount(int earned, int total) {
+    return '$earned of $total badges';
+  }
+
+  @override
+  String get progressTitle => 'Progress';
+
+  @override
+  String get progressStarsCaption => 'Stars';
+
+  @override
+  String get progressBadgesCaption => 'Badges';
+
+  @override
+  String get progressFeelingsTitle => 'Feelings practiced';
+
+  @override
+  String get progressRecentTitle => 'Recent activity';
+
+  @override
+  String get progressNoActivity => 'No activities yet.';
+
+  @override
   String get previewMatch => 'Match the faces to feelings here.';
 
   @override

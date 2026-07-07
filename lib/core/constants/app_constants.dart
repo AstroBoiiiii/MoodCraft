@@ -398,6 +398,100 @@ const Map<String, Color> kActivityAccent = {
 Color activityAccent(String key) =>
     kActivityAccent[key] ?? const Color(0xFF8B97A1);
 
+// ── Rewards (FR11) ───────────────────────────────────────────────────────────
+
+/// Stars granted for finishing one activity round. Participation-based, never
+/// tied to correctness, and monotonic: a child only ever gains stars, so a
+/// reward can never become a fail state (design principle 1). Kept small and
+/// constant so every activity is worth the same, predictable amount.
+const int kStarsPerRound = 3;
+
+/// Stars per personal "growth" level. Purely personal, never compared between
+/// children.
+const int kStarsPerLevel = 20;
+
+/// A gentle, personal level derived from [stars] — it only ever ticks up. Keeps
+/// the stored `Student.level` consistent so the existing profile chip
+/// (`levelStars`) stays right, with no separate UI for the child.
+int rewardLevel(int stars) => 1 + stars ~/ kStarsPerLevel;
+
+/// Activity → the badge id earned the first time the child finishes it. Only the
+/// four activities that write a `Session` are here; AR records nothing yet, so it
+/// has no badge and no un-earnable tile ever sits on the wall.
+const Map<ActivityType, String> kActivityBadgeId = {
+  ActivityType.story: 'act_story',
+  ActivityType.mixmatch: 'act_mixmatch',
+  ActivityType.quiz: 'act_quiz',
+  ActivityType.companion: 'act_companion',
+};
+
+/// Feeling → the badge id earned the first time that feeling turns up in a
+/// finished activity. `neutral` is excluded, matching the five feelings the
+/// activities actually teach.
+const Map<Emotion, String> kFeelingBadgeId = {
+  Emotion.happy: 'feel_happy',
+  Emotion.sad: 'feel_sad',
+  Emotion.scared: 'feel_scared',
+  Emotion.angry: 'feel_angry',
+  Emotion.surprised: 'feel_surprised',
+};
+
+/// One badge on the collection wall: a stable [id], the [icon] and [color] to
+/// draw it, and whichever [activity] or [emotion] it celebrates. Labels are
+/// resolved separately (where l10n is available) via `rewardBadgeLabel`.
+class RewardBadge {
+  const RewardBadge({
+    required this.id,
+    required this.icon,
+    required this.color,
+    this.activity,
+    this.emotion,
+  });
+
+  final String id;
+  final IconData icon;
+  final Color color;
+  final ActivityType? activity;
+  final Emotion? emotion;
+}
+
+/// The full badge set, in wall-display order: the four activity badges first,
+/// then the five feelings. Built from the id maps + the emotion icon/colour
+/// tables so a badge always matches its feeling's look elsewhere in the app.
+final List<RewardBadge> kRewardBadges = [
+  RewardBadge(
+    id: kActivityBadgeId[ActivityType.story]!,
+    icon: Icons.menu_book_rounded,
+    color: activityAccent('story'),
+    activity: ActivityType.story,
+  ),
+  RewardBadge(
+    id: kActivityBadgeId[ActivityType.mixmatch]!,
+    icon: Icons.extension_rounded,
+    color: activityAccent('mixmatch'),
+    activity: ActivityType.mixmatch,
+  ),
+  RewardBadge(
+    id: kActivityBadgeId[ActivityType.quiz]!,
+    icon: Icons.emoji_objects_rounded,
+    color: activityAccent('quiz'),
+    activity: ActivityType.quiz,
+  ),
+  RewardBadge(
+    id: kActivityBadgeId[ActivityType.companion]!,
+    icon: Icons.chat_bubble_rounded,
+    color: activityAccent('companion'),
+    activity: ActivityType.companion,
+  ),
+  for (final entry in kFeelingBadgeId.entries)
+    RewardBadge(
+      id: entry.value,
+      icon: kEmotionIcon[entry.key]!,
+      color: kEmotionColor[entry.key]!,
+      emotion: entry.key,
+    ),
+];
+
 /// Firestore collection names — referenced by repository implementations so the
 /// schema lives in one place (see CLAUDE.md section 7).
 class FirestoreCollections {

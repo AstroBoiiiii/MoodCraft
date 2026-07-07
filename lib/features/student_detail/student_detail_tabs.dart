@@ -12,6 +12,7 @@ import '../../core/widgets/section_card.dart';
 import '../../core/widgets/sensory_read_only_view.dart';
 import '../journal/journal_section.dart';
 import '../schedule/schedule_section.dart';
+import 'student_progress_summary.dart';
 
 /// A student plus their resolved teacher/parent contacts — everything the
 /// detail view needs. Shared by the teacher's detail screen (pushed route and
@@ -192,29 +193,9 @@ class _StudentDetailTabsState extends State<StudentDetailTabs> {
         ),
       ],
       const SizedBox(height: AppSpacing.lg),
-      // FR8 hook: the report itself is not built yet, so this stays a calm
-      // disabled button rather than a dead end.
-      SectionCard(
-        title: l.progressReport,
-        icon: Icons.assessment_rounded,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              l.progressReportSoon,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            FilledButton.tonalIcon(
-              onPressed: null,
-              icon: const Icon(Icons.assessment_rounded),
-              label: Text(l.comingSoon),
-            ),
-          ],
-        ),
-      ),
+      // FR11/FR8: a calm, read-only progress snapshot (stars, badges, feelings
+      // practiced, recent activity). Full trend/difficulty analytics come later.
+      StudentProgressSummary(student: student),
     ];
   }
 }

@@ -208,6 +208,28 @@
   "previewClassroom": "Project an activity to the whole class from here.",
   "previewReports": "Gentle progress reports you can share will appear here.",
   "previewRewards": "Stars and badges will appear here as you play.",
+  "rewardStarsEarned": "You earned {count} stars",
+  "@rewardStarsEarned": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "rewardNewBadge": "New badge!",
+  "rewardStarTotal": "Stars so far",
+  "rewardBadgesTitle": "Your badges",
+  "rewardBadgesCount": "{earned} of {total} badges",
+  "@rewardBadgesCount": {
+    "placeholders": {
+      "earned": { "type": "int" },
+      "total": { "type": "int" }
+    }
+  },
+  "progressTitle": "Progress",
+  "progressStarsCaption": "Stars",
+  "progressBadgesCaption": "Badges",
+  "progressFeelingsTitle": "Feelings practiced",
+  "progressRecentTitle": "Recent activity",
+  "progressNoActivity": "No activities yet.",
   "previewMatch": "Match the faces to feelings here.",
   "companionGreeting": "Hello! I am Momo. We can learn about feelings together.",
   "companionPickFeeling": "Which feeling shall we learn?",

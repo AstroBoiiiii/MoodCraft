@@ -17,6 +17,7 @@ class Student {
     this.sensorySettings = SensorySettings.defaults,
     this.level = 1,
     this.stars = 0,
+    this.badges = const [],
     this.mixMatchRounds = const {},
     this.quizRounds = const {},
     this.storyProgress = const {},
@@ -35,6 +36,11 @@ class Student {
   final SensorySettings sensorySettings;
   final int level;
   final int stars;
+
+  /// Reward badge ids earned so far (FR11), e.g. `act_story`, `feel_happy`.
+  /// Granted once each and never removed. The display order comes from the fixed
+  /// `kRewardBadges` taxonomy, so the stored order here does not matter.
+  final List<String> badges;
 
   /// Per card-type saved Mix-and-Match rounds (FR6): `MixMatchType.name` →
   /// the child's in-progress (or finished) round for that category. Persisted so
@@ -62,6 +68,7 @@ class Student {
     SensorySettings? sensorySettings,
     int? level,
     int? stars,
+    List<String>? badges,
     Map<String, MixMatchRound>? mixMatchRounds,
     Map<String, QuizRound>? quizRounds,
     Map<String, StoryProgress>? storyProgress,
@@ -76,6 +83,7 @@ class Student {
       sensorySettings: sensorySettings ?? this.sensorySettings,
       level: level ?? this.level,
       stars: stars ?? this.stars,
+      badges: badges ?? this.badges,
       mixMatchRounds: mixMatchRounds ?? this.mixMatchRounds,
       quizRounds: quizRounds ?? this.quizRounds,
       storyProgress: storyProgress ?? this.storyProgress,
@@ -92,6 +100,7 @@ class Student {
     'sensorySettings': sensorySettings.toJson(),
     'level': level,
     'stars': stars,
+    'badges': badges,
     'mixMatchRounds': mixMatchRounds.map((k, v) => MapEntry(k, v.toJson())),
     'quizRounds': quizRounds.map((k, v) => MapEntry(k, v.toJson())),
     'storyProgress': storyProgress.map((k, v) => MapEntry(k, v.toJson())),
@@ -109,6 +118,7 @@ class Student {
     ),
     level: (json['level'] as num?)?.toInt() ?? 1,
     stars: (json['stars'] as num?)?.toInt() ?? 0,
+    badges: stringListFromJson(json['badges']),
     mixMatchRounds: mixMatchRoundsFromJson(json['mixMatchRounds']),
     quizRounds: quizRoundsFromJson(json['quizRounds']),
     storyProgress: storyProgressFromJson(json['storyProgress']),

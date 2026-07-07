@@ -44,6 +44,7 @@ void main() {
       ),
       level: 3,
       stars: 12,
+      badges: ['act_story', 'feel_happy'],
       mixMatchRounds: {
         'face': MixMatchRound(
           placed: 1,

@@ -12,7 +12,9 @@ import '../../core/models/session.dart';
 import '../../core/providers/repository_providers.dart';
 import '../../core/providers/sensory_settings_provider.dart';
 import '../../core/services/narration_service.dart';
+import '../../core/services/rewards_service.dart';
 import '../../core/widgets/calm_scaffold.dart';
+import '../../core/widgets/reward_celebration.dart';
 import '../journal/journal_section.dart' show emotionLabel;
 import 'mix_match_data.dart';
 
@@ -48,6 +50,7 @@ class _MixMatchPlayScreenState extends ConsumerState<MixMatchPlayScreen> {
   Emotion? _justAccepted; // bucket to glow briefly on a correct drop
   DateTime _startedAt = DateTime.now();
   bool _saved = false;
+  RewardOutcome? _outcome; // stars/badges just earned, shown on the done screen
 
   @override
   void initState() {
@@ -124,9 +127,16 @@ class _MixMatchPlayScreenState extends ConsumerState<MixMatchPlayScreen> {
         },
       );
       // Persist the round (deck + how many placed) as each card lands, so the
-      // child resumes the exact same question after leaving or signing out.
-      _saveRound(_index);
-      if (_done) _finish();
+      // child resumes the exact same question after leaving or signing out. On
+      // the final card, let the round save land *before* awarding stars, so the
+      // two writes to the student never clobber each other.
+      if (_done) {
+        _saveRound(_index).then((_) {
+          if (mounted) _finish();
+        });
+      } else {
+        _saveRound(_index);
+      }
     } else {
       setState(() {
         _retries++;
@@ -160,6 +170,16 @@ class _MixMatchPlayScreenState extends ConsumerState<MixMatchPlayScreen> {
       // Offline/transient — Firestore cache will sync later (FR14). The child's
       // calm "all done" moment never depends on the write succeeding.
     }
+    // Grant participation stars + any new badges (FR11), then reveal them on the
+    // completion screen. Best-effort: a failed award just shows "all done".
+    final outcome = await ref
+        .read(rewardsServiceProvider)
+        .awardForSession(
+          studentId: studentId,
+          activity: ActivityType.mixmatch,
+          emotionsShown: deck.map((c) => c.answer).toList(),
+        );
+    if (mounted) setState(() => _outcome = outcome);
   }
 
   /// Saves the current round (deck + cards placed) for this category so the
@@ -192,7 +212,13 @@ class _MixMatchPlayScreenState extends ConsumerState<MixMatchPlayScreen> {
           _deck == null
               ? const Center(child: CircularProgressIndicator())
               : _done
-              ? _Completion(onDone: () => context.pop())
+              ? RewardCelebration(
+                outcome: _outcome,
+                title: l.mixMatchDone,
+                body: l.mixMatchDoneBody,
+                doneLabel: l.mixMatchDoneButton,
+                onDone: () => context.pop(),
+              )
               : _buildRound(context, l),
     );
   }
@@ -503,47 +529,3 @@ class _EmotionBucket extends StatelessWidget {
   }
 }
 
-/// Calm completion moment — no stars yet (rewards FR11 deferred). Just a warm
-/// "all done" and a way back.
-class _Completion extends StatelessWidget {
-  const _Completion({required this.onDone});
-
-  final VoidCallback onDone;
-
-  @override
-  Widget build(BuildContext context) {
-    final l = AppLocalizations.of(context);
-    final theme = Theme.of(context);
-    return Center(
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 400),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              Icons.check_circle_rounded,
-              size: 88,
-              color: theme.colorScheme.primary,
-            ),
-            const SizedBox(height: AppSpacing.lg),
-            Text(
-              l.mixMatchDone,
-              style: theme.textTheme.headlineSmall,
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            Text(
-              l.mixMatchDoneBody,
-              style: theme.textTheme.bodyLarge?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: AppSpacing.xl),
-            FilledButton(onPressed: onDone, child: Text(l.mixMatchDoneButton)),
-          ],
-        ),
-      ),
-    );
-  }
-}

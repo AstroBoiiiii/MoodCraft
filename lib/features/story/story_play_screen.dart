@@ -12,7 +12,9 @@ import '../../core/models/session.dart';
 import '../../core/models/story_progress.dart';
 import '../../core/providers/repository_providers.dart';
 import '../../core/providers/sensory_settings_provider.dart';
+import '../../core/services/rewards_service.dart';
 import '../../core/widgets/calm_scaffold.dart';
+import '../../core/widgets/reward_celebration.dart';
 import '../journal/journal_section.dart' show emotionLabel;
 import 'story_data.dart';
 
@@ -77,6 +79,7 @@ class _StoryPlayScreenState extends ConsumerState<StoryPlayScreen> {
   int _firstTryCorrect = 0;
   bool _finished = false;
   bool _sessionSaved = false;
+  RewardOutcome? _outcome; // stars/badges just earned, shown on the done screen
   DateTime _startedAt = DateTime.now();
 
   @override
@@ -116,6 +119,7 @@ class _StoryPlayScreenState extends ConsumerState<StoryPlayScreen> {
       _firstTryCorrect = 0;
       _finished = false;
       _sessionSaved = false;
+      _outcome = null;
       _startedAt = DateTime.now();
     });
     _load();
@@ -305,7 +309,9 @@ class _StoryPlayScreenState extends ConsumerState<StoryPlayScreen> {
   Future<void> _finish() async {
     if (_finished) return;
     setState(() => _finished = true);
-    _saveProgress(pausesDone: 0, positionMs: 0, episodeDone: true);
+    // Save the episode-done progress first, then award, so the two writes to the
+    // student (storyProgress vs stars/badges) never clobber each other.
+    await _saveProgress(pausesDone: 0, positionMs: 0, episodeDone: true);
     if (_sessionSaved || widget.studentId == null) return;
     _sessionSaved = true;
     final pauses = _episode?.pauses ?? const <StoryPause>[];
@@ -325,6 +331,16 @@ class _StoryPlayScreenState extends ConsumerState<StoryPlayScreen> {
     } catch (_) {
       // Offline/transient — Firestore cache will sync later (FR14).
     }
+    // Grant participation stars + any new badges (FR11) and reveal them on the
+    // end-of-episode screen. Best-effort: a failed award just shows "the end".
+    final outcome = await ref
+        .read(rewardsServiceProvider)
+        .awardForSession(
+          studentId: widget.studentId!,
+          activity: ActivityType.story,
+          emotionsShown: pauses.map((p) => p.answer).toList(),
+        );
+    if (mounted) setState(() => _outcome = outcome);
   }
 
   StoryPause? get _currentPause {
@@ -357,9 +373,14 @@ class _StoryPlayScreenState extends ConsumerState<StoryPlayScreen> {
       return CalmScaffold(
         title: title,
         icon: Icons.menu_book_rounded,
-        body: _StoryDone(
+        body: RewardCelebration(
+          outcome: _outcome,
+          title: l.storyDone,
+          body: l.storyDoneBody,
+          doneLabel: l.storyDoneButton,
           onDone: () => context.pop(),
-          onNextEpisode: _hasNextEpisode ? _goNextEpisode : null,
+          secondaryLabel: _hasNextEpisode ? l.storyNextEpisode : null,
+          onSecondary: _hasNextEpisode ? _goNextEpisode : null,
         ),
       );
     }
@@ -663,57 +684,3 @@ class _PauseFeedback extends StatelessWidget {
   }
 }
 
-/// Calm end-of-episode moment — no stars yet (FR11 rewards deferred). A warm
-/// "the end", an optional "Next Episode" jump when one exists, and a way back.
-class _StoryDone extends StatelessWidget {
-  const _StoryDone({required this.onDone, this.onNextEpisode});
-
-  final VoidCallback onDone;
-  final VoidCallback? onNextEpisode;
-
-  @override
-  Widget build(BuildContext context) {
-    final l = AppLocalizations.of(context);
-    final theme = Theme.of(context);
-    return Center(
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 400),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              Icons.check_circle_rounded,
-              size: 88,
-              color: theme.colorScheme.primary,
-            ),
-            const SizedBox(height: AppSpacing.lg),
-            Text(
-              l.storyDone,
-              style: theme.textTheme.headlineSmall,
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            Text(
-              l.storyDoneBody,
-              style: theme.textTheme.bodyLarge?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: AppSpacing.xl),
-            if (onNextEpisode != null)
-              FilledButton(
-                onPressed: onNextEpisode,
-                child: Text(l.storyNextEpisode),
-              ),
-            if (onNextEpisode != null) const SizedBox(height: AppSpacing.sm),
-            FilledButton.tonal(
-              onPressed: onDone,
-              child: Text(l.storyDoneButton),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}

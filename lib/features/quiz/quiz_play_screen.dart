@@ -12,8 +12,10 @@ import '../../core/models/session.dart';
 import '../../core/providers/repository_providers.dart';
 import '../../core/providers/sensory_settings_provider.dart';
 import '../../core/services/narration_service.dart';
+import '../../core/services/rewards_service.dart';
 import '../../core/services/sound_cue_service.dart';
 import '../../core/widgets/calm_scaffold.dart';
+import '../../core/widgets/reward_celebration.dart';
 import '../journal/journal_section.dart' show emotionLabel;
 import 'quiz_data.dart';
 
@@ -58,6 +60,7 @@ class _QuizPlayScreenState extends ConsumerState<QuizPlayScreen> {
   bool _answered = false; // current question answered right -> show feedback
   DateTime _startedAt = DateTime.now();
   bool _saved = false;
+  RewardOutcome? _outcome; // stars/badges just earned, shown on the done screen
 
   @override
   void initState() {
@@ -192,6 +195,16 @@ class _QuizPlayScreenState extends ConsumerState<QuizPlayScreen> {
     } catch (_) {
       // Offline/transient — Firestore cache will sync later (FR14).
     }
+    // Grant participation stars + any new badges (FR11) and reveal them on the
+    // done screen. Best-effort: a failed award just shows a calm "all done".
+    final outcome = await ref
+        .read(rewardsServiceProvider)
+        .awardForSession(
+          studentId: widget.studentId!,
+          activity: ActivityType.quiz,
+          emotionsShown: deck.map((q) => q.answer).toList(),
+        );
+    if (mounted) setState(() => _outcome = outcome);
   }
 
   bool get _done => _deck != null && _index >= _deck!.length;
@@ -225,7 +238,13 @@ class _QuizPlayScreenState extends ConsumerState<QuizPlayScreen> {
           _deck == null
               ? const Center(child: CircularProgressIndicator())
               : (_deck!.isEmpty || _done)
-              ? _QuizDone(onDone: () => context.pop())
+              ? RewardCelebration(
+                outcome: _outcome,
+                title: l.quizDone,
+                body: l.quizDoneBody,
+                doneLabel: l.quizDoneButton,
+                onDone: () => context.pop(),
+              )
               : _buildRound(context, l),
     );
   }
@@ -642,47 +661,3 @@ class _Feedback extends StatelessWidget {
   }
 }
 
-/// Calm completion moment — no stars yet (FR11 rewards deferred). A warm "all
-/// done" and a way back.
-class _QuizDone extends StatelessWidget {
-  const _QuizDone({required this.onDone});
-
-  final VoidCallback onDone;
-
-  @override
-  Widget build(BuildContext context) {
-    final l = AppLocalizations.of(context);
-    final theme = Theme.of(context);
-    return Center(
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 400),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              Icons.check_circle_rounded,
-              size: 88,
-              color: theme.colorScheme.primary,
-            ),
-            const SizedBox(height: AppSpacing.lg),
-            Text(
-              l.quizDone,
-              style: theme.textTheme.headlineSmall,
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            Text(
-              l.quizDoneBody,
-              style: theme.textTheme.bodyLarge?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: AppSpacing.xl),
-            FilledButton(onPressed: onDone, child: Text(l.quizDoneButton)),
-          ],
-        ),
-      ),
-    );
-  }
-}

@@ -1121,6 +1121,72 @@ abstract class AppLocalizations {
   /// **'Stars and badges will appear here as you play.'**
   String get previewRewards;
 
+  /// No description provided for @rewardStarsEarned.
+  ///
+  /// In en, this message translates to:
+  /// **'You earned {count} stars'**
+  String rewardStarsEarned(int count);
+
+  /// No description provided for @rewardNewBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'New badge!'**
+  String get rewardNewBadge;
+
+  /// No description provided for @rewardStarTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Stars so far'**
+  String get rewardStarTotal;
+
+  /// No description provided for @rewardBadgesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your badges'**
+  String get rewardBadgesTitle;
+
+  /// No description provided for @rewardBadgesCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{earned} of {total} badges'**
+  String rewardBadgesCount(int earned, int total);
+
+  /// No description provided for @progressTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Progress'**
+  String get progressTitle;
+
+  /// No description provided for @progressStarsCaption.
+  ///
+  /// In en, this message translates to:
+  /// **'Stars'**
+  String get progressStarsCaption;
+
+  /// No description provided for @progressBadgesCaption.
+  ///
+  /// In en, this message translates to:
+  /// **'Badges'**
+  String get progressBadgesCaption;
+
+  /// No description provided for @progressFeelingsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Feelings practiced'**
+  String get progressFeelingsTitle;
+
+  /// No description provided for @progressRecentTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent activity'**
+  String get progressRecentTitle;
+
+  /// No description provided for @progressNoActivity.
+  ///
+  /// In en, this message translates to:
+  /// **'No activities yet.'**
+  String get progressNoActivity;
+
   /// No description provided for @previewMatch.
   ///
   /// In en, this message translates to:
