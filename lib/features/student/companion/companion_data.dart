@@ -31,53 +31,62 @@ const Map<Emotion, List<String>> kCompanionSynonyms = {
   Emotion.neutral: ['okay', 'ok', 'fine', 'calm', 'neutral'],
 };
 
-/// One short body or face clue per feeling, used for the gentle redirect when
-/// the child has not spotted it yet ("Good try. Look again..."). Matches the
-/// wording of the lessons so the teaching stays consistent.
+/// One short body-language clue per feeling, used for the gentle redirect when
+/// the child has not spotted it yet ("Good try. Look again..."). The clues
+/// describe the body, not the face: on the 3D stage the Mixamo pose is what
+/// the child can actually see, so each line matches that clip.
 const Map<Emotion, String> kCompanionRedirectClue = {
-  Emotion.happy: 'Look at my big smile.',
+  Emotion.happy: 'Look at my arms open wide.',
   Emotion.sad: 'Look at my head hanging down.',
-  Emotion.scared: 'Look at my wide eyes and how I hold myself tight.',
-  Emotion.angry: 'Look at my crossed arms and scrunched face.',
-  Emotion.surprised: 'Look at my round eyes and my big O mouth.',
-  Emotion.neutral: 'Look at my calm, still face.',
+  Emotion.scared: 'Look at how I hold myself small and tight.',
+  Emotion.angry: 'Look at my crossed arms.',
+  Emotion.surprised: 'Look at how I lean back quickly.',
+  Emotion.neutral: 'Look at how calm and still I am.',
 };
 
 /// One step of a lesson: a short line the companion says while showing
-/// [expression] on its face. The expression is enum-keyed so the placeholder
-/// face swaps for the Rive state machine later with no data change.
+/// [expression]. The expression is enum-keyed so the stage can act it out.
+/// A line with [focusFace] talks about the face, so the 3D stage zooms the
+/// camera to the avatar's head while it is spoken and pulls back to full
+/// body afterwards.
 class CompanionLine {
-  const CompanionLine(this.expression, this.text);
+  const CompanionLine(this.expression, this.text, {this.focusFace = false});
 
   final Emotion expression;
   final String text;
+  final bool focusFace;
 }
 
 /// Vetted lesson script per feeling (FR3: teach the emotion via face + body).
 /// Each lesson walks the same gentle shape so the flow stays predictable:
-/// what the feeling is, what the face does, what the body does, then a tiny
-/// example and an invite to try the face. Short sentences, no negativity.
+/// what the feeling is, what the face does (the stage zooms to the head for
+/// that line), what the body does, then an everyday example ending with a
+/// question back to the child — the chat is there to hear their answer once
+/// the lesson is done. Short sentences, no negativity, and no "show me your
+/// face" asks: there is no camera or face recognition anywhere in the app.
 const Map<Emotion, List<CompanionLine>> kCompanionLessons = {
   Emotion.happy: [
     CompanionLine(Emotion.happy, 'Happy is a warm, good feeling.'),
     CompanionLine(
       Emotion.happy,
-      'When I am happy, I smile big. My eyes go soft and crinkly.',
+      'Look at my face. My smile is big and my eyes go soft and crinkly.',
+      focusFace: true,
     ),
     CompanionLine(
       Emotion.happy,
-      'My body feels light. Sometimes I clap or give a little jump.',
+      'My body feels light. My arms open up wide.',
     ),
     CompanionLine(
       Emotion.happy,
-      'Playing with a friend can make me happy. Can you show me your happy face?',
+      'Playing with a friend at school can make me happy. What makes you happy?',
     ),
   ],
   Emotion.sad: [
     CompanionLine(Emotion.sad, 'Sad is a heavy, quiet feeling.'),
     CompanionLine(
       Emotion.sad,
-      'When I am sad, my mouth turns down. My eyes might have tears.',
+      'Look at my face. My mouth turns down. My eyes might have tears.',
+      focusFace: true,
     ),
     CompanionLine(
       Emotion.sad,
@@ -85,52 +94,55 @@ const Map<Emotion, List<CompanionLine>> kCompanionLessons = {
     ),
     CompanionLine(
       Emotion.sad,
-      'Losing a toy can make me sad. It is okay to feel sad. Can you show me a sad face?',
+      'Losing a toy can make me sad. It is okay to feel sad. What makes you feel sad?',
     ),
   ],
   Emotion.scared: [
     CompanionLine(Emotion.scared, 'Scared is a jumpy, shaky feeling.'),
     CompanionLine(
       Emotion.scared,
-      'When I am scared, my eyes go big and wide. My mouth opens a little.',
+      'Look at my face. My eyes go big and wide. My mouth opens a little.',
+      focusFace: true,
     ),
     CompanionLine(
       Emotion.scared,
-      'My body goes stiff and still. I might hide or hold something tight.',
+      'My body goes small and tight. I hold myself close.',
     ),
     CompanionLine(
       Emotion.scared,
-      'A loud noise can make me scared. A big hug helps. Can you show me a scared face?',
+      'A loud noise at school can make me scared. A big hug helps. What feels scary to you?',
     ),
   ],
   Emotion.angry: [
     CompanionLine(Emotion.angry, 'Angry is a hot, tight feeling.'),
     CompanionLine(
       Emotion.angry,
-      'When I am angry, my eyebrows push down. My face scrunches up.',
+      'Look at my face. My eyebrows push down and my face scrunches up.',
+      focusFace: true,
     ),
     CompanionLine(
       Emotion.angry,
-      'My body goes tight. My hands might squeeze into fists.',
+      'My body goes tight. My arms cross hard.',
     ),
     CompanionLine(
       Emotion.angry,
-      'A broken tower can make me angry. Slow breaths help me feel calm again. Can you show me an angry face?',
+      'A broken tower can make me angry. Slow breaths help me feel calm again. What makes you angry?',
     ),
   ],
   Emotion.surprised: [
     CompanionLine(Emotion.surprised, 'Surprised is a quick, popping feeling.'),
     CompanionLine(
       Emotion.surprised,
-      'When I am surprised, my eyes go round. My mouth makes a big O.',
+      'Look at my face. My eyes go round. My mouth makes a big O.',
+      focusFace: true,
     ),
     CompanionLine(
       Emotion.surprised,
-      'My body gives a little jump. My hands might fly up.',
+      'My body gives a little jump and leans back quickly.',
     ),
     CompanionLine(
       Emotion.surprised,
-      'A balloon going pop can surprise me. Can you show me a surprised face?',
+      'A balloon going pop can surprise me. What surprised you today?',
     ),
   ],
 };

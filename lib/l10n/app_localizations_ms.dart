@@ -548,7 +548,7 @@ class AppLocalizationsMs extends AppLocalizations {
   String get companionNext => 'Next';
 
   @override
-  String get companionLessonDone => 'Well done! Now you know this feeling. Pick another one when you are ready.';
+  String get companionLessonDone => 'Well done! Now you know this feeling. You can tell me your answer, or pick another feeling when you are ready.';
 
   @override
   String get companionThinking => 'Let me think.';

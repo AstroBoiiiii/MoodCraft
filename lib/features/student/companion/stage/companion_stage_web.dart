@@ -16,6 +16,8 @@ class CompanionStage extends StatelessWidget {
     required this.expression,
     required this.intensity,
     required this.volume,
+    this.focusFace = false,
+    this.demonstrate = false,
     this.controller,
     super.key,
   });
@@ -23,6 +25,12 @@ class CompanionStage extends StatelessWidget {
   final Emotion expression;
   final AnimationIntensity intensity;
   final double volume;
+
+  /// The 3D stage zooms to the avatar's head for face lines and loops the
+  /// pose clip while [demonstrate] is set; the placeholder is already just a
+  /// face, so here both are accepted and ignored.
+  final bool focusFace;
+  final bool demonstrate;
   final CompanionStageController? controller;
 
   @override

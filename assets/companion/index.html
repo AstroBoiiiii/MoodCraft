@@ -55,6 +55,25 @@ const EMOTION_TO_MOOD = {
   neutral: 'neutral',
 };
 
+// TalkingHead's built-in 'fear' mood barely shows on this avatar: its
+// baseline squints the eyes half-shut against the widening and keeps the
+// mouth pursed closed, so it never reads as scared. Scared therefore pins
+// its own clear storybook face on top — the exact face the lesson
+// describes: eyes big and wide, brows up, mouth open a little. The pinned
+// values are released the moment any other feeling is set.
+const SCARED_FACE = {
+  browInnerUp: 1,
+  eyeWideLeft: 0.9, eyeWideRight: 0.9,
+  eyeSquintLeft: 0, eyeSquintRight: 0,
+  jawOpen: 0.3, mouthClose: 0, mouthFunnel: 0,
+  mouthShrugLower: 0, mouthShrugUpper: 0,
+  mouthStretchLeft: 0.4, mouthStretchRight: 0.4,
+};
+function setScaredFace(on) {
+  Object.keys(SCARED_FACE).forEach((mt) =>
+    head.setFixedValue(mt, on ? SCARED_FACE[mt] : null));
+}
+
 // Mixamo body-language clips (assets/companion/poses), one per feeling —
 // the body half of FR3's face + body teaching. Neutral has no clip on
 // purpose: neutral is the calm idle the mood already provides.
@@ -69,13 +88,16 @@ const EMOTION_POSE = {
 // Dart-facing bridge: safe no-ops until the avatar is ready.
 window.mc = {
   ready: false,
-  setEmotion: (e) => {
+  setEmotion: (e, dur) => {
     try {
       if (!head) return;
       head.setMood(EMOTION_TO_MOOD[e] || 'neutral');
+      setScaredFace(e === 'scared');
       if (e === 'surprised') head.playGesture('😱', 4);
-      // Demonstrate with the whole body, then settle back into the mood idle.
-      window.mc.playPose(e, 8);
+      // Demonstrate with the whole body for dur seconds, then settle back
+      // into the mood idle. The host passes a long dur to keep the pose
+      // looping through a lesson or a guessing round.
+      window.mc.playPose(e, dur ?? 8);
     } catch (err) { console.error('setEmotion', err); }
   },
   playPose: (e, dur) => {
@@ -85,8 +107,11 @@ window.mc = {
       else head?.stopAnimation();
     } catch (err) { console.error('playPose', err); }
   },
+  // Stop the body clip and stand back up (used before the head close-up:
+  // clips like scared's cower move the head out of the head camera's frame).
+  stopPose: () => { try { head?.stopAnimation(); } catch (e) { console.error('stopPose', e); } },
   setMood: (m) => { try { head?.setMood(m); } catch (e) { console.error('setMood', e); } },
-  setView: (v) => { try { head?.setView(v); } catch (e) { console.error('setView', e); } },
+  setView: (v, opt) => { try { head?.setView(v, opt); } catch (e) { console.error('setView', e); } },
   gesture: (g, dur) => { try { head?.playGesture(g, dur ?? 3); } catch (e) { console.error('gesture', e); } },
   // Speech with lip-sync (Google Cloud TTS + TalkingHead's English module).
   speak: (text) => {

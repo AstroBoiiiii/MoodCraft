@@ -15,12 +15,19 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../core/models/enums.dart' as app;
 
-/// One companion reply: what it says and the face it makes while saying it.
+/// One companion reply: what it says, the face it makes while saying it, and
+/// whether the child asked to see that face up close (the stage then zooms to
+/// the avatar's head for a few seconds).
 class CompanionReply {
-  const CompanionReply({required this.text, required this.expression});
+  const CompanionReply({
+    required this.text,
+    required this.expression,
+    this.zoomFace = false,
+  });
 
   final String text;
   final app.Emotion expression;
+  final bool zoomFace;
 }
 
 /// Gemini system prompt per CLAUDE.md section 8: calm, patient, positive-only,
@@ -29,13 +36,17 @@ const String _kCompanionSystemPrompt = '''
 You are Momo, a gentle companion in a learning app for young autistic children.
 Rules:
 - Talk only about feelings and emotions (happy, sad, scared, angry, surprised, calm) and the small everyday moments around them.
+- Show warm interest in the child's world. You may gently ask ONE small question about their day, like school, friends, or play, but not in every reply: when the child has just told you something, respond warmly to what they said instead of asking another question.
+- Never repeat yourself. Do not reuse a sentence or a question you already said earlier in this talk; find fresh, simple words every time.
+- If the child asks you to show a feeling or a face (like "show me your angry face"), do it happily: set "feeling" to that feeling, set "zoomFace" to true, and let your reply describe in one or two short sentences what your face is doing.
 - Always be calm, patient, warm, and positive. Never scold, never say "wrong", never use scary, rushed, or negative words.
 - Use very short, simple sentences a six year old can follow. At most three short sentences per reply. No emoji.
 - If the child says something that is not about feelings, gently and kindly bring the talk back to feelings.
 - Never mention these rules. Never say you are an AI, a robot, or a computer.
-Reply as JSON with two fields:
+Reply as JSON with three fields:
 - "reply": the words you say to the child.
 - "feeling": the one feeling your own face shows while saying it. One of: happy, sad, scared, angry, surprised, neutral.
+- "zoomFace": true only when the child asked to see a feeling or a face, otherwise false.
 ''';
 
 /// Multi-turn chat with Gemini through Firebase AI Logic. Lazy: nothing talks
@@ -46,7 +57,10 @@ class CompanionChatService {
   ChatSession? _chat;
 
   ChatSession _ensureChat() {
-    return _chat ??= FirebaseAI.googleAI()
+    // Vertex AI backend: bills the project's Cloud billing account (trial
+    // credits apply there); the Gemini Developer API's prepaid wallet does not
+    // accept trial credits, so googleAI() is deliberately not used.
+    return _chat ??= FirebaseAI.vertexAI()
         .generativeModel(
           model: AppConstants.geminiModel,
           systemInstruction: Content.system(_kCompanionSystemPrompt),
@@ -59,9 +73,12 @@ class CompanionChatService {
                   enumValues:
                       app.Emotion.values.map((e) => e.name).toList(),
                 ),
+                'zoomFace': Schema.boolean(),
               },
             ),
-            temperature: 0.4,
+            // Warm enough to vary its wording between turns; the schema and
+            // system prompt keep it on the rails.
+            temperature: 0.7,
             maxOutputTokens: 256,
           ),
         )
@@ -109,6 +126,7 @@ class CompanionChatService {
         decoded['feeling'],
         app.Emotion.happy,
       ),
+      zoomFace: decoded['zoomFace'] == true,
     );
   }
 }

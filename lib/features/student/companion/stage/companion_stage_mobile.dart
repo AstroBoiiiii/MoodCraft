@@ -28,12 +28,24 @@ class CompanionStage extends StatefulWidget {
     required this.expression,
     required this.intensity,
     required this.volume,
+    this.focusFace = false,
+    this.demonstrate = false,
     this.controller,
     super.key,
   });
 
   final Emotion expression;
   final AnimationIntensity intensity;
+
+  /// True while the current line talks about the face: the camera dollies to
+  /// the avatar's head so the expression is actually readable, then pulls
+  /// back to full body when the next line lets go of it.
+  final bool focusFace;
+
+  /// True while a lesson or a guessing round is running: the body-language
+  /// clip loops for the whole activity instead of settling after one pass,
+  /// so the child can study the pose for as long as they need.
+  final bool demonstrate;
 
   /// 0.0 to 1.0, the child's masterVolume sensory setting.
   final double volume;
@@ -63,8 +75,12 @@ class _CompanionStageState extends State<CompanionStage> {
   @override
   void didUpdateWidget(CompanionStage oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.expression != widget.expression) {
+    if (oldWidget.expression != widget.expression ||
+        oldWidget.demonstrate != widget.demonstrate) {
       _pushExpression();
+    }
+    if (oldWidget.focusFace != widget.focusFace) {
+      _pushView();
     }
     if (oldWidget.volume != widget.volume) {
       _js("window.mc && window.mc.setVolume(${widget.volume})");
@@ -82,8 +98,37 @@ class _CompanionStageState extends State<CompanionStage> {
     }
   }
 
-  Future<void> _pushExpression() =>
-      _js("window.mc && window.mc.setEmotion('${widget.expression.name}')");
+  /// A demonstration loops its pose clip for up to an hour (any lesson or
+  /// round is over long before that); outside one, the clip plays once.
+  Future<void> _pushExpression() => _js(
+    "window.mc && window.mc.setEmotion("
+    "'${widget.expression.name}', ${widget.demonstrate ? 3600 : 8})",
+  );
+
+  Future<void> _pushView() async {
+    if (widget.focusFace) {
+      if (widget.expression == Emotion.scared) {
+        // Scared ducks the whole body down and keeps gently swaying, so a
+        // tight head shot loses the face as it moves. Track it instead: keep
+        // the cower playing and use a wider, lower-aimed view that follows
+        // the duck without needing to stand the avatar back up. (Tuned by
+        // headless screenshot against the actual clip, not guessed.)
+        await _js(
+          "window.mc && window.mc.setView("
+          "'upper', {cameraY: 0.5, cameraDistance: -1.5})",
+        );
+      } else {
+        // Stand up first: other clips (e.g. surprised's lean-back) move the
+        // head too, and the head camera frames the standing avatar's face.
+        await _js("window.mc && window.mc.stopPose && window.mc.stopPose()");
+        await _js("window.mc && window.mc.setView('head')");
+      }
+    } else {
+      await _js("window.mc && window.mc.setView('full')");
+      // Pulling back mid-activity: resume the looping demonstration.
+      if (widget.demonstrate) await _pushExpression();
+    }
+  }
 
   Future<void> _start() async {
     if (!_server.isRunning()) {
@@ -92,8 +137,27 @@ class _CompanionStageState extends State<CompanionStage> {
     if (mounted) setState(() => _ready = true);
   }
 
+  /// Leaving the screen must cut the voice right now: the native WebView can
+  /// outlive this widget for a moment while the platform view tears down, and
+  /// queued speech would keep talking into the next screen. Best-effort and
+  /// fire-and-forget; goes straight to the controller because [_js] and the
+  /// bound stage controller are already being torn down at this point.
+  Future<void> _silence() async {
+    try {
+      await _webView?.evaluateJavascript(
+        source: "window.mc && window.mc.stopSpeaking()",
+      );
+      // Android: pauses the WebView's processing, audio included, in case
+      // the native view lingers past this frame.
+      await _webView?.pause();
+    } catch (_) {
+      // The WebView may already be gone; silence achieved either way.
+    }
+  }
+
   @override
   void dispose() {
+    _silence();
     widget.controller?.unbind();
     if (_server.isRunning()) {
       _server.close();
@@ -130,6 +194,7 @@ class _CompanionStageState extends State<CompanionStage> {
                         _stageReady = true;
                         // Catch the avatar up with whatever the screen shows.
                         _pushExpression();
+                        _pushView();
                         _js("window.mc && window.mc.setVolume(${widget.volume})");
                         // The avatar only takes over the voice when it can
                         // actually speak (key present); otherwise the screen

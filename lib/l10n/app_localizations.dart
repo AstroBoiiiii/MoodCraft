@@ -1148,7 +1148,7 @@ abstract class AppLocalizations {
   /// No description provided for @companionLessonDone.
   ///
   /// In en, this message translates to:
-  /// **'Well done! Now you know this feeling. Pick another one when you are ready.'**
+  /// **'Well done! Now you know this feeling. You can tell me your answer, or pick another feeling when you are ready.'**
   String get companionLessonDone;
 
   /// No description provided for @companionThinking.

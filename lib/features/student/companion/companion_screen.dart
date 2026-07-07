@@ -46,6 +46,11 @@ class _CompanionScreenState extends ConsumerState<CompanionScreen> {
   // the greeting, which is text-only — the companion never speaks unprompted.
   Emotion _expression = Emotion.happy;
   String? _bubbleText;
+  // True while a lesson line, or a chat "show me your ... face" moment, talks
+  // about the face: the 3D stage zooms the camera to the avatar's head so the
+  // child can actually see it. It stays zoomed in until the next line lets go
+  // of it (the next lesson line, or the child's next chat question).
+  bool _focusFace = false;
 
   // Voice routing: when the 3D stage can speak (mobile, avatar ready, TTS key
   // present) lines go through the lip-synced avatar; otherwise device TTS.
@@ -74,6 +79,10 @@ class _CompanionScreenState extends ConsumerState<CompanionScreen> {
   final TextEditingController _input = TextEditingController();
   String? _childSaid;
   bool _sending = false;
+  // True once a chat reply names one of the teachable feelings: the stage
+  // keeps looping that feeling's pose until the child asks something else,
+  // instead of settling back after a single pass.
+  bool _chatDemonstrate = false;
 
   // Spoken input. The mic quietly disappears if the device can't listen —
   // typing always works, so nothing is ever blocked.
@@ -82,15 +91,36 @@ class _CompanionScreenState extends ConsumerState<CompanionScreen> {
   bool _micHidden = false;
   bool _listening = false;
 
+  // Leaving the screen is intercepted (see build's PopScope) so every exit,
+  // system back button, back gesture, or the app bar's back arrow, awaits
+  // the stop before the pop actually happens. dispose() alone can't do this:
+  // it can't await, so the WebView's stopSpeaking() JS call would sometimes
+  // race the native view being torn down and lose, leaving the avatar's
+  // voice sounding after the child has already left.
+  bool _canPop = false;
+
   @override
   void initState() {
     super.initState();
     ref.read(narrationServiceProvider).prewarm();
   }
 
+  /// Stops every voice source and waits for it, so the WebView's
+  /// stopSpeaking() has actually run before the screen is allowed to pop.
+  /// Called from the PopScope below on every way out (back button, back
+  /// gesture, app bar arrow); dispose() below keeps a fire-and-forget copy
+  /// as a fallback for any teardown path that skips the pop interception.
+  Future<void> _leaveScreen() async {
+    await _stage.stop();
+    ref.read(narrationServiceProvider).stop();
+    await _speech.stop();
+  }
+
   @override
   void dispose() {
-    // Never let the companion's voice trail into the next screen.
+    // Never let the companion's voice trail into the next screen. Nothing is
+    // saved for next time on purpose: leaving stops everything, and coming
+    // back is a fresh companion load, same as opening the screen new.
     _stage.stop();
     ref.read(narrationServiceProvider).stop();
     _speech.stop();
@@ -102,10 +132,12 @@ class _CompanionScreenState extends ConsumerState<CompanionScreen> {
 
   /// Shows [text] in the bubble with [expression] on the face and speaks it.
   /// Only ever called from the child's own tap, so sound is never a surprise.
-  void _say(String text, Emotion expression) {
+  /// [focusFace] zooms the 3D stage to the avatar's head for this line.
+  void _say(String text, Emotion expression, {bool focusFace = false}) {
     setState(() {
       _bubbleText = text;
       _expression = expression;
+      _focusFace = focusFace;
     });
     if (_stage.canSpeak) {
       ref.read(narrationServiceProvider).stop();
@@ -125,14 +157,19 @@ class _CompanionScreenState extends ConsumerState<CompanionScreen> {
       _lessonStartedAt = DateTime.now();
       _childSaid = null;
       _roundTarget = null;
+      _chatDemonstrate = false;
     });
-    _say(line.text, line.expression);
+    _say(line.text, line.expression, focusFace: line.focusFace);
   }
 
   // ── The teaching round (FR3's core loop) ────────────────────────────────
 
   void _startRound() {
     final l = AppLocalizations.of(context);
+    // The chat is put away for the round, so a mic still listening from the
+    // chat row must not deliver a late result into it.
+    _speech.stop();
+    _input.clear();
     // A fresh feeling each time (never the same one twice in a row), with the
     // right answer hidden among three choices like the quiz.
     final pool =
@@ -140,11 +177,11 @@ class _CompanionScreenState extends ConsumerState<CompanionScreen> {
           ..shuffle(_random);
     final target = pool.first;
     final distractors =
-        kCompanionEmotions.where((e) => e != target).toList()
-          ..shuffle(_random);
+        kCompanionEmotions.where((e) => e != target).toList()..shuffle(_random);
     setState(() {
       _lessonEmotion = null;
       _childSaid = null;
+      _listening = false;
       _roundTarget = target;
       _lastRoundTarget = target;
       _roundChoices = [target, distractors[0], distractors[1]]
@@ -153,6 +190,7 @@ class _CompanionScreenState extends ConsumerState<CompanionScreen> {
       _roundMisses = 0;
       _roundAnswers.clear();
       _roundStartedAt = DateTime.now();
+      _chatDemonstrate = false;
     });
     // The demonstrate beat: expression push makes the avatar act the feeling
     // out (face + body clip) while it asks the question aloud.
@@ -181,14 +219,17 @@ class _CompanionScreenState extends ConsumerState<CompanionScreen> {
     if (judgment.isCorrect) {
       _recordRound(target, judgment.observationNote);
       setState(() => _roundTarget = null);
+      _say(judgment.spokenResponse, judgment.characterEmotion);
     } else {
-      // Gentle redirect: stay in the round, the avatar keeps demonstrating.
+      // Gentle redirect: stay in the round and KEEP demonstrating the target.
+      // The judge's suggested face is ignored on a miss — the pose the child
+      // is trying to read must not change until they get it right.
       setState(() {
         _roundAttempt++;
         _roundMisses++;
       });
+      _say(judgment.spokenResponse, target);
     }
-    _say(judgment.spokenResponse, judgment.characterEmotion);
   }
 
   void _stopRound() {
@@ -198,6 +239,7 @@ class _CompanionScreenState extends ConsumerState<CompanionScreen> {
       _roundTarget = null;
       _bubbleText = null;
       _expression = Emotion.happy;
+      _chatDemonstrate = false;
     });
   }
 
@@ -236,7 +278,7 @@ class _CompanionScreenState extends ConsumerState<CompanionScreen> {
     if (_lessonStep + 1 < lines.length) {
       final line = lines[_lessonStep + 1];
       setState(() => _lessonStep++);
-      _say(line.text, line.expression);
+      _say(line.text, line.expression, focusFace: line.focusFace);
     } else {
       _recordLesson(emotion);
       setState(() => _lessonEmotion = null);
@@ -278,29 +320,36 @@ class _CompanionScreenState extends ConsumerState<CompanionScreen> {
   // ── Optional safe chat ──────────────────────────────────────────────────
 
   Future<void> _sendChat() async {
-    final l = AppLocalizations.of(context);
     final text = _input.text.trim();
     if (text.isEmpty || _sending || _judging) return;
+    // Guard set synchronously, before any await below: the mic fires both
+    // onResult(finalResult) and onStatus(notListening/done) for the same
+    // utterance in quick succession, and both call this method. Without
+    // flipping _sending here first, the second call races in through the
+    // await below (before _input is cleared or _sending flips true) and
+    // sends, and speaks, the same message a second time.
+    _sending = true;
+    final l = AppLocalizations.of(context);
     await _speech.stop();
     _stage.stop();
     ref.read(narrationServiceProvider).stop();
     _input.clear();
 
-    // Mid-round, the child's words are their answer, not a chat message.
+    // During a guessing round the chat is put away (the input row is hidden
+    // until the round settles); a stray send from a lingering mic result is
+    // simply dropped.
     if (_roundTarget != null) {
-      setState(() {
-        _childSaid = text;
-        _listening = false;
-      });
-      await _answerRound(text, spoken: true);
+      setState(() => _sending = false);
       return;
     }
     setState(() {
       _childSaid = text;
-      _sending = true;
       _listening = false;
       _bubbleText = l.companionThinking;
       _expression = Emotion.neutral;
+      // A face the child asked to see stays up until this next question,
+      // not on a timer; asking anything new lets go of it.
+      _focusFace = false;
     });
 
     final reply = await ref.read(companionChatServiceProvider).send(text);
@@ -308,11 +357,17 @@ class _CompanionScreenState extends ConsumerState<CompanionScreen> {
     if (!mounted) return;
     setState(() => _sending = false);
     if (reply != null) {
-      _say(reply.text, reply.expression);
+      // A "show me your ... face" ask zooms to the head while the reply is
+      // spoken, and now stays there until the child's next question.
+      _say(reply.text, reply.expression, focusFace: reply.zoomFace);
+      // Keep looping the pose for a named feeling until the child asks
+      // something else; a neutral reply (off-topic redirect) settles back.
+      setState(() => _chatDemonstrate = reply.expression != Emotion.neutral);
     } else {
       // Offline or the service is unavailable — redirect to the curated
       // lessons, calmly. No error states in student UI.
       _say(l.companionRestLine, Emotion.neutral);
+      setState(() => _chatDemonstrate = false);
     }
   }
 
@@ -327,6 +382,11 @@ class _CompanionScreenState extends ConsumerState<CompanionScreen> {
       }
       return;
     }
+    // Tapping the mic while the companion is mid-sentence interrupts it right
+    // away: it is the child's turn to talk now. Harmless if it was already
+    // quiet.
+    _stage.stop();
+    ref.read(narrationServiceProvider).stop();
     if (!_speechReady) {
       var ok = false;
       try {
@@ -369,7 +429,9 @@ class _CompanionScreenState extends ConsumerState<CompanionScreen> {
       listenOptions: SpeechListenOptions(
         partialResults: true,
         listenFor: const Duration(seconds: 20),
-        pauseFor: const Duration(seconds: 3),
+        // Trimmed from 3s so the question goes out a little snappier once
+        // the child stops talking.
+        pauseFor: const Duration(milliseconds: 2500),
       ),
     );
   }
@@ -388,123 +450,149 @@ class _CompanionScreenState extends ConsumerState<CompanionScreen> {
     );
     final inLesson = _lessonEmotion != null;
     final lessonLines =
-        inLesson ? kCompanionLessons[_lessonEmotion!]! : const <CompanionLine>[];
+        inLesson
+            ? kCompanionLessons[_lessonEmotion!]!
+            : const <CompanionLine>[];
 
-    return CalmScaffold(
-      title: l.navCompanion,
-      icon: Icons.chat_bubble_rounded,
-      actions: accountActions(context, ref),
-      body: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 560),
-          child: Column(
-            children: [
-              Expanded(
-                child: ListView(
-                  children: [
-                    const SizedBox(height: AppSpacing.sm),
-                    CompanionStage(
-                      expression: _expression,
-                      intensity: intensity,
-                      volume: volume,
-                      controller: _stage,
-                    ),
-                    const SizedBox(height: AppSpacing.md),
-                    if (_childSaid != null) ...[
-                      _ChildBubble(text: _childSaid!),
+    return PopScope(
+      canPop: _canPop,
+      onPopInvokedWithResult: (didPop, result) async {
+        if (didPop) return;
+        await _leaveScreen();
+        if (!context.mounted) return;
+        setState(() => _canPop = true);
+        Navigator.of(context).pop();
+      },
+      child: CalmScaffold(
+        title: l.navCompanion,
+        icon: Icons.chat_bubble_rounded,
+        actions: accountActions(context, ref),
+        body: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 560),
+            child: Column(
+              children: [
+                Expanded(
+                  child: ListView(
+                    children: [
                       const SizedBox(height: AppSpacing.sm),
-                    ],
-                    _SpeechBubble(
-                      text: _bubbleText ?? l.companionGreeting,
-                      busy: _sending || _judging,
-                      speakOverride: _stage.canSpeak ? _stage.speak : null,
-                    ),
-                    const SizedBox(height: AppSpacing.lg),
-                    if (inLesson) ...[
-                      _LessonDots(total: lessonLines.length, done: _lessonStep),
-                      const SizedBox(height: AppSpacing.md),
-                      Center(
-                        child: FilledButton.icon(
-                          onPressed: _advanceLesson,
-                          icon: const Icon(Icons.arrow_forward_rounded),
-                          label: Text(l.companionNext),
-                        ),
-                      ),
-                    ] else if (_roundTarget != null) ...[
-                      Text(
-                        l.companionRoundPick,
-                        textAlign: TextAlign.center,
-                        style: theme.textTheme.titleMedium,
+                      CompanionStage(
+                        expression: _expression,
+                        focusFace: _focusFace,
+                        // Lessons, rounds, and a chat reply about a named
+                        // feeling all keep the body-language clip looping so
+                        // the pose never fades out mid-teaching or mid-chat.
+                        demonstrate:
+                            inLesson ||
+                            _roundTarget != null ||
+                            _chatDemonstrate,
+                        intensity: intensity,
+                        volume: volume,
+                        controller: _stage,
                       ),
                       const SizedBox(height: AppSpacing.md),
-                      Wrap(
-                        alignment: WrapAlignment.center,
-                        spacing: AppSpacing.sm,
-                        runSpacing: AppSpacing.sm,
-                        children: [
-                          for (final emotion in _roundChoices)
-                            _FeelingTile(
-                              emotion: emotion,
-                              enabled: !_judging,
-                              onTap:
-                                  () => _answerRound(
-                                    emotion.name,
-                                    spoken: false,
-                                  ),
-                            ),
-                        ],
-                      ),
-                      const SizedBox(height: AppSpacing.sm),
-                      Center(
-                        child: TextButton(
-                          onPressed: _judging ? null : _stopRound,
-                          child: Text(l.companionStopRound),
-                        ),
-                      ),
-                    ] else ...[
-                      Center(
-                        child: FilledButton.icon(
-                          onPressed:
-                              (_sending || _judging) ? null : _startRound,
-                          icon: const Icon(Icons.emoji_emotions_rounded),
-                          label: Text(l.companionPlayRound),
-                        ),
+                      if (_childSaid != null) ...[
+                        _ChildBubble(text: _childSaid!),
+                        const SizedBox(height: AppSpacing.sm),
+                      ],
+                      _SpeechBubble(
+                        text: _bubbleText ?? l.companionGreeting,
+                        busy: _sending || _judging,
+                        speakOverride: _stage.canSpeak ? _stage.speak : null,
                       ),
                       const SizedBox(height: AppSpacing.lg),
-                      Text(
-                        l.companionPickFeeling,
-                        textAlign: TextAlign.center,
-                        style: theme.textTheme.titleMedium,
-                      ),
+                      if (inLesson) ...[
+                        _LessonDots(
+                          total: lessonLines.length,
+                          done: _lessonStep,
+                        ),
+                        const SizedBox(height: AppSpacing.md),
+                        Center(
+                          child: FilledButton.icon(
+                            onPressed: _advanceLesson,
+                            icon: const Icon(Icons.arrow_forward_rounded),
+                            label: Text(l.companionNext),
+                          ),
+                        ),
+                      ] else if (_roundTarget != null) ...[
+                        Text(
+                          l.companionRoundPick,
+                          textAlign: TextAlign.center,
+                          style: theme.textTheme.titleMedium,
+                        ),
+                        const SizedBox(height: AppSpacing.md),
+                        Wrap(
+                          alignment: WrapAlignment.center,
+                          spacing: AppSpacing.sm,
+                          runSpacing: AppSpacing.sm,
+                          children: [
+                            for (final emotion in _roundChoices)
+                              _FeelingTile(
+                                emotion: emotion,
+                                enabled: !_judging,
+                                onTap:
+                                    () => _answerRound(
+                                      emotion.name,
+                                      spoken: false,
+                                    ),
+                              ),
+                          ],
+                        ),
+                        const SizedBox(height: AppSpacing.sm),
+                        Center(
+                          child: TextButton(
+                            onPressed: _judging ? null : _stopRound,
+                            child: Text(l.companionStopRound),
+                          ),
+                        ),
+                      ] else ...[
+                        Center(
+                          child: FilledButton.icon(
+                            onPressed:
+                                (_sending || _judging) ? null : _startRound,
+                            icon: const Icon(Icons.emoji_emotions_rounded),
+                            label: Text(l.companionPlayRound),
+                          ),
+                        ),
+                        const SizedBox(height: AppSpacing.lg),
+                        Text(
+                          l.companionPickFeeling,
+                          textAlign: TextAlign.center,
+                          style: theme.textTheme.titleMedium,
+                        ),
+                        const SizedBox(height: AppSpacing.md),
+                        Wrap(
+                          alignment: WrapAlignment.center,
+                          spacing: AppSpacing.sm,
+                          runSpacing: AppSpacing.sm,
+                          children: [
+                            for (final emotion in kCompanionEmotions)
+                              _FeelingTile(
+                                emotion: emotion,
+                                enabled: !_sending,
+                                onTap: () => _startLesson(emotion),
+                              ),
+                          ],
+                        ),
+                      ],
                       const SizedBox(height: AppSpacing.md),
-                      Wrap(
-                        alignment: WrapAlignment.center,
-                        spacing: AppSpacing.sm,
-                        runSpacing: AppSpacing.sm,
-                        children: [
-                          for (final emotion in kCompanionEmotions)
-                            _FeelingTile(
-                              emotion: emotion,
-                              enabled: !_sending,
-                              onTap: () => _startLesson(emotion),
-                            ),
-                        ],
-                      ),
                     ],
-                    const SizedBox(height: AppSpacing.md),
-                  ],
+                  ),
                 ),
-              ),
-              if (!inLesson)
-                _ChatInputRow(
-                  controller: _input,
-                  sending: _sending || _judging,
-                  listening: _listening,
-                  micHidden: _micHidden,
-                  onMic: _toggleMic,
-                  onSend: _sendChat,
-                ),
-            ],
+                // The chat row steps aside during a lesson and during a guessing
+                // round: one activity at a time, and mid-round the three tiles
+                // are the only way to answer.
+                if (!inLesson && _roundTarget == null)
+                  _ChatInputRow(
+                    controller: _input,
+                    sending: _sending || _judging,
+                    listening: _listening,
+                    micHidden: _micHidden,
+                    onMic: _toggleMic,
+                    onSend: _sendChat,
+                  ),
+              ],
+            ),
           ),
         ),
       ),
@@ -516,7 +604,11 @@ class _CompanionScreenState extends ConsumerState<CompanionScreen> {
 /// replay stays in the child's hands). While thinking it shows a tiny quiet
 /// spinner instead.
 class _SpeechBubble extends ConsumerWidget {
-  const _SpeechBubble({required this.text, required this.busy, this.speakOverride});
+  const _SpeechBubble({
+    required this.text,
+    required this.busy,
+    this.speakOverride,
+  });
 
   final String text;
   final bool busy;
@@ -574,9 +666,7 @@ class _SpeechBubble extends ConsumerWidget {
                               ? () => narration.stop()
                               : () => narration.narrate(text, volume: volume),
                       icon: Icon(
-                        speaking
-                            ? Icons.stop_rounded
-                            : Icons.volume_up_rounded,
+                        speaking ? Icons.stop_rounded : Icons.volume_up_rounded,
                         size: 20,
                       ),
                       label: Text(l.companionHearAgain),
@@ -732,10 +822,7 @@ class _ChatInputRow extends StatelessWidget {
     final l = AppLocalizations.of(context);
     final theme = Theme.of(context);
     return Padding(
-      padding: const EdgeInsets.only(
-        top: AppSpacing.sm,
-        bottom: AppSpacing.md,
-      ),
+      padding: const EdgeInsets.only(top: AppSpacing.sm, bottom: AppSpacing.md),
       child: Row(
         children: [
           Expanded(
@@ -745,7 +832,8 @@ class _ChatInputRow extends StatelessWidget {
               textInputAction: TextInputAction.send,
               onSubmitted: (_) => onSend(),
               decoration: InputDecoration(
-                hintText: listening ? l.companionListening : l.companionInputHint,
+                hintText:
+                    listening ? l.companionListening : l.companionInputHint,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(AppRadii.pill),
                 ),
