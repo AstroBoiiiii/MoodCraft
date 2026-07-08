@@ -224,43 +224,51 @@ class _EpisodeChip extends StatelessWidget {
       _EpisodeState.open => Icons.play_arrow_rounded,
       _EpisodeState.waiting => Icons.more_horiz_rounded,
     };
+    // Paint the border with a real Container (an `Ink` inside a ListView can
+    // skip painting its decoration on the first frame until a scroll forces a
+    // repaint), and keep the tap ripple via a transparent Material layer.
     return Opacity(
       opacity: waiting ? 0.45 : 1,
-      child: InkWell(
-        onTap: waiting ? null : onTap,
-        borderRadius: BorderRadius.circular(AppRadii.md),
-        child: Ink(
-          decoration: BoxDecoration(
-            color: accent.withValues(
-              alpha: state == _EpisodeState.open ? 0.14 : 0.06,
-            ),
+      child: Container(
+        decoration: BoxDecoration(
+          color: accent.withValues(
+            alpha: state == _EpisodeState.open ? 0.14 : 0.06,
+          ),
+          borderRadius: BorderRadius.circular(AppRadii.md),
+          border: Border.all(color: accent.withValues(alpha: 0.35)),
+        ),
+        child: Material(
+          type: MaterialType.transparency,
+          child: InkWell(
+            onTap: waiting ? null : onTap,
             borderRadius: BorderRadius.circular(AppRadii.md),
-            border: Border.all(color: accent.withValues(alpha: 0.35)),
-          ),
-          padding: const EdgeInsets.symmetric(
-            vertical: AppSpacing.sm,
-            horizontal: AppSpacing.xs,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(icon, size: 22, color: accent),
-              const SizedBox(height: AppSpacing.xs),
-              Text(
-                label,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: theme.textTheme.labelLarge,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(
+                vertical: AppSpacing.sm,
+                horizontal: AppSpacing.xs,
               ),
-              Text(
-                duration,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: theme.textTheme.labelSmall?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(icon, size: 22, color: accent),
+                  const SizedBox(height: AppSpacing.xs),
+                  Text(
+                    label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.labelLarge,
+                  ),
+                  Text(
+                    duration,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
         ),
       ),

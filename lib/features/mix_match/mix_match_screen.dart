@@ -201,65 +201,71 @@ class _TypeTile extends StatelessWidget {
     final surface = theme.colorScheme.surface;
     final wash = Color.alphaBlend(accent.withValues(alpha: 0.10), surface);
 
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(AppRadii.lg),
-      child: Ink(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [wash, surface],
-          ),
-          borderRadius: BorderRadius.circular(AppRadii.lg),
-          border: Border.all(color: accent.withValues(alpha: 0.35), width: 1.5),
+    // Paint the decoration with a real Container (an `Ink` inside a ListView
+    // can skip painting its border on the first frame until a scroll forces a
+    // repaint), and keep the tap ripple via a transparent Material layer.
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [wash, surface],
         ),
-        child: Padding(
-          padding: const EdgeInsets.all(AppSpacing.sm),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 56,
-                height: 56,
-                decoration: BoxDecoration(
-                  color: accent.withValues(alpha: 0.18),
-                  shape: BoxShape.circle,
+        borderRadius: BorderRadius.circular(AppRadii.lg),
+        border: Border.all(color: accent.withValues(alpha: 0.35), width: 1.5),
+      ),
+      child: Material(
+        type: MaterialType.transparency,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(AppRadii.lg),
+          child: Padding(
+            padding: const EdgeInsets.all(AppSpacing.sm),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 56,
+                  height: 56,
+                  decoration: BoxDecoration(
+                    color: accent.withValues(alpha: 0.18),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(mixMatchTypeIcon(type), size: 30, color: accent),
                 ),
-                child: Icon(mixMatchTypeIcon(type), size: 30, color: accent),
-              ),
-              const SizedBox(height: AppSpacing.sm),
-              Text(
-                mixMatchTypeLabel(type, l),
-                textAlign: TextAlign.center,
-                style: theme.textTheme.titleMedium,
-              ),
-              if (progress != null) ...[
-                const SizedBox(height: AppSpacing.xs),
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    if (done)
-                      Padding(
-                        padding: const EdgeInsets.only(right: AppSpacing.xs),
-                        child: Icon(
-                          Icons.check_circle_rounded,
-                          size: 16,
+                const SizedBox(height: AppSpacing.sm),
+                Text(
+                  mixMatchTypeLabel(type, l),
+                  textAlign: TextAlign.center,
+                  style: theme.textTheme.titleMedium,
+                ),
+                if (progress != null) ...[
+                  const SizedBox(height: AppSpacing.xs),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (done)
+                        Padding(
+                          padding: const EdgeInsets.only(right: AppSpacing.xs),
+                          child: Icon(
+                            Icons.check_circle_rounded,
+                            size: 16,
+                            color: accent,
+                          ),
+                        ),
+                      Text(
+                        '$progress/$kMixMatchRoundSize',
+                        style: theme.textTheme.labelLarge?.copyWith(
                           color: accent,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
-                    Text(
-                      '$progress/$kMixMatchRoundSize',
-                      style: theme.textTheme.labelLarge?.copyWith(
-                        color: accent,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ],
-                ),
+                    ],
+                  ),
+                ],
               ],
-            ],
+            ),
           ),
         ),
       ),

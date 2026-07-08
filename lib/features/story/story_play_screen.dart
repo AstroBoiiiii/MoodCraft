@@ -12,6 +12,7 @@ import '../../core/models/session.dart';
 import '../../core/models/story_progress.dart';
 import '../../core/providers/repository_providers.dart';
 import '../../core/providers/sensory_settings_provider.dart';
+import '../../core/services/narration_service.dart';
 import '../../core/services/rewards_service.dart';
 import '../../core/widgets/calm_scaffold.dart';
 import '../../core/widgets/reward_celebration.dart';
@@ -30,8 +31,9 @@ typedef StoryPlayArgs = ({String? studentId, String storyId, int level});
 ///
 /// At each configured emotional moment the film pauses and asks its question
 /// quiz-style beneath the film: the pause's own `ask` line (naming who to think
-/// about), three feeling choices, a short friendly feedback line on a right tap
-/// (read, not narrated — story mode has no TTS), a calm "look again" on a wrong
+/// about), three feeling choices, a short friendly feedback line spoken aloud
+/// on a right tap (same mechanism as the quiz's feedback narration, with the
+/// same app bar mute toggle to turn it off), a calm "look again" on a wrong
 /// one. No timer, no score. The question is never painted *over* the video —
 /// on web the video is a real browser element layered above the Flutter
 /// canvas, and overlays drawn onto it can come out blank white.
@@ -115,6 +117,7 @@ class _StoryPlayScreenState extends ConsumerState<StoryPlayScreen> {
   void _goNextEpisode() {
     _controller?.removeListener(_onTick);
     _controller?.dispose();
+    ref.read(narrationServiceProvider).stop();
     setState(() {
       _level++;
       _episode = _episodeForLevel(_level);
@@ -140,6 +143,8 @@ class _StoryPlayScreenState extends ConsumerState<StoryPlayScreen> {
   void dispose() {
     _controller?.removeListener(_onTick);
     _controller?.dispose();
+    // Never let a pause's spoken question trail into the next screen.
+    ref.read(narrationServiceProvider).stop();
     super.dispose();
   }
 
@@ -299,6 +304,14 @@ class _StoryPlayScreenState extends ConsumerState<StoryPlayScreen> {
       // Mark this pause answered right away, so a quit during the feedback
       // resumes after this pause, not by re-answering it.
       _saveProgress(pausesDone: _pausesDone + 1, positionMs: pause.atMs);
+      // Speak the feedback line, same as the quiz, unless the child's sensory
+      // settings have turned it off.
+      final settings = ref.read(sensorySettingsProvider);
+      if (settings.feedbackNarration) {
+        ref
+            .read(narrationServiceProvider)
+            .narrate(pause.feedback, volume: settings.masterVolume);
+      }
     } else {
       // Gentle, no-penalty redirect: stay on the question for another try.
       setState(() {
@@ -310,6 +323,7 @@ class _StoryPlayScreenState extends ConsumerState<StoryPlayScreen> {
 
   /// Hides the question and lets the film carry on.
   void _continueStory() {
+    ref.read(narrationServiceProvider).stop();
     setState(() {
       _pausesDone++;
       _inQuestion = false;
@@ -446,9 +460,26 @@ class _StoryPlayScreenState extends ConsumerState<StoryPlayScreen> {
     }
 
     final pause = _currentPause;
+    final speak = ref.watch(
+      sensorySettingsProvider.select((s) => s.feedbackNarration),
+    );
     return CalmScaffold(
       title: title,
       icon: Icons.menu_book_rounded,
+      actions: [
+        IconButton(
+          tooltip: speak ? l.quizMuteVoice : l.quizUnmuteVoice,
+          icon: Icon(
+            speak ? Icons.volume_up_rounded : Icons.volume_off_rounded,
+          ),
+          onPressed: () {
+            final on = !speak;
+            ref.read(sensorySettingsProvider.notifier).setFeedbackNarration(on);
+            // Silence any feedback already playing the moment it's turned off.
+            if (!on) ref.read(narrationServiceProvider).stop();
+          },
+        ),
+      ],
       body: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 860),
@@ -466,6 +497,7 @@ class _StoryPlayScreenState extends ConsumerState<StoryPlayScreen> {
                     _level,
                     _pausesDone,
                     pause.answer,
+                    avoid: pause.avoidOptions,
                   ),
                   answered: _answered,
                   missed: _missedCurrent,
@@ -576,8 +608,9 @@ class _StoryPlayScreenState extends ConsumerState<StoryPlayScreen> {
 
 /// The quiz-style question shown beneath the paused film: the pause's own ask
 /// line (naming who to think about), three feeling choices, then a short
-/// friendly feedback line with Continue. A wrong tap shows a gentle "look
-/// again" and stays on the question.
+/// friendly feedback line, narrated with a tap-to-hear button same as the
+/// quiz's, with Continue. A wrong tap shows a gentle "look again" and stays
+/// on the question.
 class _PauseQuestion extends StatelessWidget {
   const _PauseQuestion({
     required this.pause,
@@ -690,8 +723,10 @@ class _FeelingTile extends StatelessWidget {
   }
 }
 
-/// Warm "you got it" panel: the feeling, the short friendly line, and a
-/// Continue button that resumes the film whenever the child likes.
+/// Warm "you got it" panel: the feeling, the short friendly line (spoken
+/// aloud automatically, same as the quiz's feedback, unless turned off in the
+/// app bar), and a Continue button that resumes the film whenever the child
+/// likes.
 class _PauseFeedback extends StatelessWidget {
   const _PauseFeedback({required this.pause, required this.onContinue});
 

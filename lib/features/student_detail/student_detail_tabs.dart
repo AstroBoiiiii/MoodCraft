@@ -10,6 +10,7 @@ import '../../core/widgets/contact_card.dart';
 import '../../core/widgets/profile_header.dart';
 import '../../core/widgets/section_card.dart';
 import '../../core/widgets/sensory_read_only_view.dart';
+import '../assignments/child_homework_section.dart';
 import '../journal/journal_section.dart';
 import '../schedule/schedule_section.dart';
 import 'student_progress_summary.dart';
@@ -67,6 +68,7 @@ class StudentDetailTabs extends StatefulWidget {
     required this.teachers,
     required this.parents,
     required this.canEditSchedule,
+    this.showHomework = false,
     this.onRemoveParent,
     this.onMessageParent,
     super.key,
@@ -76,6 +78,11 @@ class StudentDetailTabs extends StatefulWidget {
   final List<AppUser> teachers;
   final List<AppUser> parents;
   final bool canEditSchedule;
+
+  /// When set (parent monitoring), the Overview also shows a read-only view of
+  /// the child's homework and how far through it they are. The teacher has their
+  /// own Tasks section, so their detail view leaves this off.
+  final bool showHomework;
 
   /// When set (teacher view), parent contact cards get a remove button.
   final void Function(AppUser parent)? onRemoveParent;
@@ -206,6 +213,12 @@ class _StudentDetailTabsState extends State<StudentDetailTabs> {
       // FR11/FR8: a calm, read-only progress snapshot (stars, badges, feelings
       // practiced, recent activity). Full trend/difficulty analytics come later.
       StudentProgressSummary(student: student),
+      // FR9/FR10: for the parent, the child's homework and how far through it
+      // they are — read-only, since completion tracks the child's own play.
+      if (widget.showHomework) ...[
+        const SizedBox(height: AppSpacing.lg),
+        ChildHomeworkSection(studentId: student.id),
+      ],
     ];
   }
 }

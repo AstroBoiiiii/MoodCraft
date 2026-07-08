@@ -10,13 +10,14 @@ import 'companion_stage_controller.dart';
 /// big soft circle the Milestone 1 screen used — so the screen stays fully
 /// usable on the web without any WebView or 3D dependency. The [controller]
 /// is never bound here, so the screen keeps narrating with device TTS.
-class CompanionStage extends StatelessWidget {
+class CompanionStage extends StatefulWidget {
   const CompanionStage({
     required this.expression,
     required this.volume,
     this.focusFace = false,
     this.demonstrate = false,
     this.controller,
+    this.onStageReady,
     super.key,
   });
 
@@ -30,16 +31,34 @@ class CompanionStage extends StatelessWidget {
   final bool demonstrate;
   final CompanionStageController? controller;
 
+  /// The placeholder face has nothing to load, so this fires right after the
+  /// first frame (mirrors the mobile stage's real `stageReady` signal so the
+  /// screen can greet the child the same way on both platforms).
+  final VoidCallback? onStageReady;
+
+  @override
+  State<CompanionStage> createState() => _CompanionStageState();
+}
+
+class _CompanionStageState extends State<CompanionStage> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback(
+      (_) => widget.onStageReady?.call(),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    final color = kEmotionColor[expression]!;
+    final color = kEmotionColor[widget.expression]!;
     return Center(
       child: AnimatedSwitcher(
         duration: AppDurations.normal,
         switchInCurve: Curves.easeOut,
         switchOutCurve: Curves.easeIn,
         child: Container(
-          key: ValueKey(expression),
+          key: ValueKey(widget.expression),
           width: 148,
           height: 148,
           decoration: BoxDecoration(
@@ -47,7 +66,7 @@ class CompanionStage extends StatelessWidget {
             shape: BoxShape.circle,
             border: Border.all(color: color.withValues(alpha: 0.55), width: 2),
           ),
-          child: Icon(kEmotionIcon[expression], size: 88, color: color),
+          child: Icon(kEmotionIcon[widget.expression], size: 88, color: color),
         ),
       ),
     );

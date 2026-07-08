@@ -8,7 +8,6 @@ import '../core/models/assignment.dart';
 import '../core/models/enums.dart';
 import '../core/providers/auth_provider.dart';
 import '../features/account/account_profile_screen.dart';
-import '../features/assignments/parent_tasks_screen.dart';
 import '../features/assignments/teacher_tasks_screen.dart';
 import '../features/auth/dev_role_picker_screen.dart';
 import '../features/auth/login_screen.dart';
@@ -72,10 +71,27 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       // Signed out: only the auth-flow routes are allowed.
       if (user == null) return onPublic ? null : '/login';
 
-      // TODO(demo): re-enable the teacher-only web gate before the demo.
-      // Web is the teacher's classroom + office layer only (FR1); the gate that
-      // sent a signed-in student/parent to /mobile-only is removed temporarily
-      // so every role can be tested on Chrome while the UI is being finished.
+      // Web is the teacher's classroom + office layer only (FR1). A signed-in
+      // student or parent is sent to the calm mobile-only landing (which signs
+      // them out), so only teachers ever reach the web app — student and parent
+      // are mobile-only in the final product.
+      if (kIsWeb && user.role != UserRole.teacher) {
+        return state.matchedLocation == '/mobile-only' ? null : '/mobile-only';
+      }
+
+      // The classroom projection layer (launching a game on the big screen) is
+      // web-only; teacher mobile is for managing students and messaging parents.
+      // The tab is hidden on the phone, and a deep link into the projection or
+      // its play screens falls back to the dashboard.
+      if (!kIsWeb) {
+        final path = state.matchedLocation;
+        if (path == '/teacher/classroom' ||
+            path.startsWith('/teacher/mixmatch/') ||
+            path.startsWith('/teacher/story/') ||
+            path.startsWith('/teacher/quiz/')) {
+          return '/teacher/dashboard';
+        }
+      }
 
       // Routes reachable by any signed-in role (not role-specific sections).
       const sharedSignedInPaths = {'/account/profile'};
@@ -348,7 +364,9 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         ],
       ),
 
-      // ---- Parent (bottom nav: Progress / Messages / Tasks) ----
+      // ---- Parent (bottom nav: Progress / Messages) ----
+      // The child's homework is viewed inside the Progress tab (read-only);
+      // parents are never handed tasks of their own, so there is no Tasks tab.
       StatefulShellRoute.indexedStack(
         builder: (context, state, shell) => ParentShell(shell),
         branches: [
@@ -365,14 +383,6 @@ final goRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: '/parent/messages',
                 builder: (context, state) => const ParentMessagesScreen(),
-              ),
-            ],
-          ),
-          StatefulShellBranch(
-            routes: [
-              GoRoute(
-                path: '/parent/tasks',
-                builder: (context, state) => const ParentTasksScreen(),
               ),
             ],
           ),

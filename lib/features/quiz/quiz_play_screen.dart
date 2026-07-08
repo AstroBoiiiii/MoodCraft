@@ -130,7 +130,7 @@ class _QuizPlayScreenState extends ConsumerState<QuizPlayScreen> {
       // child quits during the feedback they resume on the NEXT question, not by
       // re-answering this one.
       _saveRound(_index + 1);
-      if (ref.read(sensorySettingsProvider).quizFeedbackNarration) {
+      if (ref.read(sensorySettingsProvider).feedbackNarration) {
         ref.read(narrationServiceProvider).narrate(q.feedback, volume: _volume);
       }
     } else {
@@ -223,7 +223,7 @@ class _QuizPlayScreenState extends ConsumerState<QuizPlayScreen> {
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
     final speak = ref.watch(
-      sensorySettingsProvider.select((s) => s.quizFeedbackNarration),
+      sensorySettingsProvider.select((s) => s.feedbackNarration),
     );
     return CalmScaffold(
       title: l.navQuiz,
@@ -236,9 +236,7 @@ class _QuizPlayScreenState extends ConsumerState<QuizPlayScreen> {
           ),
           onPressed: () {
             final on = !speak;
-            ref
-                .read(sensorySettingsProvider.notifier)
-                .setQuizFeedbackNarration(on);
+            ref.read(sensorySettingsProvider.notifier).setFeedbackNarration(on);
             // Silence any feedback already playing the moment it's turned off.
             if (!on) ref.read(narrationServiceProvider).stop();
           },

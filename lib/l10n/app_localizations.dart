@@ -62,8 +62,7 @@ import 'app_localizations_ms.dart';
 /// be consistent with the languages listed in the AppLocalizations.supportedLocales
 /// property.
 abstract class AppLocalizations {
-  AppLocalizations(String locale)
-    : localeName = intl.Intl.canonicalizedLocale(locale.toString());
+  AppLocalizations(String locale) : localeName = intl.Intl.canonicalizedLocale(locale.toString());
 
   final String localeName;
 
@@ -71,8 +70,7 @@ abstract class AppLocalizations {
     return Localizations.of<AppLocalizations>(context, AppLocalizations)!;
   }
 
-  static const LocalizationsDelegate<AppLocalizations> delegate =
-      _AppLocalizationsDelegate();
+  static const LocalizationsDelegate<AppLocalizations> delegate = _AppLocalizationsDelegate();
 
   /// A list of this localizations delegate along with the default localizations
   /// delegates.
@@ -84,18 +82,17 @@ abstract class AppLocalizations {
   /// Additional delegates can be added by appending to this list in
   /// MaterialApp. This list does not have to be used at all if a custom list
   /// of delegates is preferred or required.
-  static const List<LocalizationsDelegate<dynamic>> localizationsDelegates =
-      <LocalizationsDelegate<dynamic>>[
-        delegate,
-        GlobalMaterialLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-      ];
+  static const List<LocalizationsDelegate<dynamic>> localizationsDelegates = <LocalizationsDelegate<dynamic>>[
+    delegate,
+    GlobalMaterialLocalizations.delegate,
+    GlobalCupertinoLocalizations.delegate,
+    GlobalWidgetsLocalizations.delegate,
+  ];
 
   /// A list of this localizations delegate's supported locales.
   static const List<Locale> supportedLocales = <Locale>[
     Locale('en'),
-    Locale('ms'),
+    Locale('ms')
   ];
 
   /// No description provided for @appName.
@@ -289,6 +286,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'AR is available on the mobile app.'**
   String get arMobileOnly;
+
+  /// No description provided for @companionMobileOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'The companion is available on the mobile app.'**
+  String get companionMobileOnly;
 
   /// No description provided for @arStarting.
   ///
@@ -866,6 +869,12 @@ abstract class AppLocalizations {
   /// **'No tasks from the teacher yet.'**
   String get taskEmptyParent;
 
+  /// No description provided for @homeworkHeading.
+  ///
+  /// In en, this message translates to:
+  /// **'Homework'**
+  String get homeworkHeading;
+
   /// No description provided for @taskProgressHeading.
   ///
   /// In en, this message translates to:
@@ -919,18 +928,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Things to do'**
   String get todoHeading;
-
-  /// No description provided for @todoNewTaskBanner.
-  ///
-  /// In en, this message translates to:
-  /// **'Your teacher added something new!'**
-  String get todoNewTaskBanner;
-
-  /// No description provided for @todoNewTaskGotIt.
-  ///
-  /// In en, this message translates to:
-  /// **'Got it'**
-  String get todoNewTaskGotIt;
 
   /// No description provided for @todoAllDone.
   ///
@@ -1466,48 +1463,6 @@ abstract class AppLocalizations {
   /// **'Legend'**
   String get rewardTitle8;
 
-  /// No description provided for @parentNewBadgeTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'{name} earned {count, plural, =1{a new badge} other{{count} new badges}}!'**
-  String parentNewBadgeTitle(String name, int count);
-
-  /// No description provided for @parentNewBadgeDismiss.
-  ///
-  /// In en, this message translates to:
-  /// **'Lovely!'**
-  String get parentNewBadgeDismiss;
-
-  /// No description provided for @parentNewLevelTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'{name} reached a new level!'**
-  String parentNewLevelTitle(String name);
-
-  /// No description provided for @parentNewAchievementTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Wonderful news about {name}!'**
-  String parentNewAchievementTitle(String name);
-
-  /// No description provided for @parentNewLevelCaption.
-  ///
-  /// In en, this message translates to:
-  /// **'New title'**
-  String get parentNewLevelCaption;
-
-  /// No description provided for @parentNewJournalTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'{name} logged a feeling'**
-  String parentNewJournalTitle(String name);
-
-  /// No description provided for @parentNewJournalExtra.
-  ///
-  /// In en, this message translates to:
-  /// **'{count, plural, =1{and 1 more since you last checked} other{and {count} more since you last checked}}'**
-  String parentNewJournalExtra(int count);
-
   /// No description provided for @progressTitle.
   ///
   /// In en, this message translates to:
@@ -1553,7 +1508,7 @@ abstract class AppLocalizations {
   /// No description provided for @companionGreeting.
   ///
   /// In en, this message translates to:
-  /// **'Hello! I am Momo. We can learn about feelings together.'**
+  /// **'Hello! I am Luna. We can learn about feelings together.'**
   String get companionGreeting;
 
   /// No description provided for @companionPickFeeling.
@@ -1904,11 +1859,11 @@ abstract class AppLocalizations {
   /// **'Next Episode'**
   String get storyNextEpisode;
 
-  /// No description provided for @quizFeedbackNarration.
+  /// No description provided for @feedbackNarration.
   ///
   /// In en, this message translates to:
-  /// **'Speak quiz answers'**
-  String get quizFeedbackNarration;
+  /// **'Speak feedback after answers'**
+  String get feedbackNarration;
 
   /// No description provided for @quizMuteVoice.
   ///
@@ -1965,8 +1920,7 @@ abstract class AppLocalizations {
   String weeklyContentWeekLabel(int n);
 }
 
-class _AppLocalizationsDelegate
-    extends LocalizationsDelegate<AppLocalizations> {
+class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {
   const _AppLocalizationsDelegate();
 
   @override
@@ -1975,26 +1929,25 @@ class _AppLocalizationsDelegate
   }
 
   @override
-  bool isSupported(Locale locale) =>
-      <String>['en', 'ms'].contains(locale.languageCode);
+  bool isSupported(Locale locale) => <String>['en', 'ms'].contains(locale.languageCode);
 
   @override
   bool shouldReload(_AppLocalizationsDelegate old) => false;
 }
 
 AppLocalizations lookupAppLocalizations(Locale locale) {
+
+
   // Lookup logic when only language code is specified.
   switch (locale.languageCode) {
-    case 'en':
-      return AppLocalizationsEn();
-    case 'ms':
-      return AppLocalizationsMs();
+    case 'en': return AppLocalizationsEn();
+    case 'ms': return AppLocalizationsMs();
   }
 
   throw FlutterError(
     'AppLocalizations.delegate failed to load unsupported locale "$locale". This is likely '
     'an issue with the localizations generation tool. Please file an issue '
     'on GitHub with a reproducible sample app and the gen-l10n configuration '
-    'that was used.',
+    'that was used.'
   );
 }

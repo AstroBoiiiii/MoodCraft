@@ -45,6 +45,7 @@ class ParentMonitoringScreen extends ConsumerWidget {
               teachers: detail.teachers,
               parents: const [],
               canEditSchedule: true,
+              showHomework: true,
             ),
           );
         },

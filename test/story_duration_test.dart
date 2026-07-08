@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:moodcraft/core/constants/app_constants.dart';
 import 'package:moodcraft/features/story/story_data.dart';
 
 /// FR5 — the episode/story durations shown on the picker must reflect the
@@ -22,18 +23,19 @@ void main() {
     },
   );
 
-  test(
-    "watermelon's last episode (no endMs) falls back to the film's total length",
-    () {
-      final story = storyById('watermelon')!;
-      final lastEpisode = story.episodes.last;
-      expect(lastEpisode.endMs, isNull);
-      final expected =
-          kStoryVideoDurationMs[lastEpisode.videoAsset]! - lastEpisode.startMs;
-      expect(storyEpisodeDurationMs(lastEpisode), expected);
-      expect(expected, greaterThan(0));
-    },
-  );
+  test('an episode authored without an endMs falls back to the film\'s total '
+      'length (every current story cuts cleanly at its last ask instead, but '
+      'the fallback still has to hold for any future one that does not)', () {
+    const videoAsset = '$kStoryVideoRoot/the_present.mp4';
+    const episode = StoryEpisode(
+      videoAsset: videoAsset,
+      startMs: 200000,
+      pauses: [],
+    );
+    final expected = kStoryVideoDurationMs[videoAsset]! - episode.startMs;
+    expect(storyEpisodeDurationMs(episode), expected);
+    expect(expected, greaterThan(0));
+  });
 
   test('a story total is the sum of its episodes, not the raw file length', () {
     for (final story in kStoryCatalog) {

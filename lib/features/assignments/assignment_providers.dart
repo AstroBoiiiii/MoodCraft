@@ -32,25 +32,6 @@ final studentAssignmentsProvider =
       return ref.watch(assignmentRepositoryProvider).watchForStudent(studentId);
     });
 
-/// Tasks handed to [studentId] that the child has not yet acknowledged — i.e.
-/// created after the last time they dismissed the "new task" banner
-/// (`AppUser.seenTaskAt`). Drives the calm notification on [StudentTodoCard]
-/// when the teacher hands out something new. Timestamp-based rather than a
-/// plain count (unlike the parent's badge/level/journal notifications) since
-/// a teacher can delete a task, so a count could otherwise misfire.
-final studentUnseenTasksProvider = Provider.family<List<Assignment>, String>((
-  ref,
-  studentId,
-) {
-  final me = ref.watch(currentUserDocProvider).value;
-  final tasks = ref.watch(studentAssignmentsProvider(studentId)).value;
-  if (me == null || tasks == null || tasks.isEmpty) return const [];
-  final seenAtMs = me.seenTaskAt[studentId] ?? 0;
-  return tasks
-      .where((t) => t.createdAt.millisecondsSinceEpoch > seenAtMs)
-      .toList();
-});
-
 /// A student's activity sessions, newest-first — the raw material for deciding,
 /// live, which task activities a child has already finished.
 final studentSessionsProvider = StreamProvider.family<List<Session>, String>((

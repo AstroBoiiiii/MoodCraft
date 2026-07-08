@@ -30,6 +30,7 @@ class CompanionStage extends StatefulWidget {
     this.focusFace = false,
     this.demonstrate = false,
     this.controller,
+    this.onStageReady,
     super.key,
   });
 
@@ -51,6 +52,11 @@ class CompanionStage extends StatefulWidget {
   /// Bound once the avatar (and its TTS key) are ready, so the screen can
   /// route spoken lines through the lip-synced avatar.
   final CompanionStageController? controller;
+
+  /// Fired once the avatar has actually appeared (the page's own `stageReady`
+  /// handler), so the screen can hold a loading state up to that moment and
+  /// only then greet the child.
+  final VoidCallback? onStageReady;
 
   @override
   State<CompanionStage> createState() => _CompanionStageState();
@@ -170,55 +176,66 @@ class _CompanionStageState extends State<CompanionStage> {
       height: 320,
       child: ClipRRect(
         borderRadius: BorderRadius.circular(AppRadii.md),
-        child:
-            _ready
-                ? InAppWebView(
-                  initialUrlRequest: URLRequest(
-                    url: WebUri(
-                      kTtsApiKey.isEmpty
-                          ? _kStagePageUrl
-                          : '$_kStagePageUrl?ttsKey=$kTtsApiKey',
-                    ),
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            if (_ready)
+              InAppWebView(
+                initialUrlRequest: URLRequest(
+                  url: WebUri(
+                    kTtsApiKey.isEmpty
+                        ? _kStagePageUrl
+                        : '$_kStagePageUrl?ttsKey=$kTtsApiKey',
                   ),
-                  initialSettings: InAppWebViewSettings(
-                    mediaPlaybackRequiresUserGesture: false,
-                    transparentBackground: true,
-                  ),
-                  onWebViewCreated: (controller) {
-                    _webView = controller;
-                    controller.addJavaScriptHandler(
-                      handlerName: 'stageReady',
-                      callback: (_) {
-                        _stageReady = true;
-                        // Catch the avatar up with whatever the screen shows.
-                        _pushExpression();
-                        _pushView();
-                        _js(
-                          "window.mc && window.mc.setVolume(${widget.volume})",
-                        );
-                        // The avatar only takes over the voice when it can
-                        // actually speak (key present); otherwise the screen
-                        // keeps using device narration.
-                        if (kTtsApiKey.isNotEmpty) {
-                          widget.controller?.bind(
-                            speak:
-                                (text) => _js(
-                                  "window.mc && window.mc.speak(${jsonEncode(text)})",
-                                ),
-                            stop:
-                                () => _js(
-                                  "window.mc && window.mc.stopSpeaking()",
-                                ),
-                          );
-                        }
-                      },
-                    );
-                  },
-                )
-                : ColoredBox(
-                  color: theme.colorScheme.surfaceContainerHighest,
-                  child: const Center(child: CircularProgressIndicator()),
                 ),
+                initialSettings: InAppWebViewSettings(
+                  mediaPlaybackRequiresUserGesture: false,
+                  transparentBackground: true,
+                ),
+                onWebViewCreated: (controller) {
+                  _webView = controller;
+                  controller.addJavaScriptHandler(
+                    handlerName: 'stageReady',
+                    callback: (_) {
+                      if (mounted) {
+                        setState(() => _stageReady = true);
+                      } else {
+                        _stageReady = true;
+                      }
+                      // Catch the avatar up with whatever the screen shows.
+                      _pushExpression();
+                      _pushView();
+                      _js("window.mc && window.mc.setVolume(${widget.volume})");
+                      // The avatar only takes over the voice when it can
+                      // actually speak (key present); otherwise the screen
+                      // keeps using device narration.
+                      if (kTtsApiKey.isNotEmpty) {
+                        widget.controller?.bind(
+                          speak:
+                              (text) => _js(
+                                "window.mc && window.mc.speak(${jsonEncode(text)})",
+                              ),
+                          stop:
+                              () =>
+                                  _js("window.mc && window.mc.stopSpeaking()"),
+                        );
+                      }
+                      widget.onStageReady?.call();
+                    },
+                  );
+                },
+              ),
+            // Covers the WebView until the avatar has actually appeared (the
+            // page's own model load can take a moment after the WebView
+            // itself is up), so the child never sees a blank stage or the
+            // model popping in mid-scene.
+            if (!_stageReady)
+              ColoredBox(
+                color: theme.colorScheme.surfaceContainerHighest,
+                child: const Center(child: CircularProgressIndicator()),
+              ),
+          ],
+        ),
       ),
     );
   }

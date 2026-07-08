@@ -9,7 +9,7 @@ class SensorySettings {
     this.masterVolume = 0.6,
     this.colorTheme = AppColorTheme.calmBlue,
     this.backgroundTrack = BackgroundTrack.track1,
-    this.quizFeedbackNarration = true,
+    this.feedbackNarration = true,
   });
 
   /// Calm-by-default settings (music off, gentle volume).
@@ -23,22 +23,21 @@ class SensorySettings {
 
   /// Which of the three background music tracks is selected.
   final BackgroundTrack backgroundTrack;
-  final bool quizFeedbackNarration;
+  final bool feedbackNarration;
 
   SensorySettings copyWith({
     bool? musicEnabled,
     double? masterVolume,
     AppColorTheme? colorTheme,
     BackgroundTrack? backgroundTrack,
-    bool? quizFeedbackNarration,
+    bool? feedbackNarration,
   }) {
     return SensorySettings(
       musicEnabled: musicEnabled ?? this.musicEnabled,
       masterVolume: masterVolume ?? this.masterVolume,
       colorTheme: colorTheme ?? this.colorTheme,
       backgroundTrack: backgroundTrack ?? this.backgroundTrack,
-      quizFeedbackNarration:
-          quizFeedbackNarration ?? this.quizFeedbackNarration,
+      feedbackNarration: feedbackNarration ?? this.feedbackNarration,
     );
   }
 
@@ -47,7 +46,7 @@ class SensorySettings {
     'masterVolume': masterVolume,
     'colorTheme': colorTheme.name,
     'backgroundTrack': backgroundTrack.name,
-    'quizFeedbackNarration': quizFeedbackNarration,
+    'feedbackNarration': feedbackNarration,
   };
 
   factory SensorySettings.fromJson(Map<String, dynamic>? json) {
@@ -65,7 +64,7 @@ class SensorySettings {
         json['backgroundTrack'],
         BackgroundTrack.track1,
       ),
-      quizFeedbackNarration: (json['quizFeedbackNarration'] as bool?) ?? true,
+      feedbackNarration: (json['feedbackNarration'] as bool?) ?? true,
     );
   }
 
@@ -76,7 +75,7 @@ class SensorySettings {
       other.masterVolume == masterVolume &&
       other.colorTheme == colorTheme &&
       other.backgroundTrack == backgroundTrack &&
-      other.quizFeedbackNarration == quizFeedbackNarration;
+      other.feedbackNarration == feedbackNarration;
 
   @override
   int get hashCode => Object.hash(
@@ -84,6 +83,6 @@ class SensorySettings {
     masterVolume,
     colorTheme,
     backgroundTrack,
-    quizFeedbackNarration,
+    feedbackNarration,
   );
 }

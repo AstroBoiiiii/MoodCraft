@@ -37,6 +37,7 @@
   "navReports": "Reports",
   "navProgress": "Progress",
   "arMobileOnly": "AR is available on the mobile app.",
+  "companionMobileOnly": "The companion is available on the mobile app.",
   "arStarting": "Getting the camera ready.",
   "arCameraNeeded": "MoodCraft needs the camera to show AR. Please allow camera access.",
   "arAllowCamera": "Allow camera",
@@ -167,6 +168,7 @@
   },
   "taskEmptyTeacher": "No tasks yet. Hand one out with the button below.",
   "taskEmptyParent": "No tasks from the teacher yet.",
+  "homeworkHeading": "Homework",
   "taskProgressHeading": "Who's done it",
   "taskDelete": "Delete task",
   "taskDeleteConfirm": "Delete this task for everyone? This can't be undone.",
@@ -176,8 +178,6 @@
   "taskNeedStudent": "Pick at least one student",
   "taskNoStudentsInClass": "No students in your class yet",
   "todoHeading": "Things to do",
-  "todoNewTaskBanner": "Your teacher added something new!",
-  "todoNewTaskGotIt": "Got it",
   "todoAllDone": "All done. Great work!",
   "messageParent": "Message",
   "ageLabel": "Age",
@@ -309,39 +309,6 @@
   "rewardTitle6": "Hero",
   "rewardTitle7": "Champion",
   "rewardTitle8": "Legend",
-  "parentNewBadgeTitle": "{name} earned {count, plural, =1{a new badge} other{{count} new badges}}!",
-  "@parentNewBadgeTitle": {
-    "placeholders": {
-      "name": { "type": "String" },
-      "count": { "type": "int" }
-    }
-  },
-  "parentNewBadgeDismiss": "Lovely!",
-  "parentNewLevelTitle": "{name} reached a new level!",
-  "@parentNewLevelTitle": {
-    "placeholders": {
-      "name": { "type": "String" }
-    }
-  },
-  "parentNewAchievementTitle": "Wonderful news about {name}!",
-  "@parentNewAchievementTitle": {
-    "placeholders": {
-      "name": { "type": "String" }
-    }
-  },
-  "parentNewLevelCaption": "New title",
-  "parentNewJournalTitle": "{name} logged a feeling",
-  "@parentNewJournalTitle": {
-    "placeholders": {
-      "name": { "type": "String" }
-    }
-  },
-  "parentNewJournalExtra": "{count, plural, =1{and 1 more since you last checked} other{and {count} more since you last checked}}",
-  "@parentNewJournalExtra": {
-    "placeholders": {
-      "count": { "type": "int" }
-    }
-  },
   "progressTitle": "Progress",
   "progressStarsCaption": "Stars",
   "progressBadgesCaption": "Badges",
@@ -349,7 +316,7 @@
   "progressRecentTitle": "Recent activity",
   "progressNoActivity": "No activities yet.",
   "previewMatch": "Match the faces to feelings here.",
-  "companionGreeting": "Hello! I am Momo. We can learn about feelings together.",
+  "companionGreeting": "Hello! I am Luna. We can learn about feelings together.",
   "companionPickFeeling": "Which feeling shall we learn?",
   "companionNext": "Next",
   "companionLessonDone": "Well done! Now you know all about this feeling. Thank you for telling me.",
@@ -413,7 +380,7 @@
   "storyDoneBody": "Great watching. The next episode is ready when you are.",
   "storyDoneButton": "Done",
   "storyNextEpisode": "Next Episode",
-  "quizFeedbackNarration": "Speak quiz answers",
+  "feedbackNarration": "Speak feedback after answers",
   "quizMuteVoice": "Turn off the voice",
   "quizUnmuteVoice": "Turn on the voice",
   "storyVideoUnavailable": "This story is getting ready. Please try another one.",

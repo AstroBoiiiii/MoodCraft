@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:moodcraft/l10n/app_localizations.dart';
@@ -15,6 +16,7 @@ import '../../../core/providers/sensory_settings_provider.dart';
 import '../../../core/services/narration_service.dart';
 import '../../../core/services/rewards_service.dart';
 import '../../../core/widgets/calm_scaffold.dart';
+import '../../../core/widgets/placeholder_screen.dart';
 import '../../../core/widgets/sensory_settings_sheet.dart';
 import '../../journal/journal_section.dart' show emotionLabel;
 import 'companion_brain.dart';
@@ -26,25 +28,53 @@ import 'stage/companion_stage_controller.dart';
 import 'stage/companion_stage_web.dart'
     if (dart.library.io) 'stage/companion_stage_mobile.dart';
 
-/// FR3 — the AI companion. One calm screen: the companion's face up top, what
+/// FR3 — the AI companion entry point. The companion is a **mobile-only**
+/// feature (its live Gemini teaching brain and chat, plus the 3D avatar, belong
+/// on the phone), so on the web build this shows a calm "on mobile" placeholder
+/// and never reaches any AI code — mirroring the AR screen. The real experience
+/// ([_CompanionExperience]) only ever builds on mobile.
+class CompanionScreen extends StatelessWidget {
+  const CompanionScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    if (kIsWeb) {
+      final l = AppLocalizations.of(context);
+      return PlaceholderScreen(
+        title: l.navCompanion,
+        icon: Icons.chat_bubble_rounded,
+        message: l.companionMobileOnly,
+      );
+    }
+    return const _CompanionExperience();
+  }
+}
+
+/// The full AI companion. One calm screen: the companion's face up top, what
 /// it is saying beneath, and the child's two gentle ways in below that.
 ///
 /// **Teaching** (the core) is fully curated: tapping a feeling walks the vetted
 /// lesson script from `companion_data.dart`, one short line per tap, the face
 /// acting out each line. **Chat** (optional) sends the child's typed or spoken
 /// words to safe-prompted Gemini; on any failure the companion calmly suggests
-/// learning a feeling together instead. Every line the companion says is spoken
-/// aloud (audio-first) in response to the child's own tap — nothing autoplays.
-class CompanionScreen extends ConsumerStatefulWidget {
-  const CompanionScreen({super.key});
+/// learning a feeling together instead. Every line the companion says after
+/// that is spoken aloud (audio-first) in response to the child's own tap
+/// only. The one exception is the greeting itself: the screen holds a loading
+/// state on the stage until the avatar has actually appeared, and then Luna
+/// introduces herself aloud, since that is the companion greeting the child
+/// rather than an unprompted line mid-visit.
+class _CompanionExperience extends ConsumerStatefulWidget {
+  const _CompanionExperience();
 
   @override
-  ConsumerState<CompanionScreen> createState() => _CompanionScreenState();
+  ConsumerState<_CompanionExperience> createState() =>
+      _CompanionExperienceState();
 }
 
-class _CompanionScreenState extends ConsumerState<CompanionScreen> {
-  // What the companion is showing and saying right now. A null bubble means
-  // the greeting, which is text-only — the companion never speaks unprompted.
+class _CompanionExperienceState extends ConsumerState<_CompanionExperience> {
+  // What the companion is showing and saying right now. A null bubble shows
+  // the greeting text; _onStageReady also speaks that same line once the
+  // avatar actually appears, so the child never taps into a silent bubble.
   Emotion _expression = Emotion.happy;
   String? _bubbleText;
   // True while a lesson line, or a chat "show me your ... face" moment, talks
@@ -107,10 +137,25 @@ class _CompanionScreenState extends ConsumerState<CompanionScreen> {
   // voice sounding after the child has already left.
   bool _canPop = false;
 
+  // Set once the avatar has actually appeared on stage and greeted the
+  // child aloud, so a stage reload (or the web stage's instant "ready")
+  // never repeats the greeting.
+  bool _greeted = false;
+
   @override
   void initState() {
     super.initState();
     ref.read(narrationServiceProvider).prewarm();
+  }
+
+  /// Fired once the 3D stage's avatar has actually popped up (mobile) or the
+  /// placeholder face is on screen (web): the one moment the companion is
+  /// allowed to speak before the child has tapped anything, since it is the
+  /// companion introducing itself rather than an unprompted line mid-visit.
+  void _onStageReady() {
+    if (_greeted || !mounted) return;
+    _greeted = true;
+    _say(AppLocalizations.of(context).companionGreeting, Emotion.happy);
   }
 
   /// Stops every voice source and waits for it, so the WebView's
@@ -435,6 +480,7 @@ class _CompanionScreenState extends ConsumerState<CompanionScreen> {
     if (_awaitingLessonAnswer != null) {
       await _answerLessonQuestion(text);
       if (mounted) setState(() => _sending = false);
+      _input.clear();
       return;
     }
 
@@ -442,6 +488,10 @@ class _CompanionScreenState extends ConsumerState<CompanionScreen> {
 
     if (!mounted) return;
     setState(() => _sending = false);
+    // The field is already cleared from the moment the message was sent; make
+    // sure it's still empty now that the answer is back too, in case a late
+    // stray mic result refilled it while the reply was in flight.
+    _input.clear();
     if (reply != null) {
       // A "show me your ... face" ask zooms to the head while the reply is
       // spoken, and now stays there until the child's next question.
@@ -573,6 +623,7 @@ class _CompanionScreenState extends ConsumerState<CompanionScreen> {
                             _chatDemonstrate,
                         volume: volume,
                         controller: _stage,
+                        onStageReady: _onStageReady,
                       ),
                       const SizedBox(height: AppSpacing.md),
                       if (_childSaid != null) ...[

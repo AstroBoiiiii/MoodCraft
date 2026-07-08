@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:moodcraft/core/constants/app_constants.dart';
 import 'package:moodcraft/core/models/enums.dart';
 import 'package:moodcraft/core/models/session.dart';
 import 'package:moodcraft/core/models/student.dart';
@@ -69,6 +70,33 @@ void main() {
     expect(find.text('All Quizzes'), findsOneWidget); // all_quiz badge label
     expect(tester.takeException(), isNull);
   });
+
+  testWidgets(
+    'celebration with a big payout (Story completion) wraps instead of overflowing',
+    (tester) async {
+      await tester.pumpWidget(
+        ProviderScope(
+          child: _app(
+            RewardCelebration(
+              outcome: const RewardOutcome(starsEarned: kStoryCompletionStars),
+              title: 'The end!',
+              body: 'You finished the whole story.',
+              doneLabel: 'Done',
+              onDone: () {},
+            ),
+            width: 360,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text('You earned $kStoryCompletionStars stars'),
+        findsOneWidget,
+      );
+      expect(tester.takeException(), isNull);
+    },
+  );
 
   testWidgets('celebration with a null outcome shows no stars (offline-safe)', (
     tester,

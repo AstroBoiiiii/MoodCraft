@@ -36,10 +36,13 @@ class TeacherDashboardScreen extends ConsumerWidget {
   }
 }
 
-/// The teacher's classroom-projection layer (web + mobile). Launches an
+/// The teacher's classroom-projection layer (**web only** — hidden from teacher
+/// mobile, which is for managing students and messaging parents). Launches an
 /// activity to play on the projected screen for the whole class. Mix-and-Match
 /// (FR6) runs here in "classroom mode": every level is open and no per-child
-/// session is recorded — it's a group demo, not one student's record.
+/// session is recorded — it's a group demo, not one student's record. Story
+/// (FR5) runs with every episode unlocked so the teacher can jump straight to
+/// any episode on the big screen.
 class TeacherProfilesScreen extends StatelessWidget {
   const TeacherProfilesScreen({super.key});
   @override

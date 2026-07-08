@@ -14,9 +14,6 @@ void main() {
       email: 'aida@example.com',
       language: AppLanguage.ms,
       linkedStudentIds: ['s1', 's2'],
-      seenBadgeCounts: {'s1': 3},
-      seenLevelCounts: {'s1': 2},
-      seenTaskAt: {'s1': 1750000000000},
     );
     expect(AppUser.fromJson(user.toJson()).toJson(), user.toJson());
   });

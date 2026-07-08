@@ -15,12 +15,19 @@ class StoryPause {
     required this.ask,
     required this.answer,
     required this.feedback,
+    this.avoidOptions = const [],
   });
 
   final int atMs;
   final String ask;
   final Emotion answer;
   final String feedback;
+
+  /// Emotions to keep out of this pause's three choices, even though they are
+  /// valid feelings elsewhere. Used when a distractor would be confusing or too
+  /// close to the answer for this particular moment, or to pin the choices to a
+  /// specific pair (empty = no restriction).
+  final List<Emotion> avoidOptions;
 }
 
 /// One episode of a story: a segment of its bundled video ([startMs] up to
@@ -74,16 +81,17 @@ const List<StoryInfo> kStoryCatalog = [
         endMs: 60000,
         pauses: [
           StoryPause(
-            atMs: 30000,
+            atMs: 29000,
             ask: 'How does the boy feel?',
             answer: Emotion.surprised,
             feedback: 'He is shocked by the surprise from Mom.',
           ),
           StoryPause(
-            atMs: 60000,
+            atMs: 59000,
             ask: 'How does the boy feel?',
-            answer: Emotion.surprised,
-            feedback: 'A puppy! He did not expect that gift.',
+            answer: Emotion.happy,
+            feedback: 'He is happy to receive a puppy as a gift.',
+            avoidOptions: [Emotion.surprised],
           ),
         ],
       ),
@@ -94,7 +102,7 @@ const List<StoryInfo> kStoryCatalog = [
         endMs: 112000,
         pauses: [
           StoryPause(
-            atMs: 71000,
+            atMs: 70000,
             ask: 'How does the boy feel?',
             answer: Emotion.angry,
             feedback: 'He is mad the puppy has a missing leg.',
@@ -102,8 +110,9 @@ const List<StoryInfo> kStoryCatalog = [
           StoryPause(
             atMs: 110600,
             ask: 'How does the puppy feel?',
-            answer: Emotion.sad,
-            feedback: 'The puppy is left all alone. It feels sad.',
+            answer: Emotion.angry,
+            feedback: 'The grumpy puppy is mad because it tumbled over.',
+            avoidOptions: [Emotion.sad, Emotion.surprised],
           ),
         ],
       ),
@@ -141,13 +150,13 @@ const List<StoryInfo> kStoryCatalog = [
         endMs: 56000,
         pauses: [
           StoryPause(
-            atMs: 22000,
+            atMs: 21500,
             ask: 'How does the boy feel about eating the watermelon?',
             answer: Emotion.happy,
             feedback: 'The watermelon is sweet and yummy. He feels happy.',
           ),
           StoryPause(
-            atMs: 56000,
+            atMs: 55000,
             ask: 'How does the boy feel?',
             answer: Emotion.scared,
             feedback: 'A watermelon is growing on his body. He feels scared.',
@@ -163,9 +172,8 @@ const List<StoryInfo> kStoryCatalog = [
           StoryPause(
             atMs: 71000,
             ask: 'How does the boy feel?',
-            answer: Emotion.surprised,
-            feedback:
-                'The teacher smacked the table. The loud bang surprised him.',
+            answer: Emotion.scared,
+            feedback: 'The teacher is about to scold him. He feels scared.',
           ),
           StoryPause(
             atMs: 116000,
@@ -175,13 +183,16 @@ const List<StoryInfo> kStoryCatalog = [
           ),
         ],
       ),
-      // Episode 3 — the race and what comes next (1:56 to the natural end).
+      // Episode 3 — the race and what comes next (1:56 to 2:39, just past the
+      // last ask, so the episode ends there rather than rolling into the
+      // credits scene).
       StoryEpisode(
         videoAsset: '$kStoryVideoRoot/watermelon.mp4',
         startMs: 116000,
+        endMs: 159000,
         pauses: [
           StoryPause(
-            atMs: 132000,
+            atMs: 131000,
             ask: 'How does the boy feel about winning the race?',
             answer: Emotion.happy,
             feedback: 'He won the race. He feels happy and proud.',
@@ -215,7 +226,7 @@ const List<StoryInfo> kStoryCatalog = [
                 'Someone suddenly appeared in front of him. He feels surprised.',
           ),
           StoryPause(
-            atMs: 56000,
+            atMs: 55500,
             ask: 'How does the dog feel?',
             answer: Emotion.happy,
             feedback: 'He passed and is now qualified. He feels happy.',
@@ -229,13 +240,13 @@ const List<StoryInfo> kStoryCatalog = [
         endMs: 147000,
         pauses: [
           StoryPause(
-            atMs: 92000,
+            atMs: 91500,
             ask: 'How does the dog feel about his training?',
             answer: Emotion.sad,
             feedback: 'His training is not going well. He feels sad.',
           ),
           StoryPause(
-            atMs: 147000,
+            atMs: 146500,
             ask: 'How does the dog feel about the exam?',
             answer: Emotion.sad,
             feedback: 'The exam did not go well. He feels sad.',
@@ -251,7 +262,7 @@ const List<StoryInfo> kStoryCatalog = [
         endMs: 219000,
         pauses: [
           StoryPause(
-            atMs: 167000,
+            atMs: 166500,
             ask: 'How does the dog feel?',
             answer: Emotion.sad,
             feedback: 'He did not get picked to be a helper dog. He feels sad.',
@@ -279,16 +290,19 @@ StoryInfo? storyById(String id) {
 
 /// Full length of each bundled film (its raw file duration), used only as a
 /// fallback so the picker can show an accurate length for a story's final
-/// episode when it plays to the file's natural end rather than a hard cut
-/// (`StoryEpisode.endMs == null`, e.g. Watermelon's episode 3). Playback
-/// itself never needs this: a null `endMs` already means "play to the
-/// natural end" either way (see `story_play_screen.dart`'s `_controlsRow`,
-/// which reads the real duration live from the video controller instead) —
-/// this exists purely so the picker doesn't have to load every video just to
-/// read its length. Keep in sync with the actual asset if a film is replaced.
+/// episode if it ever plays to the file's natural end rather than a hard cut
+/// (`StoryEpisode.endMs == null`; every episode in `kStoryCatalog` currently
+/// has an explicit `endMs` — each story cuts cleanly at its last ask rather
+/// than rolling into any credits scene, so this fallback sits ready for any
+/// future episode authored without one). Playback itself never needs this: a
+/// null `endMs` already means "play to the natural end" either way (see
+/// `story_play_screen.dart`'s `_controlsRow`, which reads the real duration
+/// live from the video controller instead) — this exists purely so the picker
+/// doesn't have to load every video just to read its length. Keep in sync
+/// with the actual asset if a film is replaced.
 const Map<String, int> kStoryVideoDurationMs = {
   '$kStoryVideoRoot/the_present.mp4': 258000,
-  '$kStoryVideoRoot/watermelon.mp4': 176000,
+  '$kStoryVideoRoot/watermelon.mp4': 164000,
   '$kStoryVideoRoot/pip.mp4': 245000,
 };
 
@@ -333,8 +347,9 @@ List<Emotion> storyOptionsFor(
   String storyId,
   int level,
   int pauseIndex,
-  Emotion answer,
-) {
+  Emotion answer, {
+  List<Emotion> avoid = const [],
+}) {
   // FNV-1a over a stable key: Object.hash/hashCode vary between app runs, and
   // the choices must look the same every single time this pause is seen.
   var seed = 0x811c9dc5;
@@ -343,6 +358,7 @@ List<Emotion> storyOptionsFor(
   }
   final rng = Random(seed);
   final others =
-      kStoryEmotions.where((e) => e != answer).toList()..shuffle(rng);
+      kStoryEmotions.where((e) => e != answer && !avoid.contains(e)).toList()
+        ..shuffle(rng);
   return <Emotion>[answer, ...others.take(2)]..shuffle(rng);
 }

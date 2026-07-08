@@ -172,67 +172,6 @@ final parentChildDetailProvider = StreamProvider<ParentChildDetail?>((
   }
 });
 
-/// Live stream of the signed-in user's own account doc. Unlike
-/// [currentUserProvider] (stable across a session), this re-emits on every
-/// write to the record, so UI can react to the user's own doc changing
-/// mid-session — used for the parent's Progress-tab "new achievement" dot,
-/// which reads the per-child seen-badge marker the shell writes back.
-final currentUserDocProvider = StreamProvider<AppUser?>((ref) {
-  final uid = ref.watch(currentUserProvider)?.uid;
-  if (uid == null) return Stream.value(null);
-  return ref.watch(userRepositoryProvider).watchUser(uid);
-});
-
-/// The reward badges the parent's active child has earned but the parent has not
-/// yet seen (FR9-lite, in-app). Because badges are append-only and monotonic,
-/// the unseen ones are simply the tail of `student.badges` past the count the
-/// parent last acknowledged. Drives both the red count on the Progress tab and
-/// the "your child earned a new badge" popup; acknowledging (closing the popup)
-/// catches the seen count up so this goes empty. Never a fail state — it can
-/// only ever mean "something new to celebrate".
-final parentUnseenBadgesProvider = Provider<List<String>>((ref) {
-  final child = ref.watch(activeStudentProvider).value;
-  final me = ref.watch(currentUserDocProvider).value;
-  if (child == null || me == null) return const [];
-  final seen = (me.seenBadgeCounts[child.id] ?? 0).clamp(
-    0,
-    child.badges.length,
-  );
-  if (child.badges.length <= seen) return const [];
-  return child.badges.sublist(seen);
-});
-
-/// The active child's current personal level (FR11 title ladder) if it is
-/// higher than the level the parent last saw, or null when there is nothing
-/// new. `rewardLevel` only ever goes up (it is derived from monotonic stars),
-/// so "new" is simply "higher than last seen" — mirrors
-/// [parentUnseenBadgesProvider] for the level-up half of the FR9-lite popup.
-/// Levels start at 1 (0 stars), so an unset seen count defaults to 1, never
-/// firing for a brand-new child who hasn't earned a single star yet.
-final parentUnseenLevelProvider = Provider<int?>((ref) {
-  final child = ref.watch(activeStudentProvider).value;
-  final me = ref.watch(currentUserDocProvider).value;
-  if (child == null || me == null) return null;
-  final seen = me.seenLevelCounts[child.id] ?? 1;
-  return child.level > seen ? child.level : null;
-});
-
-/// Emotion journal entries (FR12) the active child has logged that the parent
-/// has not yet seen, newest first. [studentJournalProvider] streams newest
-/// first, so the new ones are simply the leading slice past the count the
-/// parent last acknowledged — mirrors [parentUnseenBadgesProvider] for the
-/// journal half of the FR9-lite popup.
-final parentUnseenJournalProvider = Provider<List<JournalEntry>>((ref) {
-  final child = ref.watch(activeStudentProvider).value;
-  final me = ref.watch(currentUserDocProvider).value;
-  if (child == null || me == null) return const [];
-  final entries = ref.watch(studentJournalProvider(child.id)).value ?? const [];
-  final seen = (me.seenJournalCounts[child.id] ?? 0).clamp(0, entries.length);
-  final unseenCount = entries.length - seen;
-  if (unseenCount <= 0) return const [];
-  return entries.sublist(0, unseenCount);
-});
-
 /// Hydrates [sensorySettingsProvider] when the signed-in student's profile
 /// loads. Must be watched once at app startup (see MoodCraftApp).
 ///

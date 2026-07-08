@@ -1,4 +1,4 @@
-import 'package:flutter/foundation.dart' show kDebugMode;
+import 'package:flutter/foundation.dart' show kDebugMode, kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -38,18 +38,22 @@ class StudentHomeScreen extends ConsumerWidget {
             false);
 
     // (route, accent key, label, icon). Schedule is no longer a tile here — the
-    // "what's next" routine lives in the Now/Next card at the top.
+    // "what's next" routine lives in the Now/Next card at the top. The companion
+    // (FR3) and AR (FR4) are mobile-only, so their tiles are hidden on the web
+    // build (both screens also fall back to a calm "on mobile" placeholder if
+    // reached directly).
     final activities = <(String, String, String, IconData)>[
       ('/student/story', 'story', l.navStories, Icons.menu_book_rounded),
       ('/student/mixmatch', 'mixmatch', l.navMatch, Icons.extension_rounded),
       ('/student/quiz', 'quiz', l.navQuiz, Icons.emoji_objects_rounded),
-      (
-        '/student/companion',
-        'companion',
-        l.navCompanion,
-        Icons.chat_bubble_rounded,
-      ),
-      ('/student/ar', 'ar', l.navAr, Icons.view_in_ar_rounded),
+      if (!kIsWeb)
+        (
+          '/student/companion',
+          'companion',
+          l.navCompanion,
+          Icons.chat_bubble_rounded,
+        ),
+      if (!kIsWeb) ('/student/ar', 'ar', l.navAr, Icons.view_in_ar_rounded),
     ];
 
     return CalmScaffold(

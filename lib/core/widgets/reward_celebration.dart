@@ -207,8 +207,11 @@ class _StarsRow extends StatelessWidget {
     const gold = Color(0xFFE3B23C);
     return Column(
       children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
+        // A Wrap, not a Row: a big payout (e.g. Story's completion stars) has
+        // more icons than fit on one line, and this lets them flow onto a
+        // second line instead of overflowing the celebration card.
+        Wrap(
+          alignment: WrapAlignment.center,
           children: [
             for (var i = 0; i < count; i++)
               const Padding(

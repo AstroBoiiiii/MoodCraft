@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -34,7 +35,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   final _classCode = TextEditingController();
   final _className = TextEditingController();
   final _age = TextEditingController();
-  UserRole _role = UserRole.student;
+  // Web is teacher-only (FR1), so registration there creates a teacher and the
+  // role chooser is hidden. Mobile starts on Student, the most common sign-up.
+  UserRole _role = kIsWeb ? UserRole.teacher : UserRole.student;
   AppLanguage _language = AppLanguage.en;
   bool _busy = false;
   String? _error;
@@ -117,35 +120,39 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Text(
-                    l.chooseRole,
-                    style: Theme.of(context).textTheme.titleMedium,
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: AppSpacing.md),
-                  SegmentedButton<UserRole>(
-                    segments: [
-                      ButtonSegment(
-                        value: UserRole.student,
-                        label: Text(l.roleStudent),
-                        icon: const Icon(Icons.child_care_rounded),
-                      ),
-                      ButtonSegment(
-                        value: UserRole.teacher,
-                        label: Text(l.roleTeacher),
-                        icon: const Icon(Icons.school_rounded),
-                      ),
-                      ButtonSegment(
-                        value: UserRole.parent,
-                        label: Text(l.roleParent),
-                        icon: const Icon(Icons.family_restroom_rounded),
-                      ),
-                    ],
-                    selected: {_role},
-                    onSelectionChanged:
-                        _busy ? null : (s) => setState(() => _role = s.first),
-                  ),
-                  const SizedBox(height: AppSpacing.lg),
+                  // The role chooser is hidden on web, where sign-up is
+                  // teacher-only (FR1); mobile picks between all three roles.
+                  if (!kIsWeb) ...[
+                    Text(
+                      l.chooseRole,
+                      style: Theme.of(context).textTheme.titleMedium,
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: AppSpacing.md),
+                    SegmentedButton<UserRole>(
+                      segments: [
+                        ButtonSegment(
+                          value: UserRole.student,
+                          label: Text(l.roleStudent),
+                          icon: const Icon(Icons.child_care_rounded),
+                        ),
+                        ButtonSegment(
+                          value: UserRole.teacher,
+                          label: Text(l.roleTeacher),
+                          icon: const Icon(Icons.school_rounded),
+                        ),
+                        ButtonSegment(
+                          value: UserRole.parent,
+                          label: Text(l.roleParent),
+                          icon: const Icon(Icons.family_restroom_rounded),
+                        ),
+                      ],
+                      selected: {_role},
+                      onSelectionChanged:
+                          _busy ? null : (s) => setState(() => _role = s.first),
+                    ),
+                    const SizedBox(height: AppSpacing.lg),
+                  ],
                   TextFormField(
                     controller: _name,
                     textCapitalization: TextCapitalization.words,
