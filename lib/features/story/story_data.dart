@@ -2,6 +2,7 @@ import 'dart:math';
 
 import '../../core/constants/app_constants.dart';
 import '../../core/models/enums.dart';
+import '../../core/models/student.dart';
 
 /// One pause-and-ask moment in an episode (FR5). The video pauses at [atMs] and
 /// asks [ask] — the question names who to think about (the boy, the puppy), so
@@ -275,6 +276,54 @@ StoryInfo? storyById(String id) {
   }
   return null;
 }
+
+/// Full length of each bundled film (its raw file duration), used only as a
+/// fallback so the picker can show an accurate length for a story's final
+/// episode when it plays to the file's natural end rather than a hard cut
+/// (`StoryEpisode.endMs == null`, e.g. Watermelon's episode 3). Playback
+/// itself never needs this: a null `endMs` already means "play to the
+/// natural end" either way (see `story_play_screen.dart`'s `_controlsRow`,
+/// which reads the real duration live from the video controller instead) —
+/// this exists purely so the picker doesn't have to load every video just to
+/// read its length. Keep in sync with the actual asset if a film is replaced.
+const Map<String, int> kStoryVideoDurationMs = {
+  '$kStoryVideoRoot/the_present.mp4': 258000,
+  '$kStoryVideoRoot/watermelon.mp4': 176000,
+  '$kStoryVideoRoot/pip.mp4': 245000,
+};
+
+/// The exact length of [episode] as actually shown to the child, i.e. its own
+/// segment of the film (`startMs` to `endMs`) — never the whole raw file's
+/// duration, which for every episode but a story's last is longer than what
+/// plays. Falls back to [kStoryVideoDurationMs] when the episode has no
+/// `endMs` of its own.
+int storyEpisodeDurationMs(StoryEpisode episode) {
+  final end = episode.endMs ?? kStoryVideoDurationMs[episode.videoAsset] ?? 0;
+  return (end - episode.startMs).clamp(0, 1 << 31);
+}
+
+/// A story's total watch time: the sum of its episodes' shown durations (not
+/// the raw file length, which may run past where the last episode ends).
+int storyTotalDurationMs(StoryInfo story) =>
+    story.episodes.fold(0, (sum, e) => sum + storyEpisodeDurationMs(e));
+
+/// Formats a duration in milliseconds as a calm "m:ss" caption (e.g. "1:05"),
+/// rounded to the nearest second — for showing "how long is this" without a
+/// frame-exact number that means nothing to a child or a busy parent/teacher.
+String formatStoryDuration(int ms) {
+  final totalSeconds = (ms / 1000).round();
+  final minutes = totalSeconds ~/ 60;
+  final seconds = totalSeconds % 60;
+  return '$minutes:${seconds.toString().padLeft(2, '0')}';
+}
+
+/// Whether [student] has finished every episode of every story (FR5/FR11). This
+/// is the "all done" check that earns the completed badge: for each story in the
+/// catalogue, its saved progress reports all its episodes done.
+bool storyAllComplete(Student student) => kStoryCatalog.every((story) {
+  final done = student.storyProgress[story.id]?.levelsDone ?? 0;
+  return done >= story.episodes.length;
+});
 
 /// The three feeling choices for one pause: the answer plus two distractors.
 /// Deterministically seeded by (story, episode, pause) so the same pause always

@@ -14,6 +14,7 @@ import '../../core/widgets/initial_avatar.dart';
 import '../../core/widgets/placeholder_screen.dart';
 import '../../core/widgets/section_card.dart';
 import '../../core/widgets/sensory_settings_sheet.dart';
+import '../../core/widgets/weekly_content_banner.dart';
 import '../mix_match/mix_match_screen.dart';
 import '../quiz/quiz_home_screen.dart';
 import '../story/story_home_screen.dart';
@@ -70,6 +71,7 @@ class TeacherProfilesScreen extends StatelessWidget {
                         ),
                       ),
                     ),
+                    const WeeklyContentBanner(),
                     MixMatchTypeGrid(
                       onPick:
                           (type) => context.push(

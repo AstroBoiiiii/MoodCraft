@@ -54,6 +54,15 @@ class FirestoreUserRepository implements UserRepository {
   }
 
   @override
+  Stream<AppUser?> watchUser(String uid) =>
+      _col.doc(uid).snapshots().map((doc) {
+        if (!doc.exists) return null;
+        final data = Map<String, dynamic>.from(doc.data()!);
+        data['uid'] = doc.id;
+        return AppUser.fromJson(data);
+      });
+
+  @override
   Future<void> upsert(AppUser user) {
     final json = Map<String, dynamic>.from(user.toJson())..remove('uid');
     return _col.doc(user.uid).set(json, SetOptions(merge: true));

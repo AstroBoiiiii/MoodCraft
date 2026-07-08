@@ -24,3 +24,14 @@ DateTime dateTimeFromJson(Object? value) {
 /// Cast a dynamic JSON value to a typed `List<String>` defensively.
 List<String> stringListFromJson(Object? value) =>
     value is List ? value.map((e) => e.toString()).toList() : const [];
+
+/// Cast a dynamic JSON value to a typed `Map<String, int>` defensively,
+/// skipping any entry whose value is not a number.
+Map<String, int> intMapFromJson(Object? value) {
+  if (value is! Map) return const {};
+  final out = <String, int>{};
+  value.forEach((k, v) {
+    if (v is num) out[k.toString()] = v.toInt();
+  });
+  return out;
+}

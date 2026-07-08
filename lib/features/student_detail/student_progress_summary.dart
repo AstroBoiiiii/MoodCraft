@@ -33,6 +33,14 @@ class StudentProgressSummary extends ConsumerWidget {
     final theme = Theme.of(context);
     final earned = student.badges.toSet();
     final badgeCount = kRewardBadges.where((b) => earned.contains(b.id)).length;
+    // Which of the five feelings the child has met, read straight from their
+    // sessions (not a badge) so it stays an honest teacher/parent insight even
+    // now that rewards are about finishing activities rather than feelings.
+    final sessionsAsync = ref.watch(_recentSessionsProvider(student.id));
+    final practiced = <Emotion>{
+      for (final s in sessionsAsync.value ?? const <Session>[])
+        ...s.emotionsShown,
+    };
 
     return SectionCard(
       title: l.progressTitle,
@@ -64,34 +72,32 @@ class StudentProgressSummary extends ConsumerWidget {
           const SizedBox(height: AppSpacing.lg),
           Text(l.progressFeelingsTitle, style: theme.textTheme.titleSmall),
           const SizedBox(height: AppSpacing.sm),
-          _FeelingsRow(earned: earned),
+          _FeelingsRow(practiced: practiced),
           const SizedBox(height: AppSpacing.lg),
           Text(l.progressRecentTitle, style: theme.textTheme.titleSmall),
           const SizedBox(height: AppSpacing.sm),
-          ref
-              .watch(_recentSessionsProvider(student.id))
-              .when(
-                loading:
-                    () => const Padding(
-                      padding: EdgeInsets.all(AppSpacing.md),
-                      child: Center(
-                        child: SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        ),
-                      ),
+          sessionsAsync.when(
+            loading:
+                () => const Padding(
+                  padding: EdgeInsets.all(AppSpacing.md),
+                  child: Center(
+                    child: SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2),
                     ),
-                error: (_, __) => _emptyRecent(context, l),
-                data: (sessions) {
-                  if (sessions.isEmpty) return _emptyRecent(context, l);
-                  return Column(
-                    children: [
-                      for (final s in sessions.take(4)) _RecentRow(session: s),
-                    ],
-                  );
-                },
-              ),
+                  ),
+                ),
+            error: (_, __) => _emptyRecent(context, l),
+            data: (sessions) {
+              if (sessions.isEmpty) return _emptyRecent(context, l);
+              return Column(
+                children: [
+                  for (final s in sessions.take(4)) _RecentRow(session: s),
+                ],
+              );
+            },
+          ),
         ],
       ),
     );
@@ -160,12 +166,13 @@ class _Stat extends StatelessWidget {
   }
 }
 
-/// The five feelings, each drawn in its colour once the child has practiced it
-/// (earned its feeling badge) and greyed until then — a quick read of coverage.
+/// The five feelings, each drawn in its colour once the child has met it in an
+/// activity (it turned up in one of their sessions) and greyed until then — a
+/// quick read of coverage.
 class _FeelingsRow extends StatelessWidget {
-  const _FeelingsRow({required this.earned});
+  const _FeelingsRow({required this.practiced});
 
-  final Set<String> earned;
+  final Set<Emotion> practiced;
 
   @override
   Widget build(BuildContext context) {
@@ -173,13 +180,13 @@ class _FeelingsRow extends StatelessWidget {
     final muted = theme.colorScheme.onSurfaceVariant;
     return Row(
       children: [
-        for (final entry in kFeelingBadgeId.entries)
+        for (final feeling in kRewardFeelings)
           Padding(
             padding: const EdgeInsets.only(right: AppSpacing.sm),
             child: Builder(
               builder: (context) {
-                final on = earned.contains(entry.value);
-                final color = on ? kEmotionColor[entry.key]! : muted;
+                final on = practiced.contains(feeling);
+                final color = on ? kEmotionColor[feeling]! : muted;
                 return Container(
                   width: 40,
                   height: 40,
@@ -187,7 +194,7 @@ class _FeelingsRow extends StatelessWidget {
                     color: color.withValues(alpha: on ? 0.18 : 0.08),
                     shape: BoxShape.circle,
                   ),
-                  child: Icon(kEmotionIcon[entry.key], size: 24, color: color),
+                  child: Icon(kEmotionIcon[feeling], size: 24, color: color),
                 );
               },
             ),

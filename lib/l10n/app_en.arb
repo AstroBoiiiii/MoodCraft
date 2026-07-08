@@ -176,6 +176,8 @@
   "taskNeedStudent": "Pick at least one student",
   "taskNoStudentsInClass": "No students in your class yet",
   "todoHeading": "Things to do",
+  "todoNewTaskBanner": "Your teacher added something new!",
+  "todoNewTaskGotIt": "Got it",
   "todoAllDone": "All done. Great work!",
   "messageParent": "Message",
   "ageLabel": "Age",
@@ -269,6 +271,77 @@
       "total": { "type": "int" }
     }
   },
+  "rewardBadgeAllStories": "All Stories",
+  "rewardBadgeAllMatched": "All Matched",
+  "rewardBadgeAllQuizzes": "All Quizzes",
+  "rewardBadgeAllFeelings": "All Feelings",
+  "rewardProgressTitle": "Keep going",
+  "rewardProgressCount": "{done} of {total}",
+  "@rewardProgressCount": {
+    "placeholders": {
+      "done": { "type": "int" },
+      "total": { "type": "int" }
+    }
+  },
+  "rewardActivityDone": "All done!",
+  "rewardTopBadgeTitle": "The Grand Badge",
+  "rewardGrandBadgeHint": "Unlock all four badges to earn this mythical badge",
+  "rewardAllBadges": "You got them all!",
+  "rewardLevelLabel": "Level {level}",
+  "@rewardLevelLabel": {
+    "placeholders": {
+      "level": { "type": "int" }
+    }
+  },
+  "rewardStarsToNext": "{count} more stars to level up",
+  "@rewardStarsToNext": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "rewardTopLevel": "Top level reached!",
+  "rewardNewTitle": "New title!",
+  "rewardTitle1": "Sprout",
+  "rewardTitle2": "Buddy",
+  "rewardTitle3": "Explorer",
+  "rewardTitle4": "Helper",
+  "rewardTitle5": "Guide",
+  "rewardTitle6": "Hero",
+  "rewardTitle7": "Champion",
+  "rewardTitle8": "Legend",
+  "parentNewBadgeTitle": "{name} earned {count, plural, =1{a new badge} other{{count} new badges}}!",
+  "@parentNewBadgeTitle": {
+    "placeholders": {
+      "name": { "type": "String" },
+      "count": { "type": "int" }
+    }
+  },
+  "parentNewBadgeDismiss": "Lovely!",
+  "parentNewLevelTitle": "{name} reached a new level!",
+  "@parentNewLevelTitle": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "parentNewAchievementTitle": "Wonderful news about {name}!",
+  "@parentNewAchievementTitle": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "parentNewLevelCaption": "New title",
+  "parentNewJournalTitle": "{name} logged a feeling",
+  "@parentNewJournalTitle": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "parentNewJournalExtra": "{count, plural, =1{and 1 more since you last checked} other{and {count} more since you last checked}}",
+  "@parentNewJournalExtra": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
   "progressTitle": "Progress",
   "progressStarsCaption": "Stars",
   "progressBadgesCaption": "Badges",
@@ -279,7 +352,8 @@
   "companionGreeting": "Hello! I am Momo. We can learn about feelings together.",
   "companionPickFeeling": "Which feeling shall we learn?",
   "companionNext": "Next",
-  "companionLessonDone": "Well done! Now you know this feeling. You can tell me your answer, or pick another feeling when you are ready.",
+  "companionLessonDone": "Well done! Now you know all about this feeling. Thank you for telling me.",
+  "companionAwaitingAnswerHint": "Tell me in the box below, or tap the microphone.",
   "companionThinking": "Let me think.",
   "companionRestLine": "My chat is having a little rest. Let's learn a feeling together instead.",
   "companionInputHint": "Ask me about a feeling",
@@ -343,5 +417,15 @@
   "quizMuteVoice": "Turn off the voice",
   "quizUnmuteVoice": "Turn on the voice",
   "storyVideoUnavailable": "This story is getting ready. Please try another one.",
-  "storyClassroomHint": "Play a story episode on the class screen."
+  "storyClassroomHint": "Play a story episode on the class screen.",
+  "weeklyContentThisWeek": "This week's content",
+  "weeklyContentPastWeeks": "Past weeks",
+  "weeklyContentNoneYetTitle": "No past weeks yet",
+  "weeklyContentNoneYetBody": "This is the first week. New content arrives every week, so check back soon!",
+  "weeklyContentWeekLabel": "Week {n}",
+  "@weeklyContentWeekLabel": {
+    "placeholders": {
+      "n": { "type": "int" }
+    }
+  }
 }

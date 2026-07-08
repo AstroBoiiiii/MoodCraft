@@ -10,6 +10,7 @@ import '../../core/models/mix_match_round.dart';
 import '../../core/providers/repository_providers.dart';
 import '../../core/widgets/calm_scaffold.dart';
 import '../../core/widgets/sensory_settings_sheet.dart' show accountActions;
+import '../../core/widgets/weekly_content_banner.dart';
 
 /// Arguments for the Mix-and-Match play route. [studentId] null = teacher
 /// classroom/projection mode (no session, no count bump).
@@ -39,6 +40,7 @@ class MixMatchHomeScreen extends ConsumerWidget {
             children: [
               Text(l.mixMatchIntro, style: theme.textTheme.titleMedium),
               const SizedBox(height: AppSpacing.md),
+              const WeeklyContentBanner(),
               _OverallProgress(rounds: student?.mixMatchRounds ?? const {}),
               const SizedBox(height: AppSpacing.md),
               MixMatchTypeGrid(

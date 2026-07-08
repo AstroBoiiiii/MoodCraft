@@ -13,6 +13,11 @@ import '../../models/visual_schedule.dart';
 abstract interface class UserRepository {
   Future<AppUser?> getUser(String uid);
   Future<List<AppUser>> getUsersFor(List<String> uids);
+
+  /// Live stream of a single account record. Used where the UI must react to
+  /// the user's own doc changing mid-session (e.g. the parent's Progress-tab
+  /// "seen badges" marker), which [currentUserProvider] deliberately does not.
+  Stream<AppUser?> watchUser(String uid);
   Future<void> upsert(AppUser user);
 }
 

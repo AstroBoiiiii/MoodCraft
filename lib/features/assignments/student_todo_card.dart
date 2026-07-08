@@ -5,8 +5,10 @@ import 'package:moodcraft/l10n/app_localizations.dart';
 
 import '../../app/theme/tokens.dart';
 import '../../core/constants/app_constants.dart';
+import '../../core/models/assignment.dart';
 import '../../core/models/enums.dart';
 import '../../core/models/session.dart';
+import '../../core/providers/repository_providers.dart';
 import '../../core/widgets/section_card.dart';
 import 'assignment_providers.dart';
 import 'assignment_ui.dart';
@@ -16,6 +18,12 @@ import 'assignment_ui.dart';
 /// handed, and offers each as a big tap target that launches the activity. When
 /// the child finishes one (records a session), it drops off on its own. The card
 /// hides itself entirely when there is nothing left to do, so it never nags.
+///
+/// When the teacher hands out a task the child has not seen yet, a calm inline
+/// banner announces it ("New task from your teacher!") — never a startling
+/// popup, matching design principle 2. Tapping "Got it" dismisses it and
+/// acknowledges every task handed out so far (`AppUser.seenTaskAt`), so it
+/// only ever announces what is actually new.
 class StudentTodoCard extends ConsumerWidget {
   const StudentTodoCard({required this.studentId, super.key});
 
@@ -49,6 +57,8 @@ class StudentTodoCard extends ConsumerWidget {
     final ordered = kAssignableActivities.where(pending.contains).toList();
     if (ordered.isEmpty) return const SizedBox.shrink();
 
+    final unseen = ref.watch(studentUnseenTasksProvider(studentId));
+
     return Padding(
       padding: const EdgeInsets.only(bottom: AppSpacing.lg),
       child: SectionCard(
@@ -56,6 +66,10 @@ class StudentTodoCard extends ConsumerWidget {
         icon: Icons.checklist_rounded,
         child: Column(
           children: [
+            if (unseen.isNotEmpty) ...[
+              _NewTaskBanner(onDismiss: () => _acknowledge(ref, tasks)),
+              const SizedBox(height: AppSpacing.sm),
+            ],
             for (final a in ordered)
               _TodoTile(
                 activity: a,
@@ -63,6 +77,63 @@ class StudentTodoCard extends ConsumerWidget {
               ),
           ],
         ),
+      ),
+    );
+  }
+
+  /// Marks every task handed out so far as seen (the newest `createdAt` among
+  /// them), clearing the banner. Best-effort: if the write fails the banner
+  /// simply shows again next time, never blocking the child.
+  Future<void> _acknowledge(WidgetRef ref, List<Assignment> tasks) async {
+    final me = ref.read(currentUserDocProvider).value;
+    if (me == null) return;
+    final newestMs = tasks
+        .map((t) => t.createdAt.millisecondsSinceEpoch)
+        .reduce((a, b) => a > b ? a : b);
+    try {
+      await ref
+          .read(userRepositoryProvider)
+          .upsert(
+            me.copyWith(seenTaskAt: {...me.seenTaskAt, studentId: newestMs}),
+          );
+    } catch (_) {
+      // Best-effort — see doc comment above.
+    }
+  }
+}
+
+/// The calm "something new from your teacher" banner: an inline row (never a
+/// popup) with a friendly icon, a short line, and a "Got it" tap to dismiss.
+class _NewTaskBanner extends StatelessWidget {
+  const _NewTaskBanner({required this.onDismiss});
+
+  final VoidCallback onDismiss;
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
+    final theme = Theme.of(context);
+    final accent = activityAccent('rewards');
+    return Container(
+      padding: const EdgeInsets.all(AppSpacing.md),
+      decoration: BoxDecoration(
+        color: accent.withValues(alpha: 0.14),
+        borderRadius: BorderRadius.circular(AppRadii.md),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.notifications_active_rounded, color: accent),
+          const SizedBox(width: AppSpacing.sm),
+          Expanded(
+            child: Text(
+              l.todoNewTaskBanner,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+          TextButton(onPressed: onDismiss, child: Text(l.todoNewTaskGotIt)),
+        ],
       ),
     );
   }

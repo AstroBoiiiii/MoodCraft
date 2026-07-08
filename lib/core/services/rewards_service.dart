@@ -10,12 +10,23 @@ import 'data/repositories.dart';
 /// [RewardOutcome.none] means nothing was granted (e.g. an offline read failed),
 /// and the completion screen simply shows its warm "all done" with no stars.
 class RewardOutcome {
-  const RewardOutcome({this.starsEarned = 0, this.newBadges = const []});
+  const RewardOutcome({
+    this.starsEarned = 0,
+    this.newBadges = const [],
+    this.level = 1,
+    this.leveledUp = false,
+  });
 
   final int starsEarned;
 
   /// Badge ids newly earned this round (already excludes any earned before).
   final List<String> newBadges;
+
+  /// The child's personal level after this round, and whether this round is the
+  /// one that lifted them to it (crossed a 10-star boundary) — the celebration
+  /// reveals the new title when [leveledUp] is true.
+  final int level;
+  final bool leveledUp;
 
   static const none = RewardOutcome();
 
@@ -27,24 +38,37 @@ class RewardOutcome {
 /// earn a star" rule lives in exactly one spot.
 ///
 /// Rewards are **participation-based**: finishing a round always grants
-/// [kStarsPerRound], never anything less, whatever the child answered — there is
-/// no way to lose a star, so a reward can never turn into a fail state (design
-/// principle 1). Accuracy is still visible to the teacher separately via
-/// `Session.correctCount`/`retries`.
+/// [kStarsPerRound], whatever the child answered — there is no way to lose a
+/// star, so a reward can never turn into a fail state (design principle 1).
+/// Story Mode is the one exception, trading per-episode stars for one bigger
+/// [kStoryCompletionStars] payout on finishing the whole story. Accuracy is
+/// still visible to the teacher separately via `Session.correctCount`/`retries`.
+///
+/// Badges focus purely on **finishing** (FR11): there is no reward for one round.
+/// Each activity has a single badge, earned only when the child has worked all
+/// the way through it. Every round still fills a progress bar (shown on the
+/// child's Rewards wall) toward that badge. The caller owns the "is the whole
+/// thing done" check for its activity and passes it as [activityCompleted], since
+/// only the feature knows what "all of it" means.
 class RewardsService {
   RewardsService(this._students);
 
   final StudentRepository _students;
 
-  /// Grants [kStarsPerRound] and any newly-qualified badges for a finished
-  /// round: the activity's badge (first completion of that activity) and a
-  /// feeling badge for each of [emotionsShown] not yet earned. Best-effort — any
-  /// read/write failure returns [RewardOutcome.none] and never blocks the
-  /// child's completion moment (the Firestore cache syncs the write later, FR14).
+  /// Grants [stars] (defaults to [kStarsPerRound]) for finishing a round and,
+  /// when [activityCompleted] is true, the activity's completion badge (the
+  /// first time it is fully done). Story Mode overrides [stars] to 0 for a
+  /// mid-story episode and [kStoryCompletionStars] for the episode that
+  /// finishes a whole story, instead of taking one per episode. A round that
+  /// does not finish the whole activity earns stars (if any) but no badge — it
+  /// only moves the progress bar. Best-effort: any read/write failure returns
+  /// [RewardOutcome.none] and never blocks the child's completion moment (the
+  /// Firestore cache syncs the write later, FR14).
   Future<RewardOutcome> awardForSession({
     required String studentId,
     required ActivityType activity,
-    required List<Emotion> emotionsShown,
+    bool activityCompleted = false,
+    int stars = kStarsPerRound,
   }) async {
     try {
       final student = await _students.getStudent(studentId);
@@ -53,31 +77,30 @@ class RewardsService {
       final earned = <String>{...student.badges};
       final newBadges = <String>[];
 
-      final activityBadge = kActivityBadgeId[activity];
-      if (activityBadge != null && earned.add(activityBadge)) {
-        newBadges.add(activityBadge);
-      }
-      for (final emotion in emotionsShown) {
-        final feelingBadge = kFeelingBadgeId[emotion];
-        if (feelingBadge != null && earned.add(feelingBadge)) {
-          newBadges.add(feelingBadge);
+      if (activityCompleted) {
+        final badge = kActivityBadgeId[activity];
+        if (badge != null && earned.add(badge)) {
+          newBadges.add(badge);
         }
       }
 
-      final newStars = student.stars + kStarsPerRound;
+      final newStars = student.stars + stars;
+      final oldLevel = rewardLevel(student.stars);
+      final newLevel = rewardLevel(newStars);
       // Keep prior order stable, just append the new ones (the wall orders
       // itself from kRewardBadges, so stored order is only for deterministic
       // round-trips).
       final badges = [...student.badges, ...newBadges];
 
       await _students.upsert(
-        student.copyWith(
-          stars: newStars,
-          level: rewardLevel(newStars),
-          badges: badges,
-        ),
+        student.copyWith(stars: newStars, level: newLevel, badges: badges),
       );
-      return RewardOutcome(starsEarned: kStarsPerRound, newBadges: newBadges);
+      return RewardOutcome(
+        starsEarned: stars,
+        newBadges: newBadges,
+        level: newLevel,
+        leveledUp: newLevel > oldLevel,
+      );
     } catch (_) {
       return RewardOutcome.none;
     }

@@ -3,6 +3,7 @@ import 'package:moodcraft/l10n/app_localizations.dart';
 
 import '../../app/theme/tokens.dart';
 import '../../core/constants/app_constants.dart';
+import '../../core/widgets/weekly_content_banner.dart';
 
 /// Which daily quiz set a [date] maps to (0..[kQuizSetCount]). Uses the real
 /// calendar day so the quiz rotates day to day; three consecutive days (today /
@@ -53,6 +54,7 @@ class QuizDayPicker extends StatelessWidget {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
+        const WeeklyContentBanner(),
         for (final (label, date) in days) ...[
           _DayCard(
             label: label,

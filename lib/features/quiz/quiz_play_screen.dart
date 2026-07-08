@@ -179,6 +179,10 @@ class _QuizPlayScreenState extends ConsumerState<QuizPlayScreen> {
     if (_saved || widget.studentId == null) return;
     _saved = true;
     final deck = _deck!;
+    // The final answer's round save is fire-and-forget (it runs while feedback
+    // shows), so land this set's completion before the reads below so the
+    // "all three sets done" badge check sees it (and never clobbers it).
+    await _saveRound(deck.length);
     final session = Session(
       id: const Uuid().v4(),
       studentId: widget.studentId!,
@@ -195,6 +199,12 @@ class _QuizPlayScreenState extends ConsumerState<QuizPlayScreen> {
     } catch (_) {
       // Offline/transient — Firestore cache will sync later (FR14).
     }
+    // A fresh read sees every daily set's progress: check whether this set was
+    // the one that finished all three, which earns the completed badge (FR11).
+    final student = await ref
+        .read(studentRepositoryProvider)
+        .getStudent(widget.studentId!);
+    final allDone = student != null && quizAllComplete(student);
     // Grant participation stars + any new badges (FR11) and reveal them on the
     // done screen. Best-effort: a failed award just shows a calm "all done".
     final outcome = await ref
@@ -202,7 +212,7 @@ class _QuizPlayScreenState extends ConsumerState<QuizPlayScreen> {
         .awardForSession(
           studentId: widget.studentId!,
           activity: ActivityType.quiz,
-          emotionsShown: deck.map((q) => q.answer).toList(),
+          activityCompleted: allDone,
         );
     if (mounted) setState(() => _outcome = outcome);
   }

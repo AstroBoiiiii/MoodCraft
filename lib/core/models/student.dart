@@ -21,6 +21,7 @@ class Student {
     this.mixMatchRounds = const {},
     this.quizRounds = const {},
     this.storyProgress = const {},
+    this.companionLessonsDone = const [],
   });
 
   final String id;
@@ -37,9 +38,10 @@ class Student {
   final int level;
   final int stars;
 
-  /// Reward badge ids earned so far (FR11), e.g. `act_story`, `feel_happy`.
-  /// Granted once each and never removed. The display order comes from the fixed
-  /// `kRewardBadges` taxonomy, so the stored order here does not matter.
+  /// Reward badge ids earned so far (FR11), e.g. `all_story` (finished the whole
+  /// Story activity). One badge per activity, earned only on full completion,
+  /// granted once and never removed. The display order comes from `kRewardBadges`
+  /// taxonomy, so the stored order here does not matter.
   final List<String> badges;
 
   /// Per card-type saved Mix-and-Match rounds (FR6): `MixMatchType.name` →
@@ -58,6 +60,12 @@ class Student {
   /// episodes unlock in order and play resumes where the child left off.
   final Map<String, StoryProgress> storyProgress;
 
+  /// Emotion names (`Emotion.name`) of the companion feeling lessons the child
+  /// has finished (FR3/FR11). The companion has no per-question resume like the
+  /// other activities, so this small set is what tracks "how far through the
+  /// five lessons" for its completed badge and the child's progress.
+  final List<String> companionLessonsDone;
+
   Student copyWith({
     String? id,
     String? name,
@@ -72,6 +80,7 @@ class Student {
     Map<String, MixMatchRound>? mixMatchRounds,
     Map<String, QuizRound>? quizRounds,
     Map<String, StoryProgress>? storyProgress,
+    List<String>? companionLessonsDone,
   }) {
     return Student(
       id: id ?? this.id,
@@ -87,6 +96,7 @@ class Student {
       mixMatchRounds: mixMatchRounds ?? this.mixMatchRounds,
       quizRounds: quizRounds ?? this.quizRounds,
       storyProgress: storyProgress ?? this.storyProgress,
+      companionLessonsDone: companionLessonsDone ?? this.companionLessonsDone,
     );
   }
 
@@ -104,6 +114,7 @@ class Student {
     'mixMatchRounds': mixMatchRounds.map((k, v) => MapEntry(k, v.toJson())),
     'quizRounds': quizRounds.map((k, v) => MapEntry(k, v.toJson())),
     'storyProgress': storyProgress.map((k, v) => MapEntry(k, v.toJson())),
+    'companionLessonsDone': companionLessonsDone,
   };
 
   factory Student.fromJson(Map<String, dynamic> json) => Student(
@@ -122,5 +133,6 @@ class Student {
     mixMatchRounds: mixMatchRoundsFromJson(json['mixMatchRounds']),
     quizRounds: quizRoundsFromJson(json['quizRounds']),
     storyProgress: storyProgressFromJson(json['storyProgress']),
+    companionLessonsDone: stringListFromJson(json['companionLessonsDone']),
   );
 }

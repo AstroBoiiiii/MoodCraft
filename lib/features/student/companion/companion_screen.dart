@@ -63,6 +63,13 @@ class _CompanionScreenState extends ConsumerState<CompanionScreen> {
   DateTime _lessonStartedAt = DateTime.now();
   bool _savingLesson = false;
 
+  // Set once a lesson's last line (which always closes with a question, e.g.
+  // "What makes you happy?") has been shown: the walkthrough is over but the
+  // lesson is not finished yet — the child must answer through the chat input
+  // first, a real turn in the conversation rather than a "Next" tap they could
+  // skip past. Null = not waiting on an answer.
+  Emotion? _awaitingLessonAnswer;
+
   // Teaching round (the FR3 loop): the avatar demonstrates a feeling and asks;
   // the child answers by tapping one of three choices or by talking; the brain
   // judges gently; a right answer ends the round and logs it.
@@ -158,6 +165,7 @@ class _CompanionScreenState extends ConsumerState<CompanionScreen> {
       _lessonStartedAt = DateTime.now();
       _childSaid = null;
       _roundTarget = null;
+      _awaitingLessonAnswer = null;
       _chatDemonstrate = false;
     });
     _say(line.text, line.expression, focusFace: line.focusFace);
@@ -191,6 +199,7 @@ class _CompanionScreenState extends ConsumerState<CompanionScreen> {
       _roundMisses = 0;
       _roundAnswers.clear();
       _roundStartedAt = DateTime.now();
+      _awaitingLessonAnswer = null;
       _chatDemonstrate = false;
     });
     // The demonstrate beat: expression push makes the avatar act the feeling
@@ -269,13 +278,17 @@ class _CompanionScreenState extends ConsumerState<CompanionScreen> {
           );
       // FR11: grant participation stars + any new badges. No inline popup on the
       // companion — the avatar's spoken praise is the celebration here; the
-      // stars show on the Rewards tab and the progress card.
+      // stars show on the Rewards tab and the progress card. The guessing game
+      // doesn't advance the five lessons, so completion follows whatever the
+      // child has already finished.
       await ref
           .read(rewardsServiceProvider)
           .awardForSession(
             studentId: student.id,
             activity: ActivityType.companion,
-            emotionsShown: [target],
+            activityCompleted: companionAllComplete(
+              student.companionLessonsDone,
+            ),
           );
     } catch (_) {
       // The log is for the teacher; it never blocks the child.
@@ -291,10 +304,43 @@ class _CompanionScreenState extends ConsumerState<CompanionScreen> {
       setState(() => _lessonStep++);
       _say(line.text, line.expression, focusFace: line.focusFace);
     } else {
-      _recordLesson(emotion);
-      setState(() => _lessonEmotion = null);
+      // The last line already asked the child a question (e.g. "What makes
+      // you happy?"). Wait for their own typed or spoken answer instead of
+      // finishing right away — see _answerLessonQuestion.
+      setState(() {
+        _lessonEmotion = null;
+        _awaitingLessonAnswer = emotion;
+      });
+    }
+  }
+
+  /// Handles the child's answer to a just-finished lesson's closing question.
+  /// Sent to the same safe companion chat as free-form chat (CLAUDE.md section
+  /// 6: the only place a child's words reach Gemini) with context so the reply
+  /// warmly reacts to what they actually said, then records the lesson as done.
+  /// On any chat failure the lesson still closes calmly with the scripted
+  /// "well done" line — answering never leaves the child stuck.
+  Future<void> _answerLessonQuestion(String answer) async {
+    final emotion = _awaitingLessonAnswer;
+    if (emotion == null) return;
+    final question = kCompanionLessons[emotion]!.last.text;
+    final reply = await ref
+        .read(companionChatServiceProvider)
+        .send(
+          'We just finished learning about the feeling "${emotion.name}" '
+          'together. You had asked: "$question" and the child answered: '
+          '"$answer". Warmly celebrate that they have learned all about '
+          '${emotion.name} today, and reply kindly about what they just told '
+          'you.',
+        );
+    if (!mounted) return;
+    if (reply != null) {
+      _say(reply.text, reply.expression, focusFace: reply.zoomFace);
+    } else {
       _say(AppLocalizations.of(context).companionLessonDone, Emotion.happy);
     }
+    setState(() => _awaitingLessonAnswer = null);
+    _recordLesson(emotion);
   }
 
   /// Records the finished lesson for the teacher dashboard (FR8). Best-effort:
@@ -321,14 +367,26 @@ class _CompanionScreenState extends ConsumerState<CompanionScreen> {
               timestamp: DateTime.now(),
             ),
           );
-      // FR11: finishing a lesson also earns participation stars + the feeling
-      // badge (silent here — the companion praises aloud instead of popping up).
+      // Record this feeling's lesson as done, then check whether that completes
+      // all five. The lesson-done save lands *before* the award so the two
+      // writes to the student never clobber each other (the award re-reads it).
+      final done = {...student.companionLessonsDone, emotion.name}.toList();
+      try {
+        await ref
+            .read(studentRepositoryProvider)
+            .upsert(student.copyWith(companionLessonsDone: done));
+      } catch (_) {
+        // Progress tracking is a nicety; the child's moment never depends on it.
+      }
+      // FR11: finishing a lesson earns participation stars (silent here — the
+      // companion praises aloud instead of popping up), plus the companion's
+      // completed badge once all five feeling lessons are done.
       await ref
           .read(rewardsServiceProvider)
           .awardForSession(
             studentId: student.id,
             activity: ActivityType.companion,
-            emotionsShown: [emotion],
+            activityCompleted: companionAllComplete(done),
           );
     } catch (_) {
       // Recording is a nicety, never a blocker for the child.
@@ -371,6 +429,14 @@ class _CompanionScreenState extends ConsumerState<CompanionScreen> {
       // not on a timer; asking anything new lets go of it.
       _focusFace = false;
     });
+
+    // A lesson's closing question is waiting on this exact answer — route it
+    // there instead of the general free-form chat below.
+    if (_awaitingLessonAnswer != null) {
+      await _answerLessonQuestion(text);
+      if (mounted) setState(() => _sending = false);
+      return;
+    }
 
     final reply = await ref.read(companionChatServiceProvider).send(text);
 
@@ -496,12 +562,14 @@ class _CompanionScreenState extends ConsumerState<CompanionScreen> {
                       CompanionStage(
                         expression: _expression,
                         focusFace: _focusFace,
-                        // Lessons, rounds, and a chat reply about a named
-                        // feeling all keep the body-language clip looping so
-                        // the pose never fades out mid-teaching or mid-chat.
+                        // Lessons, rounds, waiting on the lesson's closing
+                        // question, and a chat reply about a named feeling all
+                        // keep the body-language clip looping so the pose
+                        // never fades out mid-teaching or mid-chat.
                         demonstrate:
                             inLesson ||
                             _roundTarget != null ||
+                            _awaitingLessonAnswer != null ||
                             _chatDemonstrate,
                         volume: volume,
                         controller: _stage,
@@ -560,6 +628,12 @@ class _CompanionScreenState extends ConsumerState<CompanionScreen> {
                             onPressed: _judging ? null : _stopRound,
                             child: Text(l.companionStopRound),
                           ),
+                        ),
+                      ] else if (_awaitingLessonAnswer != null) ...[
+                        Text(
+                          l.companionAwaitingAnswerHint,
+                          textAlign: TextAlign.center,
+                          style: theme.textTheme.titleMedium,
                         ),
                       ] else ...[
                         Center(

@@ -3,6 +3,8 @@ import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:moodcraft/l10n/app_localizations.dart';
 import 'package:permission_handler/permission_handler.dart';
 
+import '../../../core/widgets/weekly_content_banner.dart';
+
 /// The bundled WebAR page is served over http://localhost because
 /// getUserMedia needs a secure origin and is blocked from file:// URLs;
 /// localhost qualifies. Cleartext to localhost is allowed by
@@ -80,7 +82,7 @@ class _ArViewState extends State<ArView> with WidgetsBindingObserver {
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
     return Scaffold(
-      appBar: AppBar(title: Text(l.navAr)),
+      appBar: AppBar(title: Text(l.navAr), actions: const [PastWeeksAction()]),
       body: switch (_stage) {
         _ArStage.starting => _CalmNote(
           message: l.arStarting,

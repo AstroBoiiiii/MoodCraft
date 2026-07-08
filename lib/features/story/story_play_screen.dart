@@ -371,14 +371,27 @@ class _StoryPlayScreenState extends ConsumerState<StoryPlayScreen> {
     } catch (_) {
       // Offline/transient — Firestore cache will sync later (FR14).
     }
-    // Grant participation stars + any new badges (FR11) and reveal them on the
-    // end-of-episode screen. Best-effort: a failed award just shows "the end".
+    // The episode-done save above has landed, so a fresh read sees every story's
+    // progress: check whether this episode finished all the stories, which earns
+    // the completed badge (FR11).
+    final student = await ref
+        .read(studentRepositoryProvider)
+        .getStudent(widget.studentId!);
+    final allDone = student != null && storyAllComplete(student);
+    // This episode's own story only pays out once it is the one that finishes
+    // it (the last of its episodes) — a mid-story episode earns no stars, in
+    // place of a small amount every episode (FR11).
+    final storyJustCompleted = _level + 1 == kStoryEpisodeCount;
+    // Grant the story-completion stars + any new badges (FR11) and reveal them
+    // on the end-of-episode screen. Best-effort: a failed award just shows
+    // "the end".
     final outcome = await ref
         .read(rewardsServiceProvider)
         .awardForSession(
           studentId: widget.studentId!,
           activity: ActivityType.story,
-          emotionsShown: pauses.map((p) => p.answer).toList(),
+          activityCompleted: allDone,
+          stars: storyJustCompleted ? kStoryCompletionStars : 0,
         );
     if (mounted) setState(() => _outcome = outcome);
   }

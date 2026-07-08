@@ -5,6 +5,14 @@ import 'package:flutter/services.dart' show AssetManifest, rootBundle;
 import '../../core/constants/app_constants.dart';
 import '../../core/models/enums.dart';
 import '../../core/models/mix_match_round.dart';
+import '../../core/models/student.dart';
+
+/// Whether [student] has finished a full round of every Mix-and-Match card type
+/// (FR6/FR11). This is the "all done" check that earns the completed badge: a
+/// round for each of the four [MixMatchType]s, each with every card placed.
+bool mixMatchAllComplete(Student student) => MixMatchType.values.every(
+  (type) => student.mixMatchRounds[type.name]?.isComplete ?? false,
+);
 
 /// One draggable card in a Mix-and-Match round (FR6). A card belongs to exactly
 /// one [answer] emotion — the child's job is to drag it onto that emotion's

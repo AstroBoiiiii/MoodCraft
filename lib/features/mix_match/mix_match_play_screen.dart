@@ -166,6 +166,13 @@ class _MixMatchPlayScreenState extends ConsumerState<MixMatchPlayScreen> {
       // Offline/transient — Firestore cache will sync later (FR14). The child's
       // calm "all done" moment never depends on the write succeeding.
     }
+    // The round save above has landed, so a fresh read sees every card type's
+    // progress: check whether this round was the one that finished the whole of
+    // Mix-and-Match, which earns the completed badge (FR11).
+    final student = await ref
+        .read(studentRepositoryProvider)
+        .getStudent(studentId);
+    final allDone = student != null && mixMatchAllComplete(student);
     // Grant participation stars + any new badges (FR11), then reveal them on the
     // completion screen. Best-effort: a failed award just shows "all done".
     final outcome = await ref
@@ -173,7 +180,7 @@ class _MixMatchPlayScreenState extends ConsumerState<MixMatchPlayScreen> {
         .awardForSession(
           studentId: studentId,
           activity: ActivityType.mixmatch,
-          emotionsShown: deck.map((c) => c.answer).toList(),
+          activityCompleted: allDone,
         );
     if (mounted) setState(() => _outcome = outcome);
   }

@@ -18,6 +18,15 @@ const List<Emotion> kCompanionEmotions = [
   Emotion.surprised,
 ];
 
+/// Whether the child has finished the companion lesson for every feeling
+/// (FR3/FR11), given the `Emotion.name`s they have completed so far
+/// ([Student.companionLessonsDone]). This is the "all done" check that earns the
+/// companion's completed badge.
+bool companionAllComplete(Iterable<String> lessonsDone) {
+  final done = lessonsDone.toSet();
+  return kCompanionEmotions.every((e) => done.contains(e.name));
+}
+
 /// Words a child might use for each feeling. The teaching brain's offline
 /// fallback (and any local pre-check) accepts these as a correct answer, so a
 /// child saying "mad" for angry is never told otherwise just because the

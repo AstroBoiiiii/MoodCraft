@@ -6,6 +6,15 @@ import '../../core/constants/app_constants.dart';
 import '../../core/models/emotion_content.dart';
 import '../../core/models/enums.dart';
 import '../../core/models/quiz_round.dart';
+import '../../core/models/student.dart';
+
+/// Whether [student] has finished all [kQuizSetCount] daily quiz sets
+/// (FR7/FR11). This is the "all done" check that earns the completed badge: a
+/// finished round saved for every set index.
+bool quizAllComplete(Student student) => List.generate(
+  kQuizSetCount,
+  (i) => student.quizRounds['$i']?.isComplete ?? false,
+).every((done) => done);
 
 /// One quiz question. The child taps one of [options]; [answer] is the right
 /// feeling. There is no score — a right tap shows/speaks [feedback], a wrong tap

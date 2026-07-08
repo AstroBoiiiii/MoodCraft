@@ -52,10 +52,10 @@ void main() {
           RewardCelebration(
             outcome: const RewardOutcome(
               starsEarned: 3,
-              newBadges: ['act_quiz', 'feel_happy'],
+              newBadges: ['all_quiz'],
             ),
             title: 'All done!',
-            body: 'Great feeling spotting.',
+            body: 'You finished the whole quiz.',
             doneLabel: 'Done',
             onDone: () {},
           ),
@@ -66,8 +66,7 @@ void main() {
 
     expect(find.text('You earned 3 stars'), findsOneWidget);
     expect(find.text('New badge!'), findsOneWidget);
-    expect(find.text('Quiz'), findsOneWidget); // act_quiz label
-    expect(find.text('Happy'), findsOneWidget); // feel_happy label
+    expect(find.text('All Quizzes'), findsOneWidget); // all_quiz badge label
     expect(tester.takeException(), isNull);
   });
 
@@ -102,13 +101,14 @@ void main() {
         id: 's1',
         name: 'Adam',
         stars: 9,
-        badges: ['act_quiz', 'feel_happy', 'feel_sad'],
+        badges: ['all_quiz'],
       );
       final sessions = [
         Session(
           id: 'a',
           studentId: 's1',
           activityType: ActivityType.quiz,
+          emotionsShown: const [Emotion.happy, Emotion.sad],
           timestamp: DateTime(2026, 6, 24),
         ),
       ];
@@ -126,7 +126,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('9'), findsOneWidget); // stars total
-      expect(find.text('3/9'), findsOneWidget); // 3 of 9 badges
+      expect(find.text('1/4'), findsOneWidget); // 1 of 4 badges
       expect(find.text('Recent activity'), findsOneWidget);
       expect(find.text('Quiz'), findsOneWidget); // recent session label
       expect(tester.takeException(), isNull);

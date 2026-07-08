@@ -440,6 +440,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get todoHeading => 'Things to do';
 
   @override
+  String get todoNewTaskBanner => 'Your teacher added something new!';
+
+  @override
+  String get todoNewTaskGotIt => 'Got it';
+
+  @override
   String get todoAllDone => 'All done. Great work!';
 
   @override
@@ -656,6 +662,122 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get rewardBadgeAllStories => 'All Stories';
+
+  @override
+  String get rewardBadgeAllMatched => 'All Matched';
+
+  @override
+  String get rewardBadgeAllQuizzes => 'All Quizzes';
+
+  @override
+  String get rewardBadgeAllFeelings => 'All Feelings';
+
+  @override
+  String get rewardProgressTitle => 'Keep going';
+
+  @override
+  String rewardProgressCount(int done, int total) {
+    return '$done of $total';
+  }
+
+  @override
+  String get rewardActivityDone => 'All done!';
+
+  @override
+  String get rewardTopBadgeTitle => 'The Grand Badge';
+
+  @override
+  String get rewardGrandBadgeHint =>
+      'Unlock all four badges to earn this mythical badge';
+
+  @override
+  String get rewardAllBadges => 'You got them all!';
+
+  @override
+  String rewardLevelLabel(int level) {
+    return 'Level $level';
+  }
+
+  @override
+  String rewardStarsToNext(int count) {
+    return '$count more stars to level up';
+  }
+
+  @override
+  String get rewardTopLevel => 'Top level reached!';
+
+  @override
+  String get rewardNewTitle => 'New title!';
+
+  @override
+  String get rewardTitle1 => 'Sprout';
+
+  @override
+  String get rewardTitle2 => 'Buddy';
+
+  @override
+  String get rewardTitle3 => 'Explorer';
+
+  @override
+  String get rewardTitle4 => 'Helper';
+
+  @override
+  String get rewardTitle5 => 'Guide';
+
+  @override
+  String get rewardTitle6 => 'Hero';
+
+  @override
+  String get rewardTitle7 => 'Champion';
+
+  @override
+  String get rewardTitle8 => 'Legend';
+
+  @override
+  String parentNewBadgeTitle(String name, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count new badges',
+      one: 'a new badge',
+    );
+    return '$name earned $_temp0!';
+  }
+
+  @override
+  String get parentNewBadgeDismiss => 'Lovely!';
+
+  @override
+  String parentNewLevelTitle(String name) {
+    return '$name reached a new level!';
+  }
+
+  @override
+  String parentNewAchievementTitle(String name) {
+    return 'Wonderful news about $name!';
+  }
+
+  @override
+  String get parentNewLevelCaption => 'New title';
+
+  @override
+  String parentNewJournalTitle(String name) {
+    return '$name logged a feeling';
+  }
+
+  @override
+  String parentNewJournalExtra(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'and $count more since you last checked',
+      one: 'and 1 more since you last checked',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get progressTitle => 'Progress';
 
   @override
@@ -688,7 +810,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get companionLessonDone =>
-      'Well done! Now you know this feeling. You can tell me your answer, or pick another feeling when you are ready.';
+      'Well done! Now you know all about this feeling. Thank you for telling me.';
+
+  @override
+  String get companionAwaitingAnswerHint =>
+      'Tell me in the box below, or tap the microphone.';
 
   @override
   String get companionThinking => 'Let me think.';
@@ -873,4 +999,22 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get storyClassroomHint => 'Play a story episode on the class screen.';
+
+  @override
+  String get weeklyContentThisWeek => 'This week\'s content';
+
+  @override
+  String get weeklyContentPastWeeks => 'Past weeks';
+
+  @override
+  String get weeklyContentNoneYetTitle => 'No past weeks yet';
+
+  @override
+  String get weeklyContentNoneYetBody =>
+      'This is the first week. New content arrives every week, so check back soon!';
+
+  @override
+  String weeklyContentWeekLabel(int n) {
+    return 'Week $n';
+  }
 }

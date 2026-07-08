@@ -47,7 +47,6 @@ void main() {
       final out = await service.awardForSession(
         studentId: 's1',
         activity: ActivityType.mixmatch,
-        emotionsShown: const [Emotion.happy],
       );
 
       expect(out.starsEarned, kStarsPerRound);
@@ -59,66 +58,89 @@ void main() {
     final repo = _FakeStudents(base);
     final service = RewardsService(repo);
 
-    await service.awardForSession(
-      studentId: 's1',
-      activity: ActivityType.quiz,
-      emotionsShown: const [Emotion.sad],
-    );
-    await service.awardForSession(
-      studentId: 's1',
-      activity: ActivityType.quiz,
-      emotionsShown: const [Emotion.sad],
-    );
+    await service.awardForSession(studentId: 's1', activity: ActivityType.quiz);
+    await service.awardForSession(studentId: 's1', activity: ActivityType.quiz);
 
     final student = (await repo.getStudent('s1'))!;
     expect(student.stars, kStarsPerRound * 2);
     expect(student.level, rewardLevel(kStarsPerRound * 2));
   });
 
-  test('activity + feeling badges are granted, and only once', () async {
+  test(
+    'crossing a 10-star boundary reports a level-up with the new level',
+    () async {
+      // One star short of level 2; the next round tips them over.
+      final repo = _FakeStudents(
+        const Student(id: 's1', name: 'Adam', stars: kStarsPerLevel - 1),
+      );
+      final service = RewardsService(repo);
+
+      final out = await service.awardForSession(
+        studentId: 's1',
+        activity: ActivityType.quiz,
+      );
+      expect(out.leveledUp, isTrue);
+      expect(out.level, 2);
+      expect((await repo.getStudent('s1'))!.level, 2);
+    },
+  );
+
+  test(
+    'a round that stays inside the current level is not a level-up',
+    () async {
+      final repo = _FakeStudents(base); // 0 stars → level 1
+      final service = RewardsService(repo);
+
+      final out = await service.awardForSession(
+        studentId: 's1',
+        activity: ActivityType.quiz,
+      );
+      expect(out.leveledUp, isFalse);
+      expect(out.level, 1);
+    },
+  );
+
+  test('a round that does not finish the activity earns no badge', () async {
     final repo = _FakeStudents(base);
     final service = RewardsService(repo);
 
-    final first = await service.awardForSession(
-      studentId: 's1',
-      activity: ActivityType.story,
-      emotionsShown: const [Emotion.happy, Emotion.sad],
-    );
-    expect(
-      first.newBadges,
-      containsAll(<String>['act_story', 'feel_happy', 'feel_sad']),
-    );
-
-    // Replaying the same activity/feelings earns no duplicate badges.
-    final second = await service.awardForSession(
-      studentId: 's1',
-      activity: ActivityType.story,
-      emotionsShown: const [Emotion.happy, Emotion.sad],
-    );
-    expect(second.newBadges, isEmpty);
-
-    final student = (await repo.getStudent('s1'))!;
-    // No duplicates in the stored list.
-    expect(student.badges.toSet().length, student.badges.length);
-    expect(
-      student.badges,
-      containsAll(<String>['act_story', 'feel_happy', 'feel_sad']),
-    );
-  });
-
-  test('neutral earns no feeling badge', () async {
-    final repo = _FakeStudents(base);
-    final service = RewardsService(repo);
-
+    // Finishing one round (no activityCompleted) fills the progress bar and
+    // grants stars, but is not itself an achievement — no badge.
     final out = await service.awardForSession(
       studentId: 's1',
-      activity: ActivityType.companion,
-      emotionsShown: const [Emotion.neutral],
+      activity: ActivityType.story,
     );
-
-    expect(out.newBadges, ['act_companion']);
-    expect((await repo.getStudent('s1'))!.badges, ['act_companion']);
+    expect(out.starsEarned, kStarsPerRound);
+    expect(out.newBadges, isEmpty);
+    expect((await repo.getStudent('s1'))!.badges, isEmpty);
   });
+
+  test(
+    'the activity badge is granted only when it is fully done, once',
+    () async {
+      final repo = _FakeStudents(base);
+      final service = RewardsService(repo);
+
+      // The finishing round (activityCompleted) earns the one activity badge; a
+      // later completed round adds nothing new.
+      final out = await service.awardForSession(
+        studentId: 's1',
+        activity: ActivityType.mixmatch,
+        activityCompleted: true,
+      );
+      expect(out.newBadges, ['all_mixmatch']);
+
+      final again = await service.awardForSession(
+        studentId: 's1',
+        activity: ActivityType.mixmatch,
+        activityCompleted: true,
+      );
+      expect(again.newBadges, isEmpty);
+
+      final student = (await repo.getStudent('s1'))!;
+      expect(student.badges, ['all_mixmatch']);
+    },
+  );
 
   test(
     'a failed read degrades to a no-op outcome (never blocks the child)',
@@ -129,7 +151,6 @@ void main() {
       final out = await service.awardForSession(
         studentId: 's1',
         activity: ActivityType.mixmatch,
-        emotionsShown: const [Emotion.happy],
       );
 
       expect(out.isEmpty, isTrue);

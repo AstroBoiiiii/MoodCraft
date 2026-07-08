@@ -10,6 +10,7 @@ import '../../core/models/story_progress.dart';
 import '../../core/providers/repository_providers.dart';
 import '../../core/widgets/calm_scaffold.dart';
 import '../../core/widgets/sensory_settings_sheet.dart';
+import '../../core/widgets/weekly_content_banner.dart';
 import 'story_data.dart';
 
 /// FR5 — the student's story picker. Three stories, each a little series of
@@ -95,6 +96,7 @@ class StoryPicker extends StatelessWidget {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
+        const WeeklyContentBanner(),
         for (final story in kStoryCatalog) ...[
           Container(
             decoration: BoxDecoration(
@@ -126,9 +128,17 @@ class StoryPicker extends StatelessWidget {
                     ),
                     const SizedBox(width: AppSpacing.md),
                     Expanded(
-                      child: Text(
-                        story.title,
-                        style: theme.textTheme.titleMedium,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(story.title, style: theme.textTheme.titleMedium),
+                          Text(
+                            formatStoryDuration(storyTotalDurationMs(story)),
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: theme.colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                     if (progressFor != null &&
@@ -152,6 +162,9 @@ class StoryPicker extends StatelessWidget {
                             label: AppLocalizations.of(
                               context,
                             ).storyEpisode(i + 1),
+                            duration: formatStoryDuration(
+                              storyEpisodeDurationMs(story.episodes[i]),
+                            ),
                             state: _stateFor(story, i),
                             accent: accent,
                             onTap: () => onPick(story.id, i),
@@ -187,12 +200,17 @@ enum _EpisodeState { done, open, waiting }
 class _EpisodeChip extends StatelessWidget {
   const _EpisodeChip({
     required this.label,
+    required this.duration,
     required this.state,
     required this.accent,
     required this.onTap,
   });
 
   final String label;
+
+  /// This episode's own shown length ("m:ss"), e.g. "0:53" — its segment of
+  /// the film, never the whole raw video's length.
+  final String duration;
   final _EpisodeState state;
   final Color accent;
   final VoidCallback onTap;
@@ -233,6 +251,14 @@ class _EpisodeChip extends StatelessWidget {
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: theme.textTheme.labelLarge,
+              ),
+              Text(
+                duration,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: theme.textTheme.labelSmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
               ),
             ],
           ),

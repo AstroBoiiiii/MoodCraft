@@ -400,95 +400,125 @@ Color activityAccent(String key) =>
 
 // ── Rewards (FR11) ───────────────────────────────────────────────────────────
 
-/// Stars granted for finishing one activity round. Participation-based, never
-/// tied to correctness, and monotonic: a child only ever gains stars, so a
-/// reward can never become a fail state (design principle 1). Kept small and
-/// constant so every activity is worth the same, predictable amount.
-const int kStarsPerRound = 3;
+/// Stars granted for finishing one activity round: **one action, two stars**
+/// (a Mix-and-Match card type, a quiz set, a feeling lesson). Participation
+/// based, never tied to correctness, and monotonic: a child only ever gains
+/// stars, so a reward can never become a fail state (design principle 1).
+/// Story mode is the one exception: a single episode earns no stars of its
+/// own (see [kStoryCompletionStars]) since the reward there is tied to
+/// finishing the whole cartoon, not one episode.
+const int kStarsPerRound = 2;
 
-/// Stars per personal "growth" level. Purely personal, never compared between
-/// children.
-const int kStarsPerLevel = 20;
+/// Stars granted when a child finishes one whole story (one "cartoon", all its
+/// episodes) in Story Mode, in place of [kStarsPerRound] per episode. A single
+/// video is a longer commitment than one Mix-and-Match/quiz/companion round, so
+/// it pays off as one bigger moment at the end rather than a trickle per
+/// episode. Awarded by `story_play_screen.dart`'s `_finish` on whichever
+/// episode completes that story (its final episode), independent of the
+/// separate "every story done" completion badge.
+const int kStoryCompletionStars = 10;
 
-/// A gentle, personal level derived from [stars] — it only ever ticks up. Keeps
-/// the stored `Student.level` consistent so the existing profile chip
-/// (`levelStars`) stays right, with no separate UI for the child.
+/// Stars per personal "growth" level: every 10 stars lifts the child to the next
+/// level and its title (giving the stars a warm purpose). Purely personal, never
+/// compared between children. Kept low on purpose so levelling stays frequent
+/// and exciting rather than a long grind: a couple of Mix-and-Match/quiz/
+/// companion rounds (2 stars each), or one finished story (a 10-star jump), is
+/// already a level.
+const int kStarsPerLevel = 10;
+
+/// A gentle, personal level derived from [stars] — it only ever ticks up (level 1
+/// at 0 stars, level 2 at 10, and so on). Keeps the stored `Student.level`
+/// consistent so the profile chip (`levelStars`) and the Rewards wall title stay
+/// right.
 int rewardLevel(int stars) => 1 + stars ~/ kStarsPerLevel;
 
-/// Activity → the badge id earned the first time the child finishes it. Only the
-/// four activities that write a `Session` are here; AR records nothing yet, so it
-/// has no badge and no un-earnable tile ever sits on the wall.
+/// How many named titles are on the ladder. Levels past the last one keep the
+/// top title (there is always a title, never a blank).
+const int kRewardTitleCount = 8;
+
+/// The title index (0-based) for a personal [level], capped at the top title.
+int rewardTitleIndex(int level) => (level - 1).clamp(0, kRewardTitleCount - 1);
+
+/// Stars still needed to reach the next level, for the calm "X to next level"
+/// caption. At a level boundary this is a full [kStarsPerLevel] toward the one
+/// after.
+int starsToNextLevel(int stars) => kStarsPerLevel - (stars % kStarsPerLevel);
+
+/// True once [level] has reached the top of the title ladder (no higher title to
+/// earn) — the wall then simply celebrates the top title instead of "X to next".
+bool isTopRewardLevel(int level) => level >= kRewardTitleCount;
+
+/// Activity → the single badge id earned once the child has completed the
+/// *whole* activity: every story episode, all four Mix-and-Match card types, all
+/// three quiz sets, or all five companion lessons. There is no "started" badge:
+/// finishing one round is *not* an achievement (it just fills the progress bar a
+/// little), so a badge only lights up when the bar is full. Each feature owns the
+/// "is it all done" check (`storyAllComplete`, `mixMatchAllComplete`,
+/// `quizAllComplete`, `companionAllComplete`) and passes it to the reward.
+/// Only the four activities that write a `Session` are here; AR records nothing
+/// yet, so it has no badge and no un-earnable tile ever sits on the wall.
 const Map<ActivityType, String> kActivityBadgeId = {
-  ActivityType.story: 'act_story',
-  ActivityType.mixmatch: 'act_mixmatch',
-  ActivityType.quiz: 'act_quiz',
-  ActivityType.companion: 'act_companion',
+  ActivityType.story: 'all_story',
+  ActivityType.mixmatch: 'all_mixmatch',
+  ActivityType.quiz: 'all_quiz',
+  ActivityType.companion: 'all_companion',
 };
 
-/// Feeling → the badge id earned the first time that feeling turns up in a
-/// finished activity. `neutral` is excluded, matching the five feelings the
-/// activities actually teach.
-const Map<Emotion, String> kFeelingBadgeId = {
-  Emotion.happy: 'feel_happy',
-  Emotion.sad: 'feel_sad',
-  Emotion.scared: 'feel_scared',
-  Emotion.angry: 'feel_angry',
-  Emotion.surprised: 'feel_surprised',
-};
+/// The five feelings the activities teach, in a stable order. Used by the
+/// teacher/parent progress card to show which feelings a child has practiced
+/// (derived from their sessions, not from a badge). `neutral` is excluded.
+const List<Emotion> kRewardFeelings = [
+  Emotion.happy,
+  Emotion.sad,
+  Emotion.scared,
+  Emotion.angry,
+  Emotion.surprised,
+];
 
 /// One badge on the collection wall: a stable [id], the [icon] and [color] to
-/// draw it, and whichever [activity] or [emotion] it celebrates. Labels are
-/// resolved separately (where l10n is available) via `rewardBadgeLabel`.
+/// draw it, and the [activity] it celebrates. A badge is earned only when its
+/// activity's progress bar is full. Labels are resolved separately (where l10n
+/// is available) via `rewardBadgeLabel`.
 class RewardBadge {
   const RewardBadge({
     required this.id,
     required this.icon,
     required this.color,
-    this.activity,
-    this.emotion,
+    required this.activity,
   });
 
   final String id;
   final IconData icon;
   final Color color;
-  final ActivityType? activity;
-  final Emotion? emotion;
+  final ActivityType activity;
 }
 
-/// The full badge set, in wall-display order: the four activity badges first,
-/// then the five feelings. Built from the id maps + the emotion icon/colour
-/// tables so a badge always matches its feeling's look elsewhere in the app.
+/// The per-activity icon (the activity's own look), used for its badge and its
+/// progress row on the child's Rewards wall.
+const Map<ActivityType, IconData> kActivityBadgeIcon = {
+  ActivityType.story: Icons.menu_book_rounded,
+  ActivityType.mixmatch: Icons.extension_rounded,
+  ActivityType.quiz: Icons.emoji_objects_rounded,
+  ActivityType.companion: Icons.chat_bubble_rounded,
+};
+
+/// The four activities carrying badges, in wall-display order.
+const List<ActivityType> kBadgeActivities = [
+  ActivityType.story,
+  ActivityType.mixmatch,
+  ActivityType.quiz,
+  ActivityType.companion,
+];
+
+/// The badge set, in wall-display order: one badge per activity, drawn in the
+/// activity's own icon and accent, earned when that activity is fully finished.
 final List<RewardBadge> kRewardBadges = [
-  RewardBadge(
-    id: kActivityBadgeId[ActivityType.story]!,
-    icon: Icons.menu_book_rounded,
-    color: activityAccent('story'),
-    activity: ActivityType.story,
-  ),
-  RewardBadge(
-    id: kActivityBadgeId[ActivityType.mixmatch]!,
-    icon: Icons.extension_rounded,
-    color: activityAccent('mixmatch'),
-    activity: ActivityType.mixmatch,
-  ),
-  RewardBadge(
-    id: kActivityBadgeId[ActivityType.quiz]!,
-    icon: Icons.emoji_objects_rounded,
-    color: activityAccent('quiz'),
-    activity: ActivityType.quiz,
-  ),
-  RewardBadge(
-    id: kActivityBadgeId[ActivityType.companion]!,
-    icon: Icons.chat_bubble_rounded,
-    color: activityAccent('companion'),
-    activity: ActivityType.companion,
-  ),
-  for (final entry in kFeelingBadgeId.entries)
+  for (final activity in kBadgeActivities)
     RewardBadge(
-      id: entry.value,
-      icon: kEmotionIcon[entry.key]!,
-      color: kEmotionColor[entry.key]!,
-      emotion: entry.key,
+      id: kActivityBadgeId[activity]!,
+      icon: kActivityBadgeIcon[activity]!,
+      color: activityAccent(activity.name),
+      activity: activity,
     ),
 ];
 

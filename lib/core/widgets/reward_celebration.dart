@@ -7,30 +7,36 @@ import '../constants/app_constants.dart';
 import '../models/enums.dart';
 import '../services/rewards_service.dart';
 
-/// Localised name for a reward badge (FR11). Feeling badges read as the feeling
-/// ("Happy"), activity badges as the activity ("Stories"). Kept here so the
-/// celebration, the Rewards wall and the progress card all label badges the same
-/// way. Lives in core (no feature import) by resolving l10n keys directly.
+/// Localised name for a reward badge (FR11). One badge per activity, earned by
+/// finishing all of it, so it reads as the whole thing ("All Stories"). Kept
+/// here so the celebration, the Rewards wall and the progress card all label
+/// badges the same way. Lives in core (no feature import) by resolving l10n keys
+/// directly.
 String rewardBadgeLabel(RewardBadge badge, AppLocalizations l) {
-  final emotion = badge.emotion;
-  if (emotion != null) {
-    return switch (emotion) {
-      Emotion.happy => l.emotionHappy,
-      Emotion.sad => l.emotionSad,
-      Emotion.scared => l.emotionScared,
-      Emotion.angry => l.emotionAngry,
-      Emotion.surprised => l.emotionSurprised,
-      Emotion.neutral => l.emotionOkay,
-    };
-  }
-  return switch (badge.activity!) {
-    ActivityType.story => l.navStories,
-    ActivityType.mixmatch => l.navMatch,
-    ActivityType.quiz => l.navQuiz,
-    ActivityType.companion => l.navCompanion,
+  return switch (badge.activity) {
+    ActivityType.story => l.rewardBadgeAllStories,
+    ActivityType.mixmatch => l.rewardBadgeAllMatched,
+    ActivityType.quiz => l.rewardBadgeAllQuizzes,
+    ActivityType.companion => l.rewardBadgeAllFeelings,
     ActivityType.ar => l.navAr,
   };
 }
+
+/// The child's title for a personal [level] (FR11) — the reward that gives
+/// stars a purpose: every 10 stars lifts them up the ladder. Capped at the top
+/// title so there is always a name. Resolves l10n keys directly so it can be
+/// used by both the Rewards wall and the celebration.
+String rewardLevelTitle(int level, AppLocalizations l) =>
+    switch (rewardTitleIndex(level)) {
+      0 => l.rewardTitle1,
+      1 => l.rewardTitle2,
+      2 => l.rewardTitle3,
+      3 => l.rewardTitle4,
+      4 => l.rewardTitle5,
+      5 => l.rewardTitle6,
+      6 => l.rewardTitle7,
+      _ => l.rewardTitle8,
+    };
 
 /// Find a badge in the taxonomy by id (used to render a just-earned badge).
 RewardBadge? rewardBadgeById(String id) {
@@ -137,6 +143,10 @@ class _RewardCelebrationState extends ConsumerState<RewardCelebration> {
                     label: l.rewardStarsEarned(outcome.starsEarned),
                   ),
                 ],
+                if (outcome != null && outcome.leveledUp) ...[
+                  const SizedBox(height: AppSpacing.lg),
+                  _LevelUp(title: rewardLevelTitle(outcome.level, l)),
+                ],
                 if (newBadges.isNotEmpty) ...[
                   const SizedBox(height: AppSpacing.lg),
                   Text(
@@ -213,6 +223,37 @@ class _StarsRow extends StatelessWidget {
           style: theme.textTheme.titleMedium?.copyWith(
             color: gold,
             fontWeight: FontWeight.w700,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// The gentle "you reached a new title" reveal, shown when a round lifts the
+/// child to a new level. A soft medal, the warm "New title!" line, and the title.
+class _LevelUp extends StatelessWidget {
+  const _LevelUp({required this.title});
+
+  final String title;
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
+    final theme = Theme.of(context);
+    const gold = Color(0xFFE3B23C);
+    return Column(
+      children: [
+        const Icon(Icons.military_tech_rounded, size: 44, color: gold),
+        const SizedBox(height: AppSpacing.xs),
+        Text(l.rewardNewTitle, style: theme.textTheme.titleMedium),
+        const SizedBox(height: AppSpacing.xs),
+        Text(
+          title,
+          textAlign: TextAlign.center,
+          style: theme.textTheme.headlineSmall?.copyWith(
+            color: gold,
+            fontWeight: FontWeight.w800,
           ),
         ),
       ],

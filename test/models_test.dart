@@ -14,6 +14,9 @@ void main() {
       email: 'aida@example.com',
       language: AppLanguage.ms,
       linkedStudentIds: ['s1', 's2'],
+      seenBadgeCounts: {'s1': 3},
+      seenLevelCounts: {'s1': 2},
+      seenTaskAt: {'s1': 1750000000000},
     );
     expect(AppUser.fromJson(user.toJson()).toJson(), user.toJson());
   });
@@ -59,7 +62,8 @@ void main() {
       sensorySettings: SensorySettings(masterVolume: 0.4),
       level: 3,
       stars: 12,
-      badges: ['act_story', 'feel_happy'],
+      badges: ['all_story'],
+      companionLessonsDone: ['happy', 'sad'],
       mixMatchRounds: {
         'face': MixMatchRound(
           placed: 1,

@@ -920,6 +920,18 @@ abstract class AppLocalizations {
   /// **'Things to do'**
   String get todoHeading;
 
+  /// No description provided for @todoNewTaskBanner.
+  ///
+  /// In en, this message translates to:
+  /// **'Your teacher added something new!'**
+  String get todoNewTaskBanner;
+
+  /// No description provided for @todoNewTaskGotIt.
+  ///
+  /// In en, this message translates to:
+  /// **'Got it'**
+  String get todoNewTaskGotIt;
+
   /// No description provided for @todoAllDone.
   ///
   /// In en, this message translates to:
@@ -1322,6 +1334,180 @@ abstract class AppLocalizations {
   /// **'{earned} of {total} badges'**
   String rewardBadgesCount(int earned, int total);
 
+  /// No description provided for @rewardBadgeAllStories.
+  ///
+  /// In en, this message translates to:
+  /// **'All Stories'**
+  String get rewardBadgeAllStories;
+
+  /// No description provided for @rewardBadgeAllMatched.
+  ///
+  /// In en, this message translates to:
+  /// **'All Matched'**
+  String get rewardBadgeAllMatched;
+
+  /// No description provided for @rewardBadgeAllQuizzes.
+  ///
+  /// In en, this message translates to:
+  /// **'All Quizzes'**
+  String get rewardBadgeAllQuizzes;
+
+  /// No description provided for @rewardBadgeAllFeelings.
+  ///
+  /// In en, this message translates to:
+  /// **'All Feelings'**
+  String get rewardBadgeAllFeelings;
+
+  /// No description provided for @rewardProgressTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep going'**
+  String get rewardProgressTitle;
+
+  /// No description provided for @rewardProgressCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{done} of {total}'**
+  String rewardProgressCount(int done, int total);
+
+  /// No description provided for @rewardActivityDone.
+  ///
+  /// In en, this message translates to:
+  /// **'All done!'**
+  String get rewardActivityDone;
+
+  /// No description provided for @rewardTopBadgeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'The Grand Badge'**
+  String get rewardTopBadgeTitle;
+
+  /// No description provided for @rewardGrandBadgeHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlock all four badges to earn this mythical badge'**
+  String get rewardGrandBadgeHint;
+
+  /// No description provided for @rewardAllBadges.
+  ///
+  /// In en, this message translates to:
+  /// **'You got them all!'**
+  String get rewardAllBadges;
+
+  /// No description provided for @rewardLevelLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Level {level}'**
+  String rewardLevelLabel(int level);
+
+  /// No description provided for @rewardStarsToNext.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} more stars to level up'**
+  String rewardStarsToNext(int count);
+
+  /// No description provided for @rewardTopLevel.
+  ///
+  /// In en, this message translates to:
+  /// **'Top level reached!'**
+  String get rewardTopLevel;
+
+  /// No description provided for @rewardNewTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'New title!'**
+  String get rewardNewTitle;
+
+  /// No description provided for @rewardTitle1.
+  ///
+  /// In en, this message translates to:
+  /// **'Sprout'**
+  String get rewardTitle1;
+
+  /// No description provided for @rewardTitle2.
+  ///
+  /// In en, this message translates to:
+  /// **'Buddy'**
+  String get rewardTitle2;
+
+  /// No description provided for @rewardTitle3.
+  ///
+  /// In en, this message translates to:
+  /// **'Explorer'**
+  String get rewardTitle3;
+
+  /// No description provided for @rewardTitle4.
+  ///
+  /// In en, this message translates to:
+  /// **'Helper'**
+  String get rewardTitle4;
+
+  /// No description provided for @rewardTitle5.
+  ///
+  /// In en, this message translates to:
+  /// **'Guide'**
+  String get rewardTitle5;
+
+  /// No description provided for @rewardTitle6.
+  ///
+  /// In en, this message translates to:
+  /// **'Hero'**
+  String get rewardTitle6;
+
+  /// No description provided for @rewardTitle7.
+  ///
+  /// In en, this message translates to:
+  /// **'Champion'**
+  String get rewardTitle7;
+
+  /// No description provided for @rewardTitle8.
+  ///
+  /// In en, this message translates to:
+  /// **'Legend'**
+  String get rewardTitle8;
+
+  /// No description provided for @parentNewBadgeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} earned {count, plural, =1{a new badge} other{{count} new badges}}!'**
+  String parentNewBadgeTitle(String name, int count);
+
+  /// No description provided for @parentNewBadgeDismiss.
+  ///
+  /// In en, this message translates to:
+  /// **'Lovely!'**
+  String get parentNewBadgeDismiss;
+
+  /// No description provided for @parentNewLevelTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} reached a new level!'**
+  String parentNewLevelTitle(String name);
+
+  /// No description provided for @parentNewAchievementTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Wonderful news about {name}!'**
+  String parentNewAchievementTitle(String name);
+
+  /// No description provided for @parentNewLevelCaption.
+  ///
+  /// In en, this message translates to:
+  /// **'New title'**
+  String get parentNewLevelCaption;
+
+  /// No description provided for @parentNewJournalTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} logged a feeling'**
+  String parentNewJournalTitle(String name);
+
+  /// No description provided for @parentNewJournalExtra.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{and 1 more since you last checked} other{and {count} more since you last checked}}'**
+  String parentNewJournalExtra(int count);
+
   /// No description provided for @progressTitle.
   ///
   /// In en, this message translates to:
@@ -1385,8 +1571,14 @@ abstract class AppLocalizations {
   /// No description provided for @companionLessonDone.
   ///
   /// In en, this message translates to:
-  /// **'Well done! Now you know this feeling. You can tell me your answer, or pick another feeling when you are ready.'**
+  /// **'Well done! Now you know all about this feeling. Thank you for telling me.'**
   String get companionLessonDone;
+
+  /// No description provided for @companionAwaitingAnswerHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Tell me in the box below, or tap the microphone.'**
+  String get companionAwaitingAnswerHint;
 
   /// No description provided for @companionThinking.
   ///
@@ -1741,6 +1933,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Play a story episode on the class screen.'**
   String get storyClassroomHint;
+
+  /// No description provided for @weeklyContentThisWeek.
+  ///
+  /// In en, this message translates to:
+  /// **'This week\'s content'**
+  String get weeklyContentThisWeek;
+
+  /// No description provided for @weeklyContentPastWeeks.
+  ///
+  /// In en, this message translates to:
+  /// **'Past weeks'**
+  String get weeklyContentPastWeeks;
+
+  /// No description provided for @weeklyContentNoneYetTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No past weeks yet'**
+  String get weeklyContentNoneYetTitle;
+
+  /// No description provided for @weeklyContentNoneYetBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This is the first week. New content arrives every week, so check back soon!'**
+  String get weeklyContentNoneYetBody;
+
+  /// No description provided for @weeklyContentWeekLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Week {n}'**
+  String weeklyContentWeekLabel(int n);
 }
 
 class _AppLocalizationsDelegate
