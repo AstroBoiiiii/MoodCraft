@@ -9,11 +9,16 @@ enum SyncStatus { pending, synced }
 
 enum Emotion { happy, sad, scared, angry, surprised, neutral }
 
-enum AnimationIntensity { full, reduced, off }
+/// The three calm ways the FR7 quiz asks about a feeling (look at art, listen to
+/// a sound cue, hear a short story). In `enums.dart` so the persisted
+/// `QuizRound` can name it without depending on the quiz feature.
+enum QuizModality { look, listen, story }
 
 enum AppColorTheme { calmBlue, softGreen, warmNeutral, lowStimGrey }
 
 enum AppLanguage { en, ms }
+
+enum BackgroundTrack { track1, track2, track3 }
 
 /// Resolves an enum value by its [Enum.name], falling back to [fallback] when
 /// the stored string is missing or unrecognised (defensive parsing per

@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -9,6 +10,7 @@ import '../../core/providers/auth_provider.dart';
 import '../../core/services/auth/auth_service.dart';
 import '../../core/widgets/big_button.dart';
 import '../../core/widgets/calm_scaffold.dart';
+import '../../core/widgets/password_field.dart';
 
 /// Account creation (FR1). One calm form whose extra fields adapt to the chosen
 /// role: a student joins a class and names a parent, a parent names their child,
@@ -32,7 +34,10 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   final _childEmail = TextEditingController();
   final _classCode = TextEditingController();
   final _className = TextEditingController();
-  UserRole _role = UserRole.student;
+  final _age = TextEditingController();
+  // Web is teacher-only (FR1), so registration there creates a teacher and the
+  // role chooser is hidden. Mobile starts on Student, the most common sign-up.
+  UserRole _role = kIsWeb ? UserRole.teacher : UserRole.student;
   AppLanguage _language = AppLanguage.en;
   bool _busy = false;
   String? _error;
@@ -48,6 +53,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     _childEmail.dispose();
     _classCode.dispose();
     _className.dispose();
+    _age.dispose();
     super.dispose();
   }
 
@@ -68,6 +74,10 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
             role: _role,
             language: _language,
             phone: _phone.text,
+            age:
+                _role == UserRole.student
+                    ? (int.tryParse(_age.text.trim()) ?? 0)
+                    : 0,
             classCode: _role == UserRole.student ? _classCode.text : null,
             parentEmail: _role == UserRole.student ? _parentEmail.text : null,
             childEmail: _role == UserRole.parent ? _childEmail.text : null,
@@ -110,35 +120,39 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Text(
-                    l.chooseRole,
-                    style: Theme.of(context).textTheme.titleMedium,
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: AppSpacing.md),
-                  SegmentedButton<UserRole>(
-                    segments: [
-                      ButtonSegment(
-                        value: UserRole.student,
-                        label: Text(l.roleStudent),
-                        icon: const Icon(Icons.child_care_rounded),
-                      ),
-                      ButtonSegment(
-                        value: UserRole.teacher,
-                        label: Text(l.roleTeacher),
-                        icon: const Icon(Icons.school_rounded),
-                      ),
-                      ButtonSegment(
-                        value: UserRole.parent,
-                        label: Text(l.roleParent),
-                        icon: const Icon(Icons.family_restroom_rounded),
-                      ),
-                    ],
-                    selected: {_role},
-                    onSelectionChanged:
-                        _busy ? null : (s) => setState(() => _role = s.first),
-                  ),
-                  const SizedBox(height: AppSpacing.lg),
+                  // The role chooser is hidden on web, where sign-up is
+                  // teacher-only (FR1); mobile picks between all three roles.
+                  if (!kIsWeb) ...[
+                    Text(
+                      l.chooseRole,
+                      style: Theme.of(context).textTheme.titleMedium,
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: AppSpacing.md),
+                    SegmentedButton<UserRole>(
+                      segments: [
+                        ButtonSegment(
+                          value: UserRole.student,
+                          label: Text(l.roleStudent),
+                          icon: const Icon(Icons.child_care_rounded),
+                        ),
+                        ButtonSegment(
+                          value: UserRole.teacher,
+                          label: Text(l.roleTeacher),
+                          icon: const Icon(Icons.school_rounded),
+                        ),
+                        ButtonSegment(
+                          value: UserRole.parent,
+                          label: Text(l.roleParent),
+                          icon: const Icon(Icons.family_restroom_rounded),
+                        ),
+                      ],
+                      selected: {_role},
+                      onSelectionChanged:
+                          _busy ? null : (s) => setState(() => _role = s.first),
+                    ),
+                    const SizedBox(height: AppSpacing.lg),
+                  ],
                   TextFormField(
                     controller: _name,
                     textCapitalization: TextCapitalization.words,
@@ -178,15 +192,11 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     validator: (v) => _isEmail(v) ? null : l.errEmail,
                   ),
                   const SizedBox(height: AppSpacing.md),
-                  TextFormField(
+                  PasswordField(
                     controller: _password,
-                    obscureText: true,
+                    labelText: l.passwordLabel,
                     autofillHints: const [AutofillHints.newPassword],
                     textInputAction: TextInputAction.next,
-                    decoration: InputDecoration(
-                      labelText: l.passwordLabel,
-                      prefixIcon: const Icon(Icons.lock_outline_rounded),
-                    ),
                     validator:
                         (v) =>
                             (v != null && v.length >= 6) ? null : l.errPassword,
@@ -258,6 +268,20 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     switch (_role) {
       case UserRole.student:
         return [
+          const SizedBox(height: AppSpacing.md),
+          TextFormField(
+            controller: _age,
+            keyboardType: TextInputType.number,
+            textInputAction: TextInputAction.next,
+            decoration: InputDecoration(
+              labelText: l.ageLabel,
+              prefixIcon: const Icon(Icons.cake_rounded),
+            ),
+            validator: (v) {
+              final n = int.tryParse(v?.trim() ?? '');
+              return (n != null && n >= 3 && n <= 18) ? null : l.errAge;
+            },
+          ),
           const SizedBox(height: AppSpacing.md),
           TextFormField(
             controller: _classCode,

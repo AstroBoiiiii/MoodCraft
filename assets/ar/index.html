@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>MoodCraft AR</title>
+    <!--
+      Milestone 2: animated emotion characters anchored on MindAR's sample
+      card marker (assets/ar/card.png, printed on matte paper). A calm picker
+      at the bottom swaps the character on the card (happy / sad / scared /
+      angry / surprised). Only the chosen model is loaded (on demand, with a
+      small "getting ready" chip) instead of preloading all five. The GLBs
+      are compressed via gltf-transform (mesh simplify + KHR_mesh_quantization
+      + 1024px WebP textures, 0.16-1.7 MB each, originals were 3-28 MB) --
+      lighter models keep the WebView render loop fast on a low-end phone,
+      which directly reduces tracking jitter. Re-run the same pipeline on any
+      new model before adding it.
+
+      The three JS libraries are bundled locally in assets/ar/ so the demo
+      never depends on venue WiFi. Bundled versions: A-Frame 1.6.0,
+      aframe-extras 7.5.4, MindAR 1.2.5.
+    -->
+    <script src="./aframe.min.js"></script>
+    <!-- aframe-extras provides `animation-mixer`, which plays the GLB's
+         built-in animation clip (A-Frame core does not play them). -->
+    <script src="./aframe-extras.min.js"></script>
+    <script src="./mindar-image-aframe.prod.js"></script>
+    <style>
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+        font-family: "Segoe UI", Roboto, sans-serif;
+        -webkit-tap-highlight-color: transparent;
+      }
+      /* Calm picker: large tap targets, soft colours, no motion. */
+      #emotionBar {
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: max(16px, env(safe-area-inset-bottom));
+        display: flex;
+        justify-content: center;
+        gap: 8px;
+        z-index: 10;
+        touch-action: manipulation;
+      }
+      .emotion-btn {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 2px;
+        min-width: 62px;
+        padding: 10px 6px;
+        border: 3px solid transparent;
+        border-radius: 20px;
+        background: rgba(255, 255, 255, 0.92);
+        color: #3d4a5c;
+        font-size: 12px;
+        font-weight: 600;
+      }
+      .emotion-btn .icon {
+        font-size: 24px;
+        line-height: 1;
+      }
+      .emotion-btn.selected {
+        border-color: #8fb3e8;
+        background: #eaf2fd;
+      }
+      #loadingChip {
+        position: fixed;
+        left: 50%;
+        transform: translateX(-50%);
+        bottom: calc(max(16px, env(safe-area-inset-bottom)) + 92px);
+        padding: 8px 16px;
+        border-radius: 16px;
+        background: rgba(255, 255, 255, 0.92);
+        color: #3d4a5c;
+        font-size: 14px;
+        z-index: 10;
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <!--
+      Tracking stability. MindAR's built-in one-euro filter smooths the pose
+      matrix ELEMENT-WISE, which warps rotations (the skewed/stretched
+      character) and any setting of it trades that against trailing. So the
+      MindAR filter is left effectively OFF (huge filterBeta = raw poses) and
+      `stabilized-follow` below does the smoothing correctly instead:
+      lerp position, slerp rotation, fixed scale, and one-frame glitch poses
+      are rejected outright.
+      - missTolerance: frames of lost detection to forgive before hiding the
+        model, so quick moves and motion blur do not make it blink/snap.
+      - warmupTolerance: frames of confirmed detection before showing it,
+        so it does not flicker in on a half-detection.
+    -->
+    <script>
+      AFRAME.registerComponent('stabilized-follow', {
+        schema: {
+          target: { type: 'selector' },
+          // 0..1 fraction of the remaining distance covered per frame.
+          // Higher = tighter tracking, lower = smoother but more trailing.
+          positionSmooth: { default: 0.45 },
+          rotationSmooth: { default: 0.45 },
+          // A raw pose further than this from the current one (position in
+          // marker-widths, rotation in radians) is a suspected glitch: hold
+          // the last good pose instead. If it persists this many frames it
+          // is a genuine fast move, so snap to it.
+          maxPositionJump: { default: 0.5 },
+          maxRotationJump: { default: 0.7 },
+          jumpAcceptFrames: { default: 3 },
+        },
+        init() {
+          this.snapNext = true;
+          this.wildFrames = 0;
+          this.rawPos = new THREE.Vector3();
+          this.rawQuat = new THREE.Quaternion();
+          this.rawScale = new THREE.Vector3();
+          this.el.object3D.visible = false;
+          this.data.target.addEventListener('targetFound', () => {
+            this.snapNext = true;
+            this.el.object3D.visible = true;
+          });
+          this.data.target.addEventListener('targetLost', () => {
+            this.el.object3D.visible = false;
+          });
+        },
+        tick() {
+          const follower = this.el.object3D;
+          if (!follower.visible) return;
+          const anchor = this.data.target.object3D;
+          anchor.updateWorldMatrix(true, false);
+          // decompose() extracts a clean position + orthonormal rotation,
+          // discarding the skew a warped raw matrix carries.
+          anchor.matrixWorld.decompose(this.rawPos, this.rawQuat, this.rawScale);
+          if (this.snapNext) {
+            follower.position.copy(this.rawPos);
+            follower.quaternion.copy(this.rawQuat);
+            // Scale is constant per marker; lock it in once so tracking
+            // noise can never stretch the character.
+            follower.scale.copy(this.rawScale);
+            this.snapNext = false;
+            this.wildFrames = 0;
+            return;
+          }
+          const posJump = follower.position.distanceTo(this.rawPos);
+          const rotJump = follower.quaternion.angleTo(this.rawQuat);
+          if (
+            posJump > this.data.maxPositionJump ||
+            rotJump > this.data.maxRotationJump
+          ) {
+            this.wildFrames++;
+            if (this.wildFrames >= this.data.jumpAcceptFrames) {
+              this.snapNext = true;
+            }
+            return;
+          }
+          this.wildFrames = 0;
+          follower.position.lerp(this.rawPos, this.data.positionSmooth);
+          follower.quaternion.slerp(this.rawQuat, this.data.rotationSmooth);
+        },
+      });
+    </script>
+    <a-scene
+      mindar-image="imageTargetSrc: ./card.mind; maxTrack: 1; filterMinCF: 1; filterBeta: 10000; missTolerance: 10; warmupTolerance: 3"
+      color-space="sRGB"
+      renderer="colorManagement: true, physicallyCorrectLights"
+      vr-mode-ui="enabled: false"
+      device-orientation-permission-ui="enabled: false"
+    >
+      <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
+      <!-- The MindAR anchor stays empty; it only supplies the raw pose. The
+           character rides in the follower entity, which mirrors the anchor
+           through stabilized-follow (smooth, glitch-proof, never skewed).
+           The picker below swaps this one entity's model on demand. -->
+      <a-entity id="cardAnchor" mindar-image-target="targetIndex: 0"></a-entity>
+      <a-entity stabilized-follow="target: #cardAnchor">
+        <a-gltf-model
+          id="character"
+          src="./sad.glb"
+          position="0 0 0.1"
+          rotation="10 0 0"
+          scale="0.11 0.11 0.11"
+          animation-mixer="loop: repeat"
+        ></a-gltf-model>
+      </a-entity>
+    </a-scene>
+
+    <div id="loadingChip">Getting ready&hellip;</div>
+    <div id="emotionBar">
+      <button class="emotion-btn" data-emotion="happy" type="button">
+        <span class="icon">&#128522;</span>Happy
+      </button>
+      <button class="emotion-btn selected" data-emotion="sad" type="button">
+        <span class="icon">&#128546;</span>Sad
+      </button>
+      <button class="emotion-btn" data-emotion="scared" type="button">
+        <span class="icon">&#128552;</span>Scared
+      </button>
+      <button class="emotion-btn" data-emotion="angry" type="button">
+        <span class="icon">&#128544;</span>Angry
+      </button>
+      <button class="emotion-btn" data-emotion="surprised" type="button">
+        <span class="icon">&#128562;</span>Surprised
+      </button>
+    </div>
+
+    <script>
+      // Per-character transform tuning lives here. Viewing style: the demo
+      // faces the paper straight on, so characters stay upright IN the
+      // card's plane like a picture, looking out at the camera (no 90
+      // stand-up tilt; that was for looking at a card lying on a table).
+      // position: third number lifts the character toward the camera.
+      // rotation: first number is pitch (10 = a gentle lean so they look
+      //   slightly down at the viewer instead of over their head); middle
+      //   number is spin (180 = turn around) if one shows its back or side.
+      // scale: computed from each model's measured height so every
+      //   character matches sad's size on the card (sad = 17 units tall).
+      const EMOTIONS = {
+        happy: {
+          src: './happy.glb',
+          position: '0 0 0.1',
+          rotation: '10 0 0',
+          scale: '0.98 0.98 0.98',
+        },
+        sad: {
+          src: './sad.glb',
+          position: '0 0 0.1',
+          rotation: '10 0 0',
+          scale: '0.11 0.11 0.11',
+        },
+        scared: {
+          // Faces dead-front at yaw -60 (checked in renders; -90 shows its
+          // left side).
+          src: './scared.glb',
+          // Y -0.35 sits the ghost lower on the card.
+          position: '0 -0.35 -0.3',
+          rotation: '10 -60 0',
+          scale: '0.45 0.45 0.45',
+        },
+        angry: {
+          src: './angry.glb',
+          position: '0 0 0.1',
+          rotation: '10 0 0',
+          scale: '1.68 1.68 1.68',
+        },
+        surprised: {
+          // This model is yaw-rotated 90, which shifts the axes: the FIRST
+          // number would roll it sideways (keep 0) and the THIRD tips the
+          // face down toward the viewer.
+          src: './shocked.glb',
+          position: '0 0 -0.1',
+          rotation: '0 90 35',
+          scale: '0.98 0.98 0.98',
+        },
+      };
+
+      const character = document.querySelector('#character');
+      const chip = document.querySelector('#loadingChip');
+      const buttons = document.querySelectorAll('.emotion-btn');
+      let currentEmotion = 'sad';
+
+      character.addEventListener('model-loaded', () => {
+        chip.style.display = 'none';
+      });
+
+      buttons.forEach((button) => {
+        button.addEventListener('click', () => {
+          const emotion = button.dataset.emotion;
+          if (emotion === currentEmotion) return;
+          currentEmotion = emotion;
+          buttons.forEach((b) =>
+            b.classList.toggle('selected', b === button)
+          );
+          chip.style.display = 'block';
+          const config = EMOTIONS[emotion];
+          character.setAttribute('position', config.position);
+          character.setAttribute('rotation', config.rotation);
+          character.setAttribute('scale', config.scale);
+          character.setAttribute('src', config.src);
+        });
+      });
+    </script>
+  </body>
+</html>

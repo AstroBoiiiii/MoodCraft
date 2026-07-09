@@ -10,6 +10,7 @@ import '../../core/providers/auth_provider.dart';
 import '../../core/services/auth/auth_service.dart';
 import '../../core/widgets/big_button.dart';
 import '../../core/widgets/calm_scaffold.dart';
+import '../../core/widgets/password_field.dart';
 
 /// Email/password sign-in (FR1). Successful sign-in updates the auth stream and
 /// the router redirects to the role's home — no manual navigation needed here.
@@ -73,9 +74,37 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
+                  // A soft branded emblem so the first screen feels like the
+                  // app, not a bare form.
+                  Center(
+                    child: Container(
+                      width: 96,
+                      height: 96,
+                      decoration: BoxDecoration(
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.primaryContainer.withValues(alpha: 0.4),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        Icons.emoji_emotions_rounded,
+                        size: 52,
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.lg),
                   Text(
                     l.signIn,
                     style: Theme.of(context).textTheme.headlineSmall,
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: AppSpacing.sm),
+                  Text(
+                    l.signInWelcome,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: AppSpacing.xl),
@@ -88,20 +117,19 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       labelText: l.emailOrUsername,
                       prefixIcon: const Icon(Icons.person_outline_rounded),
                     ),
-                    validator: (v) =>
-                        (v != null && v.trim().isNotEmpty) ? null : l.errEmail,
+                    validator:
+                        (v) =>
+                            (v != null && v.trim().isNotEmpty)
+                                ? null
+                                : l.errEmail,
                   ),
                   const SizedBox(height: AppSpacing.md),
-                  TextFormField(
+                  PasswordField(
                     controller: _password,
-                    obscureText: true,
+                    labelText: l.passwordLabel,
                     autofillHints: const [AutofillHints.password],
                     textInputAction: TextInputAction.done,
                     onFieldSubmitted: (_) => _submit(),
-                    decoration: InputDecoration(
-                      labelText: l.passwordLabel,
-                      prefixIcon: const Icon(Icons.lock_outline_rounded),
-                    ),
                     validator:
                         (v) =>
                             (v != null && v.length >= 6) ? null : l.errPassword,

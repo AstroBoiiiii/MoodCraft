@@ -78,4 +78,38 @@ class AppUser {
     ),
     linkedStudentIds: stringListFromJson(json['linkedStudentIds']),
   );
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is AppUser &&
+          uid == other.uid &&
+          role == other.role &&
+          name == other.name &&
+          email == other.email &&
+          username == other.username &&
+          phone == other.phone &&
+          language == other.language &&
+          _listEquals(linkedStudentIds, other.linkedStudentIds);
+
+  @override
+  int get hashCode => Object.hash(
+    uid,
+    role,
+    name,
+    email,
+    username,
+    phone,
+    language,
+    Object.hashAll(linkedStudentIds),
+  );
+}
+
+bool _listEquals(List<String> a, List<String> b) {
+  if (identical(a, b)) return true;
+  if (a.length != b.length) return false;
+  for (var i = 0; i < a.length; i++) {
+    if (a[i] != b[i]) return false;
+  }
+  return true;
 }

@@ -152,11 +152,15 @@ class FirebaseLinkingService implements LinkingService {
     required String email,
     required String username,
   }) async {
-    await _directory.doc(_normalize(email)).set({'uid': uid, 'role': role.name});
+    await _directory.doc(_normalize(email)).set({
+      'uid': uid,
+      'role': role.name,
+    });
     if (username.isNotEmpty) {
-      await _usernameDir
-          .doc(username.toLowerCase())
-          .set({'uid': uid, 'email': _normalize(email)});
+      await _usernameDir.doc(username.toLowerCase()).set({
+        'uid': uid,
+        'email': _normalize(email),
+      });
     }
   }
 

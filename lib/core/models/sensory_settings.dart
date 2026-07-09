@@ -8,7 +8,8 @@ class SensorySettings {
     this.musicEnabled = false,
     this.masterVolume = 0.6,
     this.colorTheme = AppColorTheme.calmBlue,
-    this.animationIntensity = AnimationIntensity.full,
+    this.backgroundTrack = BackgroundTrack.track1,
+    this.feedbackNarration = true,
   });
 
   /// Calm-by-default settings (music off, gentle volume).
@@ -19,19 +20,24 @@ class SensorySettings {
   /// 0.0–1.0.
   final double masterVolume;
   final AppColorTheme colorTheme;
-  final AnimationIntensity animationIntensity;
+
+  /// Which of the three background music tracks is selected.
+  final BackgroundTrack backgroundTrack;
+  final bool feedbackNarration;
 
   SensorySettings copyWith({
     bool? musicEnabled,
     double? masterVolume,
     AppColorTheme? colorTheme,
-    AnimationIntensity? animationIntensity,
+    BackgroundTrack? backgroundTrack,
+    bool? feedbackNarration,
   }) {
     return SensorySettings(
       musicEnabled: musicEnabled ?? this.musicEnabled,
       masterVolume: masterVolume ?? this.masterVolume,
       colorTheme: colorTheme ?? this.colorTheme,
-      animationIntensity: animationIntensity ?? this.animationIntensity,
+      backgroundTrack: backgroundTrack ?? this.backgroundTrack,
+      feedbackNarration: feedbackNarration ?? this.feedbackNarration,
     );
   }
 
@@ -39,7 +45,8 @@ class SensorySettings {
     'musicEnabled': musicEnabled,
     'masterVolume': masterVolume,
     'colorTheme': colorTheme.name,
-    'animationIntensity': animationIntensity.name,
+    'backgroundTrack': backgroundTrack.name,
+    'feedbackNarration': feedbackNarration,
   };
 
   factory SensorySettings.fromJson(Map<String, dynamic>? json) {
@@ -52,11 +59,12 @@ class SensorySettings {
         json['colorTheme'],
         AppColorTheme.calmBlue,
       ),
-      animationIntensity: enumFromName(
-        AnimationIntensity.values,
-        json['animationIntensity'],
-        AnimationIntensity.full,
+      backgroundTrack: enumFromName(
+        BackgroundTrack.values,
+        json['backgroundTrack'],
+        BackgroundTrack.track1,
       ),
+      feedbackNarration: (json['feedbackNarration'] as bool?) ?? true,
     );
   }
 
@@ -66,9 +74,15 @@ class SensorySettings {
       other.musicEnabled == musicEnabled &&
       other.masterVolume == masterVolume &&
       other.colorTheme == colorTheme &&
-      other.animationIntensity == animationIntensity;
+      other.backgroundTrack == backgroundTrack &&
+      other.feedbackNarration == feedbackNarration;
 
   @override
-  int get hashCode =>
-      Object.hash(musicEnabled, masterVolume, colorTheme, animationIntensity);
+  int get hashCode => Object.hash(
+    musicEnabled,
+    masterVolume,
+    colorTheme,
+    backgroundTrack,
+    feedbackNarration,
+  );
 }

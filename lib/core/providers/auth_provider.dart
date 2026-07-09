@@ -23,6 +23,7 @@ final authStateProvider = StreamProvider<AppUser?>((ref) {
 });
 
 /// Synchronous view of the current user (null while loading or signed out).
+/// Stable — only changes on sign-in/sign-out, not on every Firestore update.
 final currentUserProvider = Provider<AppUser?>((ref) {
   return ref.watch(authStateProvider).value;
 });

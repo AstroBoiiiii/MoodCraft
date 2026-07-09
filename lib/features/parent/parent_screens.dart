@@ -2,14 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:moodcraft/l10n/app_localizations.dart';
 
-import '../../app/theme/tokens.dart';
-import '../../core/models/app_user.dart';
-import '../../core/models/student.dart';
 import '../../core/providers/repository_providers.dart';
 import '../../core/widgets/calm_scaffold.dart';
-import '../../core/widgets/placeholder_screen.dart';
-import '../../core/widgets/sensory_read_only_view.dart';
+import '../../core/widgets/constrained_content.dart';
+import '../../core/widgets/empty_state.dart';
 import '../../core/widgets/sensory_settings_sheet.dart';
+import '../journal/journal_section.dart';
+import '../student_detail/student_detail_tabs.dart';
+import '../teacher/messaging_thread_screen.dart';
 
 /// Parent monitoring — shows the linked child's profile and their teacher(s).
 class ParentMonitoringScreen extends ConsumerWidget {
@@ -26,12 +26,28 @@ class ParentMonitoringScreen extends ConsumerWidget {
       actions: accountActions(context, ref),
       body: detailAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (_, __) => Center(child: Text(l.comingSoon)),
+        error:
+            (_, __) =>
+                EmptyState(icon: Icons.insights_rounded, message: l.comingSoon),
         data: (detail) {
-          if (detail == null) return Center(child: Text(l.noChildLinked));
-          return _ChildProfileView(
-            student: detail.student,
-            teachers: detail.teachers,
+          if (detail == null) {
+            return EmptyState(
+              icon: Icons.family_restroom_rounded,
+              message: l.noChildLinked,
+            );
+          }
+          // Same tabbed child view the teacher gets, minus teacher-only
+          // actions: no parent removal and no delete menu. The schedule stays
+          // editable (FR13 — set by teacher or parent).
+          return ConstrainedContent(
+            child: StudentDetailTabs(
+              key: ValueKey(detail.student.id),
+              student: detail.student,
+              teachers: detail.teachers,
+              parents: const [],
+              canEditSchedule: true,
+              showHomework: true,
+            ),
           );
         },
       ),
@@ -39,87 +55,95 @@ class ParentMonitoringScreen extends ConsumerWidget {
   }
 }
 
-class _ChildProfileView extends StatelessWidget {
-  const _ChildProfileView({required this.student, required this.teachers});
-
-  final Student student;
-  final List<AppUser> teachers;
+/// FR12 — the parent's own Journal tab: their child's logged feelings, newest
+/// first, with the parent's role-labelled comment on any entry (the same
+/// shared journal view the teacher gets on their Journal tab).
+class ParentJournalScreen extends ConsumerWidget {
+  const ParentJournalScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l = AppLocalizations.of(context);
-    final theme = Theme.of(context);
+    final childAsync = ref.watch(activeStudentProvider);
 
-    return ListView(
-      children: [
-        Center(
-          child: CircleAvatar(
-            radius: 40,
-            child: Text(
-              student.name.isNotEmpty ? student.name[0].toUpperCase() : '?',
-              style: theme.textTheme.headlineSmall,
+    return CalmScaffold(
+      title: l.navJournal,
+      icon: Icons.book_rounded,
+      body: childAsync.when(
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error:
+            (_, __) => EmptyState(
+              icon: Icons.book_rounded,
+              message: l.journalUnavailable,
             ),
-          ),
-        ),
-        const SizedBox(height: AppSpacing.md),
-        Center(child: Text(student.name, style: theme.textTheme.headlineSmall)),
-        const SizedBox(height: AppSpacing.md),
-        Center(
-          child: Chip(
-            avatar: const Icon(Icons.star_rounded, size: 18),
-            label: Text(l.levelStars(student.level, student.stars)),
-          ),
-        ),
-        const SizedBox(height: AppSpacing.lg),
-        const Divider(),
-        const SizedBox(height: AppSpacing.sm),
-        Text(l.sensorySettings, style: theme.textTheme.titleMedium),
-        const SizedBox(height: AppSpacing.sm),
-        SensoryReadOnlyView(settings: student.sensorySettings),
-        if (teachers.isNotEmpty) ...[
-          const SizedBox(height: AppSpacing.lg),
-          const Divider(),
-          const SizedBox(height: AppSpacing.sm),
-          Text(l.teacherLabel, style: theme.textTheme.titleMedium),
-          const SizedBox(height: AppSpacing.sm),
-          for (final teacher in teachers) _ContactTile(user: teacher),
-        ],
-      ],
-    );
-  }
-}
-
-class _ContactTile extends StatelessWidget {
-  const _ContactTile({required this.user});
-  final AppUser user;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Card(
-      margin: const EdgeInsets.only(bottom: AppSpacing.sm),
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.md),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(user.name, style: theme.textTheme.titleSmall),
-            if (user.username.isNotEmpty)
-              Text('@${user.username}', style: theme.textTheme.bodySmall),
-            if (user.phone.isNotEmpty)
-              Text(user.phone, style: theme.textTheme.bodySmall),
-          ],
-        ),
+        data: (child) {
+          if (child == null) {
+            return EmptyState(
+              icon: Icons.family_restroom_rounded,
+              message: l.noChildLinked,
+            );
+          }
+          return ConstrainedContent(
+            child: ListView(
+              children: [JournalHistorySection(studentId: child.id)],
+            ),
+          );
+        },
       ),
     );
   }
 }
 
-class ParentMessagesScreen extends StatelessWidget {
+class ParentMessagesScreen extends ConsumerWidget {
   const ParentMessagesScreen({super.key});
+
   @override
-  Widget build(BuildContext context) => PlaceholderScreen(
-    title: AppLocalizations.of(context).navMessages,
-    icon: Icons.message_rounded,
-  );
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l = AppLocalizations.of(context);
+    final theme = Theme.of(context);
+    final convAsync = ref.watch(parentConversationProvider);
+
+    return convAsync.when(
+      loading:
+          () =>
+              const Scaffold(body: Center(child: CircularProgressIndicator())),
+      error: (_, __) => Scaffold(body: Center(child: Text(l.comingSoon))),
+      data: (conv) {
+        if (conv == null) {
+          return Scaffold(
+            appBar: AppBar(title: Text(l.navMessages)),
+            body: EmptyState(
+              icon: Icons.forum_outlined,
+              message: l.msgNoLinkedTeacher,
+            ),
+          );
+        }
+        return Scaffold(
+          appBar: AppBar(
+            title: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(conv.teacherName),
+                Text(
+                  l.msgAboutChild(
+                    ref.watch(activeStudentProvider).value?.name ?? '',
+                  ),
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          body: MessagingThreadScreen(
+            conversationId: conv.conversationId,
+            toUid: conv.teacherUid,
+            studentId: conv.studentId,
+            displayTitle: conv.teacherName,
+            showAppBar: false,
+          ),
+        );
+      },
+    );
+  }
 }

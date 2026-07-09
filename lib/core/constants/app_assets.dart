@@ -24,4 +24,9 @@ class AppAssets {
   // Generic placeholders.
   static const String imagesDir = _images;
   static const String audioDir = _audio;
+
+  // Background music tracks — drop matching .mp3 files in assets/audio/.
+  static const String bgMusic1 = '$_audio/bg_music_1.mp3';
+  static const String bgMusic2 = '$_audio/bg_music_2.mp3';
+  static const String bgMusic3 = '$_audio/bg_music_3.mp3';
 }

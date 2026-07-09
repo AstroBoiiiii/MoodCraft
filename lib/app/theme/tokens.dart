@@ -22,8 +22,7 @@ class AppRadii {
   static const double pill = 999;
 }
 
-/// Base motion durations. Always pass these through `effectiveDuration` so the
-/// student's animationIntensity setting (full/reduced/off) is respected.
+/// Base motion durations for the app's calm, consistent transitions.
 class AppDurations {
   AppDurations._();
   static const Duration fast = Duration(milliseconds: 150);

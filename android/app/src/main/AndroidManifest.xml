@@ -1,8 +1,17 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Camera feeds the WebAR (MindAR) view. Vision-only image tracking:
+         no ARCore, and no com.google.ar meta-data may ever be added, so the
+         app stays installable on uncertified devices. -->
+    <uses-permission android:name="android.permission.CAMERA"/>
+    <!-- Firebase. The AR page's JS is bundled locally (assets/ar), no CDN. -->
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <!-- Spoken input for the AI companion's chat (FR3, speech_to_text). -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO"/>
     <application
         android:label="moodcraft"
         android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher">
+        android:icon="@mipmap/ic_launcher"
+        android:networkSecurityConfig="@xml/network_security_config">
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -40,6 +49,25 @@
         <intent>
             <action android:name="android.intent.action.PROCESS_TEXT"/>
             <data android:mimeType="text/plain"/>
+        </intent>
+        <!-- Lets url_launcher find a browser to open links (Android 11+). -->
+        <intent>
+            <action android:name="android.intent.action.VIEW"/>
+            <data android:scheme="https"/>
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.VIEW"/>
+            <data android:scheme="http"/>
+        </intent>
+        <!-- Lets flutter_tts find the system text-to-speech engine (Android 11+),
+             used for story narration in Mix-and-Match. -->
+        <intent>
+            <action android:name="android.intent.action.TTS_SERVICE"/>
+        </intent>
+        <!-- Lets speech_to_text find the speech recognition service (Android
+             11+), used for the companion's spoken input (FR3). -->
+        <intent>
+            <action android:name="android.speech.RecognitionService"/>
         </intent>
     </queries>
 </manifest>

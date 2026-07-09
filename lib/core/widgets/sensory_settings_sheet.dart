@@ -6,9 +6,8 @@ import 'package:moodcraft/l10n/app_localizations.dart';
 import '../../app/theme/tokens.dart';
 import '../models/enums.dart';
 import '../providers/auth_provider.dart';
-import '../providers/repository_providers.dart';
 import '../providers/sensory_settings_provider.dart';
-import 'big_button.dart';
+import '../services/background_music_service.dart';
 
 /// Opens the sensory settings sheet. Changes apply live because the root
 /// MaterialApp watches [sensorySettingsProvider] and rebuilds the theme.
@@ -16,30 +15,28 @@ void showSensorySettings(BuildContext context) {
   showModalBottomSheet<void>(
     context: context,
     showDragHandle: true,
+    isScrollControlled: true,
     builder: (_) => const _SensorySettingsSheet(),
   );
 }
 
-/// Standard app-bar actions for the landing screens: profile + sensory settings
-/// + sign out. Kept in one place so all three role homes stay consistent.
+/// Standard app-bar actions for the landing screens: profile + (for students)
+/// sensory settings. Kept in one place so all three role homes stay consistent.
 List<Widget> accountActions(BuildContext context, WidgetRef ref) {
   final l = AppLocalizations.of(context);
+  final role = ref.read(currentUserProvider)?.role;
   return [
     IconButton(
       tooltip: l.profileTitle,
       icon: const Icon(Icons.manage_accounts_rounded),
       onPressed: () => context.push('/account/profile'),
     ),
-    IconButton(
-      tooltip: l.sensorySettings,
-      icon: const Icon(Icons.tune_rounded),
-      onPressed: () => showSensorySettings(context),
-    ),
-    IconButton(
-      tooltip: l.signOut,
-      icon: const Icon(Icons.logout_rounded),
-      onPressed: () => ref.read(authServiceProvider).signOut(),
-    ),
+    if (role == UserRole.student)
+      IconButton(
+        tooltip: l.sensorySettings,
+        icon: const Icon(Icons.tune_rounded),
+        onPressed: () => showSensorySettings(context),
+      ),
   ];
 }
 
@@ -52,23 +49,19 @@ class _SensorySettingsSheet extends ConsumerStatefulWidget {
 }
 
 class _SensorySettingsSheetState extends ConsumerState<_SensorySettingsSheet> {
-  bool _saving = false;
-
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
     final settings = ref.watch(sensorySettingsProvider);
     final controller = ref.read(sensorySettingsProvider.notifier);
-    final user = ref.read(currentUserProvider);
-    final isStudent = user?.role == UserRole.student;
 
     return SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(
+      child: SingleChildScrollView(
+        padding: EdgeInsets.fromLTRB(
           AppSpacing.lg,
           0,
           AppSpacing.lg,
-          AppSpacing.lg,
+          AppSpacing.lg + MediaQuery.viewInsetsOf(context).bottom,
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -94,58 +87,75 @@ class _SensorySettingsSheetState extends ConsumerState<_SensorySettingsSheet> {
               ],
             ),
             const SizedBox(height: AppSpacing.lg),
-            Text(l.animation),
-            const SizedBox(height: AppSpacing.sm),
-            SegmentedButton<AnimationIntensity>(
-              segments: [
-                ButtonSegment(
-                  value: AnimationIntensity.full,
-                  label: Text(l.animationFull),
-                ),
-                ButtonSegment(
-                  value: AnimationIntensity.reduced,
-                  label: Text(l.animationReduced),
-                ),
-                ButtonSegment(
-                  value: AnimationIntensity.off,
-                  label: Text(l.animationOff),
-                ),
-              ],
-              selected: {settings.animationIntensity},
-              onSelectionChanged:
-                  (s) => controller.setAnimationIntensity(s.first),
-            ),
-            const SizedBox(height: AppSpacing.sm),
             SwitchListTile(
               contentPadding: EdgeInsets.zero,
               title: Text(l.music),
               value: settings.musicEnabled,
-              onChanged: controller.setMusicEnabled,
+              onChanged: (enabled) {
+                controller.setMusicEnabled(enabled);
+                final music = ref.read(backgroundMusicServiceProvider);
+                if (enabled) {
+                  music.play(settings.backgroundTrack, settings.masterVolume);
+                } else {
+                  music.stop();
+                }
+              },
             ),
-            if (isStudent) ...[
-              const SizedBox(height: AppSpacing.lg),
-              BigButton(
-                label: l.saveProfile,
-                onPressed: _saving ? null : _save,
+            SwitchListTile(
+              contentPadding: EdgeInsets.zero,
+              title: Text(l.feedbackNarration),
+              value: settings.feedbackNarration,
+              onChanged: controller.setFeedbackNarration,
+            ),
+            if (settings.musicEnabled) ...[
+              const SizedBox(height: AppSpacing.sm),
+              Text(l.musicTrack),
+              const SizedBox(height: AppSpacing.sm),
+              Wrap(
+                spacing: AppSpacing.sm,
+                runSpacing: AppSpacing.sm,
+                children: [
+                  for (final track in BackgroundTrack.values)
+                    ChoiceChip(
+                      label: Text(_trackLabel(track, l)),
+                      selected: settings.backgroundTrack == track,
+                      onSelected: (_) {
+                        controller.setBackgroundTrack(track);
+                        if (settings.musicEnabled) {
+                          ref
+                              .read(backgroundMusicServiceProvider)
+                              .play(track, settings.masterVolume);
+                        }
+                      },
+                    ),
+                ],
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              Row(
+                children: [
+                  Text(l.musicVolume),
+                  const SizedBox(width: AppSpacing.sm),
+                  const Icon(Icons.volume_down_rounded, size: 20),
+                  Expanded(
+                    child: Slider(
+                      value: settings.masterVolume,
+                      min: 0.0,
+                      max: 1.0,
+                      divisions: 10,
+                      onChanged: (v) {
+                        controller.setMasterVolume(v);
+                        ref.read(backgroundMusicServiceProvider).setVolume(v);
+                      },
+                    ),
+                  ),
+                  const Icon(Icons.volume_up_rounded, size: 20),
+                ],
               ),
             ],
           ],
         ),
       ),
     );
-  }
-
-  Future<void> _save() async {
-    final user = ref.read(currentUserProvider);
-    if (user == null || user.linkedStudentIds.isEmpty) return;
-    setState(() => _saving = true);
-    final repo = ref.read(studentRepositoryProvider);
-    await ref
-        .read(sensorySettingsProvider.notifier)
-        .saveToStudent(repo, user.linkedStudentIds.first);
-    if (mounted) {
-      Navigator.of(context).pop();
-    }
   }
 }
 
@@ -155,3 +165,10 @@ String _themeLabel(AppColorTheme theme, AppLocalizations l) => switch (theme) {
   AppColorTheme.warmNeutral => l.colourThemeWarmNeutral,
   AppColorTheme.lowStimGrey => l.colourThemeLowStimGrey,
 };
+
+String _trackLabel(BackgroundTrack track, AppLocalizations l) =>
+    switch (track) {
+      BackgroundTrack.track1 => l.musicTrack1,
+      BackgroundTrack.track2 => l.musicTrack2,
+      BackgroundTrack.track3 => l.musicTrack3,
+    };

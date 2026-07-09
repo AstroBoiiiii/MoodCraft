@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<title>MoodCraft Companion</title>
+<style>
+  /* Calm, quiet stage. The soft tone matches the app's calm surfaces so the
+     WebView blends into the screen around it. */
+  html, body { margin:0; padding:0; width:100%; height:100%; overflow:hidden; background:#e8eff2; }
+  #avatar { width:100%; height:100%; }
+  #note {
+    position:absolute; top:50%; left:0; right:0; transform:translateY(-50%);
+    text-align:center; font-family:sans-serif; color:#5c6b73; font-size:15px;
+    pointer-events:none;
+  }
+</style>
+<!-- All modules are bundled locally (no CDN/WiFi dependency, house rule).
+     Renamed .mjs to .js so every server/MIME table treats them as JavaScript;
+     the lipsync dynamic import inside talkinghead.js is patched to match. -->
+<script type="importmap">
+{
+  "imports": {
+    "three": "./libs/three/three.module.js",
+    "three/addons/": "./libs/three/addons/",
+    "talkinghead": "./libs/talkinghead.js"
+  }
+}
+</script>
+</head>
+<body>
+<div id="avatar"></div>
+<div id="note">Getting ready&hellip;</div>
+<script type="module">
+import { TalkingHead } from "talkinghead";
+
+const note = document.getElementById('note');
+let head = null;
+
+// The Google Cloud TTS key is injected by the Flutter host as a query
+// parameter (it comes from a gitignored env file via dart-define, never the
+// repo). No key = the stage stays silent and the app falls back to device TTS.
+const ttsKey = new URLSearchParams(location.search).get('ttsKey');
+
+// App emotion -> TalkingHead mood. TalkingHead has no "surprised" mood, so
+// surprise rides the neutral mood plus the wide-eyed open-mouth expression —
+// on this avatar it reads as classic surprise (round eyes, big O mouth, the
+// exact face the lesson describes), not as fright.
+const EMOTION_TO_MOOD = {
+  happy: 'happy',
+  sad: 'sad',
+  angry: 'angry',
+  scared: 'fear',
+  surprised: 'neutral',
+  neutral: 'neutral',
+};
+
+// TalkingHead's built-in 'fear' mood barely shows on this avatar: its
+// baseline squints the eyes half-shut against the widening and keeps the
+// mouth pursed closed, so it never reads as scared. Scared therefore pins
+// its own clear storybook face on top — the exact face the lesson
+// describes: eyes big and wide, brows up, mouth open a little. The pinned
+// values are released the moment any other feeling is set.
+const SCARED_FACE = {
+  browInnerUp: 1,
+  eyeWideLeft: 0.9, eyeWideRight: 0.9,
+  eyeSquintLeft: 0, eyeSquintRight: 0,
+  jawOpen: 0.3, mouthClose: 0, mouthFunnel: 0,
+  mouthShrugLower: 0, mouthShrugUpper: 0,
+  mouthStretchLeft: 0.4, mouthStretchRight: 0.4,
+};
+function setScaredFace(on) {
+  Object.keys(SCARED_FACE).forEach((mt) =>
+    head.setFixedValue(mt, on ? SCARED_FACE[mt] : null));
+}
+
+// Mixamo body-language clips (assets/companion/poses), one per feeling —
+// the body half of FR3's face + body teaching. Neutral has no clip on
+// purpose: neutral is the calm idle the mood already provides.
+const EMOTION_POSE = {
+  happy: './poses/happy.fbx',
+  sad: './poses/sad.fbx',
+  scared: './poses/scared.fbx',
+  angry: './poses/angry.fbx',
+  surprised: './poses/surprised.fbx',
+};
+
+// Dart-facing bridge: safe no-ops until the avatar is ready.
+window.mc = {
+  ready: false,
+  setEmotion: (e, dur) => {
+    try {
+      if (!head) return;
+      head.setMood(EMOTION_TO_MOOD[e] || 'neutral');
+      setScaredFace(e === 'scared');
+      if (e === 'surprised') head.playGesture('😱', 4);
+      // Demonstrate with the whole body for dur seconds, then settle back
+      // into the mood idle. The host passes a long dur to keep the pose
+      // looping through a lesson or a guessing round.
+      window.mc.playPose(e, dur ?? 8);
+    } catch (err) { console.error('setEmotion', err); }
+  },
+  playPose: (e, dur) => {
+    try {
+      const url = EMOTION_POSE[e];
+      if (url) head?.playAnimation(url, null, dur ?? 8);
+      else head?.stopAnimation();
+    } catch (err) { console.error('playPose', err); }
+  },
+  // Stop the body clip and stand back up (used before the head close-up:
+  // clips like scared's cower move the head out of the head camera's frame).
+  stopPose: () => { try { head?.stopAnimation(); } catch (e) { console.error('stopPose', e); } },
+  setMood: (m) => { try { head?.setMood(m); } catch (e) { console.error('setMood', e); } },
+  setView: (v, opt) => { try { head?.setView(v, opt); } catch (e) { console.error('setView', e); } },
+  gesture: (g, dur) => { try { head?.playGesture(g, dur ?? 3); } catch (e) { console.error('gesture', e); } },
+  // Speech with lip-sync (Google Cloud TTS + TalkingHead's English module).
+  speak: (text) => {
+    try {
+      if (!head || !ttsKey || !text) return;
+      head.stopSpeaking();
+      head.speakText(text);
+    } catch (e) { console.error('speak', e); }
+  },
+  stopSpeaking: () => { try { head?.stopSpeaking(); } catch (e) { console.error('stopSpeaking', e); } },
+  setVolume: (v) => { try { head?.setMixerGain(v, null); } catch (e) { console.error('setVolume', e); } },
+};
+
+// Tell the Flutter host the stage is ready, so it can push the current
+// expression. The handler only exists inside the app's InAppWebView; in a
+// plain browser this quietly does nothing.
+function notifyFlutter() {
+  try { window.flutter_inappwebview?.callHandler('stageReady'); } catch (_) {}
+}
+
+async function boot() {
+  try {
+    head = new TalkingHead(document.getElementById('avatar'), {
+      ttsEndpoint: 'https://texttospeech.googleapis.com/v1beta1/text:synthesize',
+      ttsApikey: ttsKey,
+      lipsyncModules: ['en'],
+      cameraView: 'full',
+      // The child never drives the camera; predictable framing only.
+      cameraRotateEnable: false,
+      cameraPanEnable: false,
+      cameraZoomEnable: false,
+    });
+    await head.showAvatar(
+      {
+        url: './avatar/companion.glb',
+        body: 'F',
+        avatarMood: 'neutral',
+        lipsyncLang: 'en',
+        // A soft, unhurried voice; retune here if it doesn't feel calm enough.
+        ttsLang: 'en-US',
+        ttsVoice: 'en-US-Neural2-F',
+        ttsRate: 0.85,
+      },
+      (ev) => {
+        if (ev.lengthComputable) {
+          note.textContent = 'Getting ready… ' + Math.round(100 * ev.loaded / ev.total) + '%';
+        }
+      },
+    );
+    note.style.display = 'none';
+    window.mc.ready = true;
+    console.log('companion: avatar ready');
+    if (window.flutter_inappwebview?.callHandler) {
+      notifyFlutter();
+    } else {
+      window.addEventListener('flutterInAppWebViewPlatformReady', notifyFlutter);
+    }
+  } catch (e) {
+    // Calm failure: no error styling, just a quiet line. The Flutter host
+    // keeps working (lessons and chat never depend on the stage).
+    note.textContent = 'The companion is resting.';
+    console.error('companion boot failed', e);
+  }
+}
+boot();
+</script>
+</body>
+</html>

@@ -23,12 +23,6 @@ class SensoryReadOnlyView extends StatelessWidget {
           title: Text(l.colourTheme),
           trailing: Text(_themeLabel(settings.colorTheme, l)),
         ),
-        ListTile(
-          contentPadding: EdgeInsets.zero,
-          leading: const Icon(Icons.animation_outlined),
-          title: Text(l.animation),
-          trailing: Text(_intensityLabel(settings.animationIntensity, l)),
-        ),
         SwitchListTile(
           contentPadding: EdgeInsets.zero,
           secondary: const Icon(Icons.music_note_outlined),
@@ -47,10 +41,3 @@ String _themeLabel(AppColorTheme theme, AppLocalizations l) => switch (theme) {
   AppColorTheme.warmNeutral => l.colourThemeWarmNeutral,
   AppColorTheme.lowStimGrey => l.colourThemeLowStimGrey,
 };
-
-String _intensityLabel(AnimationIntensity intensity, AppLocalizations l) =>
-    switch (intensity) {
-      AnimationIntensity.full => l.animationFull,
-      AnimationIntensity.reduced => l.animationReduced,
-      AnimationIntensity.off => l.animationOff,
-    };

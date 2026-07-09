@@ -2,7 +2,10 @@
 /// Config or environment have a single home.
 library;
 
-import 'package:flutter/widgets.dart';
+import 'package:flutter/material.dart';
+
+import '../models/emotion_content.dart';
+import '../models/enums.dart';
 
 /// When true, the app uses the in-memory [StubAuthService] instead of real
 /// Firebase auth — handy for building UI offline. Default false so the demo
@@ -11,6 +14,12 @@ const bool kUseStubAuth = bool.fromEnvironment(
   'USE_STUB_AUTH',
   defaultValue: false,
 );
+
+/// Google Cloud TTS key for the 3D companion's voice + lip-sync (FR3). Comes
+/// from the gitignored `env.json` via `--dart-define-from-file=env.json` — no
+/// secrets in the repo. Empty = the avatar stays silent and the companion
+/// falls back to device TTS.
+const String kTtsApiKey = String.fromEnvironment('TTS_API_KEY');
 
 class AppConstants {
   AppConstants._();
@@ -34,6 +43,485 @@ class AppConstants {
   static const int classCodeLength = 6;
 }
 
+/// Picture-step icons for the visual schedule (FR13). Stored by key so the
+/// rendered icon can be swapped for real art later without a data migration.
+/// Order here is the order shown in the editor's icon picker.
+const Map<String, IconData> kScheduleIconCatalog = {
+  'breakfast': Icons.free_breakfast_rounded,
+  'lessons': Icons.menu_book_rounded,
+  'break': Icons.emoji_people_rounded,
+  'art': Icons.palette_rounded,
+  'music': Icons.music_note_rounded,
+  'play': Icons.toys_rounded,
+  'reading': Icons.auto_stories_rounded,
+  'lunch': Icons.restaurant_rounded,
+  'nap': Icons.bedtime_rounded,
+  'clean': Icons.cleaning_services_rounded,
+  'home': Icons.home_rounded,
+  'star': Icons.star_rounded, // generic fallback
+};
+
+/// Resolve a schedule [iconKey] to an icon, falling back to a neutral star for
+/// unknown/empty keys so the child's view never shows a broken glyph.
+IconData scheduleIcon(String iconKey) =>
+    kScheduleIconCatalog[iconKey] ?? Icons.star_rounded;
+
+/// Emotion → placeholder face icon for the journal (FR12) and pickers. Like
+/// [kScheduleIconCatalog], the glyphs are centralised so real expression art can
+/// replace them later with no call-site changes (CLAUDE.md section 9). The six
+/// keys match the companion's expression set.
+const Map<Emotion, IconData> kEmotionIcon = {
+  Emotion.happy: Icons.sentiment_very_satisfied_rounded,
+  Emotion.sad: Icons.sentiment_dissatisfied_rounded,
+  Emotion.angry: Icons.mood_bad_rounded,
+  Emotion.scared: Icons.sentiment_very_dissatisfied_rounded,
+  Emotion.surprised: Icons.emoji_emotions_rounded,
+  Emotion.neutral: Icons.sentiment_neutral_rounded,
+};
+
+/// Soft, constant colour per emotion. Deliberately muted (no harsh/alarming
+/// reds — see `kMutedAlert`) and identical in every theme, so a given feeling
+/// always looks the same to the child (predictable & consistent, section 4.2).
+const Map<Emotion, Color> kEmotionColor = {
+  Emotion.happy: Color(0xFFE3B23C),
+  Emotion.sad: Color(0xFF6B92B0),
+  Emotion.angry: Color(0xFFC58579),
+  Emotion.scared: Color(0xFF9385BC),
+  Emotion.surprised: Color(0xFF5DAA9C),
+  Emotion.neutral: Color(0xFF8B97A1),
+};
+
+/// Optional "where / what" context pictures a child can tag onto a journal
+/// entry. The key is stored on the entry; the icon is resolved here so art can
+/// be swapped later. Order here is the order shown in the picker.
+const Map<String, IconData> kJournalContextCatalog = {
+  'home': Icons.home_rounded,
+  'class': Icons.school_rounded,
+  'play': Icons.toys_rounded,
+  'outside': Icons.park_rounded,
+  'meal': Icons.restaurant_rounded,
+  'friends': Icons.group_rounded,
+};
+
+/// Resolve a journal context [key] to an icon, or null when none/unknown.
+IconData? journalContextIcon(String? key) =>
+    key == null ? null : kJournalContextCatalog[key];
+
+/// Mix-and-Match (FR6). The child drags a card onto the matching emotion. The
+/// four card types double as the four levels, ordered concrete → abstract so
+/// progression is gentle: a face is the most literal cue, a short story the most
+/// abstract (the child reads it and interprets the feeling).
+/// [MixMatchType.values] order IS the level order.
+enum MixMatchType { face, body, situation, story }
+
+/// Number of cards (questions) in one Mix-and-Match round, per card type (FR6).
+/// Each category's progress is shown as "X/[kMixMatchRoundSize]".
+const int kMixMatchRoundSize = 5;
+
+/// The feelings used as Mix-and-Match buckets (FR6). Five clear, distinct
+/// emotions — `neutral` ("Okay") is intentionally left out here so every round's
+/// cards map to a strong, teachable feeling and there's no spare empty bucket.
+const List<Emotion> kMixMatchEmotions = [
+  Emotion.happy,
+  Emotion.sad,
+  Emotion.scared,
+  Emotion.angry,
+  Emotion.surprised,
+];
+
+/// Root for Mix-and-Match card art. Image cards live under
+/// `<root>/<type>/<emotion>_<n>.png`; the leading `<emotion>` token encodes the
+/// correct answer, so dropping a new file in needs no code or data change
+/// (asset strategy, CLAUDE.md section 9). Folders are auto-scanned at runtime
+/// via the asset manifest — see `buildMixMatchDeck`.
+const String kMixMatchAssetRoot = 'assets/images/mixmatch';
+
+/// Folder (under [kMixMatchAssetRoot]) holding image cards for a type. `story`
+/// has no folder — those cards are text from [kMixMatchStories].
+String mixMatchTypeFolder(MixMatchType type) => switch (type) {
+  MixMatchType.face => '$kMixMatchAssetRoot/face',
+  MixMatchType.body => '$kMixMatchAssetRoot/body',
+  MixMatchType.situation => '$kMixMatchAssetRoot/situation',
+  MixMatchType.story => '$kMixMatchAssetRoot/story',
+};
+
+/// Whether a type's cards are drawn as text (vs. an image asset). Stories are
+/// always text; situations fall back to text when no art has been uploaded.
+bool mixMatchTypeIsText(MixMatchType type) => type == MixMatchType.story;
+
+/// Calm, vetted short-story cards per emotion (FR6, hardest `story` level). The
+/// child reads a tiny two-sentence scene and interprets which feeling it shows —
+/// the most abstract step, no single emotion word given away. One per emotion so
+/// a round shows five distinct feelings. Kept here so they can be swapped or
+/// extended without touching the activity.
+const Map<Emotion, List<String>> kMixMatchStories = {
+  Emotion.happy: [
+    'Mia opened her birthday present and found a soft puppy inside. She hugged it and could not stop smiling.',
+  ],
+  Emotion.sad: [
+    'Sam watched his balloon float far up into the sky. He could not get it back, and his eyes filled with tears.',
+  ],
+  Emotion.scared: [
+    'The lights went out and Lilya heard a loud bang. She pulled her blanket up and held it tight.',
+  ],
+  Emotion.angry: [
+    'Ben built a tall block tower all by himself. Someone knocked it over, and he stamped his feet hard.',
+  ],
+  Emotion.surprised: [
+    'Ava opened the door and the whole room jumped up shouting. Her mouth fell open. She never expected anyone to be there.',
+  ],
+};
+
+/// Short situation cards per emotion (FR6, `situation` level), used when no
+/// situation art has been uploaded. Each is a tiny, concrete scene a child can
+/// link to a feeling. Drop images in `mixmatch/situation/` to use art instead.
+const Map<Emotion, List<String>> kMixMatchSituations = {
+  Emotion.happy: ['Got a present', 'Playing with a friend'],
+  Emotion.sad: ['Dropped my ice cream', 'Said bye to a friend'],
+  Emotion.scared: ['Heard a loud noise', 'It is very dark'],
+  Emotion.angry: ['My tower fell down', 'Lost my turn'],
+  Emotion.surprised: ['A surprise party', 'A balloon popped'],
+};
+
+/// FR7 stress-free quiz. Number of questions in one mixed round — the round
+/// interleaves the three ways of asking (look / listen / story) so every
+/// available way shows up. No timer, no score (CLAUDE.md FR7). Drives the
+/// per-day "X/5" on the picker.
+const int kQuizRoundSize = 5;
+
+/// Number of daily quiz sets. Only the **stories** differ per day; the faces and
+/// sound cues are shared, recycled across every set. The real date picks which
+/// story set is "today" (see `quizSetIndexForDate`). Matches
+/// `kQuizStorySets.length`.
+const int kQuizSetCount = 3;
+
+/// The feelings the quiz teaches (the five clear, teachable emotions; `neutral`
+/// excluded). The quiz keeps its own list so it never depends on Mix-and-Match.
+const List<Emotion> kQuizEmotions = [
+  Emotion.happy,
+  Emotion.sad,
+  Emotion.scared,
+  Emotion.angry,
+  Emotion.surprised,
+];
+
+/// The quiz's own shared "look" face-art folder. Faces are NOT per-set: a few
+/// variations per feeling (`happy_1.png`, `happy_2.png`, ...) live here and are
+/// recycled across every daily set. The leading `<emotion>` token is the answer.
+/// The quiz keeps its OWN folder (not Mix-and-Match's). Registered in pubspec.
+const String kQuizLookRoot = 'assets/images/quiz/look';
+
+/// The quiz's shared "listen" sound-cue folder. Like the faces, cues are NOT
+/// per-set: the same feeling sounds are recycled across every daily set. A clip
+/// named `<emotion>_<n>.mp3` (or `.wav`) becomes a Listen question; the leading
+/// `<emotion>` token is the answer. Empty folder = the round uses look + story.
+/// Registered in pubspec.yaml.
+const String kQuizCueFolder = 'assets/audio/cues';
+
+/// Last-resort fallback feedback, one bland line per feeling, only used if a
+/// modality/story line below is somehow missing. The real spoken feedback is
+/// tailored per question: faces use [kQuizLookFeedback], sounds use
+/// [kQuizListenFeedback], and each story carries its own `feedback`. Teaching
+/// content, English only like [kMixMatchStories] (BM is the deferred FR15 pass).
+const Map<Emotion, String> kQuizFeedback = {
+  Emotion.happy: "That feeling is happy.",
+  Emotion.sad: "That feeling is sad.",
+  Emotion.scared: "That feeling is scared.",
+  Emotion.angry: "That feeling is angry.",
+  Emotion.surprised: "That feeling is surprised.",
+};
+
+/// Warm spoken feedback for "look" (face) questions, one short line per feeling
+/// that points at what the face is doing. Read aloud on a right answer.
+const Map<Emotion, String> kQuizLookFeedback = {
+  Emotion.happy: "Look at that big smile. Happy!",
+  Emotion.sad: "The mouth turns down. That is sad.",
+  Emotion.scared: "Those wide eyes look scared.",
+  Emotion.angry: "That scrunched up face is angry.",
+  Emotion.surprised: "Wide eyes, open mouth. Surprised!",
+};
+
+/// Warm spoken feedback for "listen" (sound) questions, naming the sound the
+/// child just heard so the cue and the feeling connect. Read aloud on a right
+/// answer.
+const Map<Emotion, String> kQuizListenFeedback = {
+  Emotion.happy: "Yahoo! That is a happy sound.",
+  Emotion.sad: "Waah! That crying sounds sad.",
+  Emotion.scared: "Aaah! That scream sounds scared.",
+  Emotion.angry: "Grrr. That growl sounds angry.",
+  Emotion.surprised: "Oooh! That sound is surprised.",
+};
+
+/// Three sets of short, calm scenarios for the quiz's "story" questions (FR7),
+/// one set per day (today / yesterday / day before, chosen by
+/// `quizSetIndexForDate`). Read aloud, the child picks the matching feeling.
+/// Shaped as [EmotionContent] (the curated, offline teaching model); the short
+/// spoken feedback after a right answer comes from [kQuizFeedback]. English-only
+/// content like [kMixMatchStories].
+const List<List<EmotionContent>> kQuizStorySets = [
+  // Set 1
+  [
+    EmotionContent(
+      id: 'q1_happy',
+      emotion: Emotion.happy,
+      prompt: 'Ari found his lost teddy under the bed.',
+      feedback: 'Ari found his teddy. He feels happy.',
+    ),
+    EmotionContent(
+      id: 'q1_sad',
+      emotion: Emotion.sad,
+      prompt: 'Nina watched her ice cream fall on the floor.',
+      feedback: "Nina's ice cream fell. She feels sad.",
+    ),
+    EmotionContent(
+      id: 'q1_scared',
+      emotion: Emotion.scared,
+      prompt: 'The room went dark and something went bump.',
+      feedback: 'A bump in the dark. That feels scared.',
+    ),
+    EmotionContent(
+      id: 'q1_angry',
+      emotion: Emotion.angry,
+      prompt: 'Someone took Omar off his turn on the swing.',
+      feedback: 'Omar lost his turn. He feels angry.',
+    ),
+    EmotionContent(
+      id: 'q1_surprised',
+      emotion: Emotion.surprised,
+      prompt: 'Everyone jumped out and shouted at the party.',
+      feedback: 'Everyone jumped out. What a surprise!',
+    ),
+  ],
+  // Set 2
+  [
+    EmotionContent(
+      id: 'q2_happy',
+      emotion: Emotion.happy,
+      prompt: "Lina's puppy ran to her, wagging its tail.",
+      feedback: 'The puppy runs to Lina. She feels happy.',
+    ),
+    EmotionContent(
+      id: 'q2_sad',
+      emotion: Emotion.sad,
+      prompt: "Sam's best friend moved far away today.",
+      feedback: "Sam's friend moved away. He feels sad.",
+    ),
+    EmotionContent(
+      id: 'q2_scared',
+      emotion: Emotion.scared,
+      prompt: 'A big dog barked loudly right behind Mia.',
+      feedback: 'A big dog barked at Mia. She feels scared.',
+    ),
+    EmotionContent(
+      id: 'q2_angry',
+      emotion: Emotion.angry,
+      prompt: "Tom's little brother scribbled on his drawing.",
+      feedback: 'Tom\'s drawing got scribbled. He feels angry.',
+    ),
+    EmotionContent(
+      id: 'q2_surprised',
+      emotion: Emotion.surprised,
+      prompt: 'A balloon popped with a sudden loud bang.',
+      feedback: 'The balloon went bang. What a surprise!',
+    ),
+  ],
+  // Set 3
+  [
+    EmotionContent(
+      id: 'q3_happy',
+      emotion: Emotion.happy,
+      prompt: 'Grandma baked Aziz his favourite cake.',
+      feedback: "Grandma baked Aziz's cake. He feels happy.",
+    ),
+    EmotionContent(
+      id: 'q3_sad',
+      emotion: Emotion.sad,
+      prompt: "Maya's balloon floated up into the sky.",
+      feedback: "Maya's balloon floated away. She feels sad.",
+    ),
+    EmotionContent(
+      id: 'q3_scared',
+      emotion: Emotion.scared,
+      prompt: 'All the lights went out in the house.',
+      feedback: 'All the lights went out. That feels scared.',
+    ),
+    EmotionContent(
+      id: 'q3_angry',
+      emotion: Emotion.angry,
+      prompt: 'Someone knocked down the tower Eli built.',
+      feedback: 'Eli\'s tower was knocked down. He feels angry.',
+    ),
+    EmotionContent(
+      id: 'q3_surprised',
+      emotion: Emotion.surprised,
+      prompt: 'Dad came home early carrying a puppy.',
+      feedback: 'Dad came home with a puppy. What a surprise!',
+    ),
+  ],
+];
+
+/// FR5 Story Mode. Root folder for the episode videos. Each episode in the
+/// story catalogue (`kStoryCatalog` in `features/story/story_data.dart`) names
+/// its own file under this root; drop the real mp4 in and point the catalogue
+/// at it with no other code change (asset strategy, CLAUDE.md section 9).
+/// Registered in pubspec.yaml.
+const String kStoryVideoRoot = 'assets/video';
+
+/// The feelings Story Mode asks about at a pause (the five clear, teachable
+/// emotions; `neutral` excluded). Story Mode keeps its own list so it never
+/// depends on Mix-and-Match or the quiz.
+const List<Emotion> kStoryEmotions = [
+  Emotion.happy,
+  Emotion.sad,
+  Emotion.scared,
+  Emotion.angry,
+  Emotion.surprised,
+];
+
+/// Number of episodes in every story (FR5). Episodes play in order, like a
+/// little series: finishing one gently opens the next.
+const int kStoryEpisodeCount = 3;
+
+/// Soft accent per student-home activity, keyed by the activity's route id. Used
+/// by `ActivityCard` to tint the icon badge + outline only — muted tones in the
+/// same calm family as `kEmotionColor`, never a harsh fill (CLAUDE.md section 4).
+const Map<String, Color> kActivityAccent = {
+  'companion': Color(0xFF5DAA9C),
+  'ar': Color(0xFF6B92B0),
+  'story': Color(0xFFE3B23C),
+  'mixmatch': Color(0xFF9385BC),
+  'quiz': Color(0xFFC58579),
+  'rewards': Color(0xFFE3B23C),
+};
+
+/// Resolve an activity [key] to its accent, falling back to a neutral tone.
+Color activityAccent(String key) =>
+    kActivityAccent[key] ?? const Color(0xFF8B97A1);
+
+// ── Rewards (FR11) ───────────────────────────────────────────────────────────
+
+/// Stars granted for finishing one activity round: **one action, two stars**
+/// (a Mix-and-Match card type, a quiz set, a feeling lesson). Participation
+/// based, never tied to correctness, and monotonic: a child only ever gains
+/// stars, so a reward can never become a fail state (design principle 1).
+/// Story mode is the one exception: a single episode earns no stars of its
+/// own (see [kStoryCompletionStars]) since the reward there is tied to
+/// finishing the whole cartoon, not one episode.
+const int kStarsPerRound = 2;
+
+/// Stars granted when a child finishes one whole story (one "cartoon", all its
+/// episodes) in Story Mode, in place of [kStarsPerRound] per episode. A single
+/// video is a longer commitment than one Mix-and-Match/quiz/companion round, so
+/// it pays off as one bigger moment at the end rather than a trickle per
+/// episode. Awarded by `story_play_screen.dart`'s `_finish` on whichever
+/// episode completes that story (its final episode), independent of the
+/// separate "every story done" completion badge.
+const int kStoryCompletionStars = 10;
+
+/// Stars per personal "growth" level: every 10 stars lifts the child to the next
+/// level and its title (giving the stars a warm purpose). Purely personal, never
+/// compared between children. Kept low on purpose so levelling stays frequent
+/// and exciting rather than a long grind: a couple of Mix-and-Match/quiz/
+/// companion rounds (2 stars each), or one finished story (a 10-star jump), is
+/// already a level.
+const int kStarsPerLevel = 10;
+
+/// A gentle, personal level derived from [stars] — it only ever ticks up (level 1
+/// at 0 stars, level 2 at 10, and so on). Keeps the stored `Student.level`
+/// consistent so the profile chip (`levelStars`) and the Rewards wall title stay
+/// right.
+int rewardLevel(int stars) => 1 + stars ~/ kStarsPerLevel;
+
+/// How many named titles are on the ladder. Levels past the last one keep the
+/// top title (there is always a title, never a blank).
+const int kRewardTitleCount = 8;
+
+/// The title index (0-based) for a personal [level], capped at the top title.
+int rewardTitleIndex(int level) => (level - 1).clamp(0, kRewardTitleCount - 1);
+
+/// Stars still needed to reach the next level, for the calm "X to next level"
+/// caption. At a level boundary this is a full [kStarsPerLevel] toward the one
+/// after.
+int starsToNextLevel(int stars) => kStarsPerLevel - (stars % kStarsPerLevel);
+
+/// True once [level] has reached the top of the title ladder (no higher title to
+/// earn) — the wall then simply celebrates the top title instead of "X to next".
+bool isTopRewardLevel(int level) => level >= kRewardTitleCount;
+
+/// Activity → the single badge id earned once the child has completed the
+/// *whole* activity: every story episode, all four Mix-and-Match card types, all
+/// three quiz sets, or all five companion lessons. There is no "started" badge:
+/// finishing one round is *not* an achievement (it just fills the progress bar a
+/// little), so a badge only lights up when the bar is full. Each feature owns the
+/// "is it all done" check (`storyAllComplete`, `mixMatchAllComplete`,
+/// `quizAllComplete`, `companionAllComplete`) and passes it to the reward.
+/// Only the four activities that write a `Session` are here; AR records nothing
+/// yet, so it has no badge and no un-earnable tile ever sits on the wall.
+const Map<ActivityType, String> kActivityBadgeId = {
+  ActivityType.story: 'all_story',
+  ActivityType.mixmatch: 'all_mixmatch',
+  ActivityType.quiz: 'all_quiz',
+  ActivityType.companion: 'all_companion',
+};
+
+/// The five feelings the activities teach, in a stable order. Used by the
+/// teacher/parent progress card to show which feelings a child has practiced
+/// (derived from their sessions, not from a badge). `neutral` is excluded.
+const List<Emotion> kRewardFeelings = [
+  Emotion.happy,
+  Emotion.sad,
+  Emotion.scared,
+  Emotion.angry,
+  Emotion.surprised,
+];
+
+/// One badge on the collection wall: a stable [id], the [icon] and [color] to
+/// draw it, and the [activity] it celebrates. A badge is earned only when its
+/// activity's progress bar is full. Labels are resolved separately (where l10n
+/// is available) via `rewardBadgeLabel`.
+class RewardBadge {
+  const RewardBadge({
+    required this.id,
+    required this.icon,
+    required this.color,
+    required this.activity,
+  });
+
+  final String id;
+  final IconData icon;
+  final Color color;
+  final ActivityType activity;
+}
+
+/// The per-activity icon (the activity's own look), used for its badge and its
+/// progress row on the child's Rewards wall.
+const Map<ActivityType, IconData> kActivityBadgeIcon = {
+  ActivityType.story: Icons.menu_book_rounded,
+  ActivityType.mixmatch: Icons.extension_rounded,
+  ActivityType.quiz: Icons.emoji_objects_rounded,
+  ActivityType.companion: Icons.chat_bubble_rounded,
+};
+
+/// The four activities carrying badges, in wall-display order.
+const List<ActivityType> kBadgeActivities = [
+  ActivityType.story,
+  ActivityType.mixmatch,
+  ActivityType.quiz,
+  ActivityType.companion,
+];
+
+/// The badge set, in wall-display order: one badge per activity, drawn in the
+/// activity's own icon and accent, earned when that activity is fully finished.
+final List<RewardBadge> kRewardBadges = [
+  for (final activity in kBadgeActivities)
+    RewardBadge(
+      id: kActivityBadgeId[activity]!,
+      icon: kActivityBadgeIcon[activity]!,
+      color: activityAccent(activity.name),
+      activity: activity,
+    ),
+];
+
 /// Firestore collection names — referenced by repository implementations so the
 /// schema lives in one place (see CLAUDE.md section 7).
 class FirestoreCollections {
@@ -44,7 +532,9 @@ class FirestoreCollections {
   static const String sessions = 'sessions';
   static const String journalEntries = 'journalEntries';
   static const String messages = 'messages';
-  static const String observationReports = 'observationReports';
+
+  /// Teacher-set homework tasks handed to a class or specific students.
+  static const String assignments = 'assignments';
   static const String emotionContent = 'emotionContent';
   static const String visualSchedules = 'visualSchedules';
 

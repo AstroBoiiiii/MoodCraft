@@ -66,6 +66,7 @@ class FirebaseAuthService implements AuthService {
     required UserRole role,
     required AppLanguage language,
     required String phone,
+    int age = 0,
     String? classCode,
     String? parentEmail,
     String? childEmail,
@@ -125,7 +126,10 @@ class FirebaseAuthService implements AuthService {
           await _db
               .collection(FirestoreCollections.students)
               .doc(uid)
-              .set(Student(id: uid, name: name.trim()).toJson()..remove('id'));
+              .set(
+                Student(id: uid, name: name.trim(), age: age).toJson()
+                  ..remove('id'),
+              );
           final code = classCode?.trim() ?? '';
           if (code.isNotEmpty) {
             classCodeRecognised = await _linking.joinClassByCode(
@@ -193,13 +197,16 @@ class FirebaseAuthService implements AuthService {
   /// in [usernameDirectory].
   Future<String> _resolveEmail(String input) async {
     if (input.contains('@')) return input;
-    final snap = await _db
-        .collection(FirestoreCollections.usernameDirectory)
-        .doc(input.toLowerCase())
-        .get();
+    final snap =
+        await _db
+            .collection(FirestoreCollections.usernameDirectory)
+            .doc(input.toLowerCase())
+            .get();
     final email = snap.data()?['email'] as String?;
     if (email == null || email.isEmpty) {
-      throw const AuthException('Username not found. Please check and try again.');
+      throw const AuthException(
+        'Username not found. Please check and try again.',
+      );
     }
     return email;
   }

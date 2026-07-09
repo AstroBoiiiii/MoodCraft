@@ -1,5 +1,5 @@
 name: moodcraft
-description: "A new Flutter project."
+description: "MoodCraft teaches emotion recognition to primary-school children with ASD, keeping their teachers and parents connected to that learning."
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
@@ -23,6 +23,28 @@ dependencies:
   firebase_core: ^4.11.0
   firebase_auth: ^6.5.4
   cloud_firestore: ^6.6.0
+  uuid: ^4.5.1
+  audioplayers: ^6.1.0
+  flutter_tts: ^4.2.0
+  video_player: ^2.9.2
+  web: ^1.1.0
+  url_launcher: ^6.3.2
+  flutter_linkify: ^6.0.0
+  linkify: ^5.0.0
+  http: ^1.6.0
+  flutter_inappwebview: ^6.1.5
+  permission_handler: ^12.0.3
+  # Pinned below 3.12: from 3.12 the package's live_session.dart uses @internal
+  # expecting a newer Flutter foundation.dart that re-exports it, so 3.12+ does
+  # not compile on our Flutter 3.29 SDK.
+  firebase_ai: '>=3.11.0 <3.12.0'
+  speech_to_text: ^7.4.0
+
+# firebase_ai 3.11 declares firebase_core_platform_interface ^6 while our
+# cloud_firestore needs ^7; the newer interface is source-compatible with what
+# firebase_ai actually uses (verified by compile + tests), so force it.
+dependency_overrides:
+  firebase_core_platform_interface: ^7.1.0
 
 dev_dependencies:
   flutter_test:
@@ -43,8 +65,26 @@ flutter:
   # Asset directories. Real art is dropped in later without code changes
   # because every path is centralised in lib/core/constants/app_assets.dart.
   assets:
+    - assets/ar/
+    - assets/companion/
+    - assets/companion/avatar/
+    - assets/companion/poses/
+    - assets/companion/libs/
+    - assets/companion/libs/three/
+    - assets/companion/libs/three/addons/controls/
+    - assets/companion/libs/three/addons/curves/
+    - assets/companion/libs/three/addons/environments/
+    - assets/companion/libs/three/addons/libs/
+    - assets/companion/libs/three/addons/loaders/
+    - assets/companion/libs/three/addons/utils/
     - assets/images/
+    - assets/images/mixmatch/face/
+    - assets/images/mixmatch/body/
+    - assets/images/mixmatch/situation/
+    - assets/images/quiz/look/
     - assets/audio/
+    - assets/audio/cues/
+    - assets/video/
     - assets/rive/
     - assets/models/
 

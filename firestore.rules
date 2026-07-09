@@ -58,10 +58,16 @@ service cloud.firestore {
 
     // Student profiles — linked teacher/parent (and the child) read; any linked
     // user writes (covers the child creating their own profile at registration
-    // and teachers/parents updating it).
+    // and teachers/parents updating it). The teacher check reads directly off
+    // the document's own `teacherIds` (matching what the classroom roster query
+    // filters on) rather than only the indirect `linkedStudentIds` mirror, so a
+    // roster read can never be denied by a stale/out-of-sync mirror.
+    function isTeacherOf() {
+      return isSignedIn() && request.auth.uid in resource.data.teacherIds;
+    }
     match /students/{studentId} {
-      allow read: if isLinkedTo(studentId);
-      allow write: if isLinkedTo(studentId);
+      allow read: if isLinkedTo(studentId) || isTeacherOf();
+      allow write: if isLinkedTo(studentId) || isTeacherOf();
     }
 
     // Email -> {uid, role} directory, so a registrant can resolve a counterpart
@@ -102,32 +108,47 @@ service cloud.firestore {
       allow update, delete: if false;
     }
 
-    // Journal entries — linked users read and create.
+    // Journal entries — linked users read and create. Any linked user may
+    // update (to add/edit their role-labelled comment). Only the child whose
+    // journal it is may delete an entry (their own logged feeling); teacher and
+    // parent keep a read + comment view.
     match /journalEntries/{id} {
       allow read: if isLinkedTo(resource.data.studentId);
       allow create: if isLinkedTo(request.resource.data.studentId);
       allow update: if isLinkedTo(resource.data.studentId);
-      allow delete: if false;
+      allow delete: if isLinkedTo(resource.data.studentId)
+        && role() == 'student';
     }
 
-    // Messages — teacher/parent only (never students); sender or recipient.
+    // Messages — teacher/parent only (never students). DEMO-GRADE read: the
+    // inbox queries by `participants` and the thread by `conversationId`, and
+    // a per-user ownership rule cannot be proven from those filters (queries
+    // are denied outright unless the rule is provable from the query itself),
+    // so any signed-in non-student may read. Students stay locked out.
+    // Tighten to participants-based reads before real data.
     match /messages/{id} {
-      allow read: if isSignedIn() && role() != 'student'
-        && (resource.data.fromUid == request.auth.uid
-            || resource.data.toUid == request.auth.uid);
+      allow read: if isSignedIn() && role() != 'student';
       allow create: if isSignedIn() && role() != 'student'
         && request.resource.data.fromUid == request.auth.uid;
       allow update: if isSignedIn()
         && resource.data.toUid == request.auth.uid; // mark read
-      allow delete: if false;
+      allow delete: if isSignedIn()
+        && resource.data.fromUid == request.auth.uid; // sender removes own message
     }
 
-    // AI observation reports — linked users read; teachers create.
-    match /observationReports/{id} {
-      allow read: if isLinkedTo(resource.data.studentId);
-      allow create: if isLinkedTo(request.resource.data.studentId)
-        && role() == 'teacher';
-      allow update, delete: if false;
+    // Homework tasks — a teacher hands them out to a class or specific students;
+    // the linked parent and child read them. Completion is read live from the
+    // student's sessions, never written back here, so only the owning teacher
+    // ever writes. Read is allowed to the creator or anyone linked to one of the
+    // target students.
+    match /assignments/{id} {
+      allow read: if isSignedIn()
+        && (resource.data.teacherId == request.auth.uid
+            || resource.data.studentIds.hasAny(userData().linkedStudentIds));
+      allow create: if isSignedIn() && role() == 'teacher'
+        && request.resource.data.teacherId == request.auth.uid;
+      allow update, delete: if isSignedIn()
+        && resource.data.teacherId == request.auth.uid;
     }
 
     // Curated teaching content — any signed-in user reads; writes via console only.
@@ -136,11 +157,12 @@ service cloud.firestore {
       allow write: if false;
     }
 
-    // Visual schedules — linked users read; teachers write.
+    // Visual schedules (FR13) — linked users read (covers the child reading
+    // their own); linked teacher/parent write. Never the student.
     match /visualSchedules/{id} {
       allow read: if isLinkedTo(resource.data.studentId);
       allow write: if isLinkedTo(request.resource.data.studentId)
-        && role() == 'teacher';
+        && role() != 'student';
     }
   }
 }
