@@ -95,4 +95,13 @@ abstract interface class VisualScheduleRepository {
     required List<ScheduleItem> baseline,
     required List<ScheduleItem> draft,
   });
+
+  /// Sets the same [items] as every listed student's schedule, replacing
+  /// whatever routine each of them had (no merge, unlike [reconcile]) — the
+  /// teacher setting one routine for the whole class.
+  Future<void> overwriteForStudents({
+    required List<String> studentIds,
+    required String createdBy,
+    required List<ScheduleItem> items,
+  });
 }

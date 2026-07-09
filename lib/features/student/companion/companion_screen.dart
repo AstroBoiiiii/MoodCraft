@@ -272,7 +272,7 @@ class _CompanionExperienceState extends ConsumerState<_CompanionExperience> {
     if (!mounted) return;
     setState(() => _judging = false);
     if (judgment.isCorrect) {
-      _recordRound(target, judgment.observationNote);
+      _recordRound(target);
       setState(() => _roundTarget = null);
       _say(judgment.spokenResponse, judgment.characterEmotion);
     } else {
@@ -298,9 +298,10 @@ class _CompanionExperienceState extends ConsumerState<_CompanionExperience> {
     });
   }
 
-  /// Logs the finished round for the teacher (FR8): which feeling, every
-  /// answer given, how many extra tries, and the brain's observation note.
-  Future<void> _recordRound(Emotion target, String note) async {
+  /// Logs the finished round (FR8/FR11): which feeling, every answer given,
+  /// how many extra tries. Plain participation telemetry — the AI writes no
+  /// notes or reports anywhere.
+  Future<void> _recordRound(Emotion target) async {
     try {
       final student = ref.read(activeStudentProvider).value;
       if (student == null) return;
@@ -317,7 +318,6 @@ class _CompanionExperienceState extends ConsumerState<_CompanionExperience> {
               retries: _roundMisses,
               durationMs:
                   DateTime.now().difference(_roundStartedAt).inMilliseconds,
-              note: note,
               timestamp: DateTime.now(),
             ),
           );

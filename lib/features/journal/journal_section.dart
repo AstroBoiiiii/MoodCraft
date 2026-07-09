@@ -5,6 +5,7 @@ import 'package:uuid/uuid.dart';
 
 import '../../app/theme/tokens.dart';
 import '../../core/constants/app_constants.dart';
+import '../../core/models/app_user.dart';
 import '../../core/models/enums.dart';
 import '../../core/models/journal_entry.dart';
 import '../../core/providers/auth_provider.dart';
@@ -223,7 +224,7 @@ class JournalHistorySection extends ConsumerWidget {
             return Column(
               children: [
                 for (final entry in entries)
-                  _JournalEntryTile(
+                  JournalEntryCard(
                     entry: entry,
                     currentRole: user?.role,
                     // Only teacher/parent annotate. The child logs and reads
@@ -231,7 +232,12 @@ class JournalHistorySection extends ConsumerWidget {
                     onAnnotate:
                         (user == null || user.role == UserRole.student)
                             ? null
-                            : () => _editComment(context, ref, entry, user),
+                            : () => showJournalCommentDialog(
+                              context,
+                              ref,
+                              entry,
+                              user,
+                            ),
                     // The child can remove their own entries; it's their
                     // journal. Teacher/parent keep their read + comment view.
                     onDelete:
@@ -245,73 +251,6 @@ class JournalHistorySection extends ConsumerWidget {
         ),
       ],
     );
-  }
-
-  Future<void> _editComment(
-    BuildContext context,
-    WidgetRef ref,
-    JournalEntry entry,
-    dynamic user,
-  ) async {
-    final l = AppLocalizations.of(context);
-    // Each role edits only its own comment (one per role).
-    final existing = entry.commentBy(user.role);
-    final controller = TextEditingController(text: existing?.text ?? '');
-    final text = await showDialog<String>(
-      context: context,
-      builder:
-          (ctx) => AlertDialog(
-            title: Text(l.journalCommentTitle),
-            content: TextField(
-              controller: controller,
-              autofocus: true,
-              maxLines: 3,
-              textCapitalization: TextCapitalization.sentences,
-              decoration: InputDecoration(
-                hintText: l.journalCommentHint,
-                border: const OutlineInputBorder(),
-              ),
-            ),
-            actions: [
-              // Only when a comment already exists — clears just this role's
-              // comment (passing an empty string through withComment below).
-              if (existing != null)
-                TextButton(
-                  style: TextButton.styleFrom(
-                    foregroundColor: Theme.of(ctx).colorScheme.error,
-                  ),
-                  onPressed: () => Navigator.pop(ctx, ''),
-                  child: Text(l.actionDelete),
-                ),
-              TextButton(
-                onPressed: () => Navigator.pop(ctx),
-                child: Text(l.cancelEdit),
-              ),
-              FilledButton(
-                onPressed: () => Navigator.pop(ctx, controller.text.trim()),
-                child: Text(l.confirmEdit),
-              ),
-            ],
-          ),
-    );
-    controller.dispose();
-    if (text == null) return; // cancelled
-    // The journal repo writes by document id, so re-adding the edited entry
-    // updates it in place. withComment replaces just this role's comment (an
-    // empty text clears it), leaving the other roles' comments untouched.
-    await ref
-        .read(journalRepositoryProvider)
-        .add(
-          entry.withComment(
-            JournalComment(
-              authorUid: user.uid,
-              authorRole: user.role,
-              authorName: user.name,
-              text: text,
-              timestamp: DateTime.now(),
-            ),
-          ),
-        );
   }
 
   /// Removes a journal entry after a calm confirm. Reversible in spirit — the
@@ -352,6 +291,75 @@ class JournalHistorySection extends ConsumerWidget {
       messenger.showSnackBar(SnackBar(content: Text(l.journalSaveError)));
     }
   }
+}
+
+/// The teacher/parent "add or edit my comment" dialog for one journal entry.
+/// Each role edits only its own comment (one per role); an empty save clears
+/// it. Shared by [JournalHistorySection] and the teacher's journal feed.
+Future<void> showJournalCommentDialog(
+  BuildContext context,
+  WidgetRef ref,
+  JournalEntry entry,
+  AppUser user,
+) async {
+  final l = AppLocalizations.of(context);
+  final existing = entry.commentBy(user.role);
+  final controller = TextEditingController(text: existing?.text ?? '');
+  final text = await showDialog<String>(
+    context: context,
+    builder:
+        (ctx) => AlertDialog(
+          title: Text(l.journalCommentTitle),
+          content: TextField(
+            controller: controller,
+            autofocus: true,
+            maxLines: 3,
+            textCapitalization: TextCapitalization.sentences,
+            decoration: InputDecoration(
+              hintText: l.journalCommentHint,
+              border: const OutlineInputBorder(),
+            ),
+          ),
+          actions: [
+            // Only when a comment already exists — clears just this role's
+            // comment (passing an empty string through withComment below).
+            if (existing != null)
+              TextButton(
+                style: TextButton.styleFrom(
+                  foregroundColor: Theme.of(ctx).colorScheme.error,
+                ),
+                onPressed: () => Navigator.pop(ctx, ''),
+                child: Text(l.actionDelete),
+              ),
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: Text(l.cancelEdit),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(ctx, controller.text.trim()),
+              child: Text(l.confirmEdit),
+            ),
+          ],
+        ),
+  );
+  controller.dispose();
+  if (text == null) return; // cancelled
+  // The journal repo writes by document id, so re-adding the edited entry
+  // updates it in place. withComment replaces just this role's comment (an
+  // empty text clears it), leaving the other roles' comments untouched.
+  await ref
+      .read(journalRepositoryProvider)
+      .add(
+        entry.withComment(
+          JournalComment(
+            authorUid: user.uid,
+            authorRole: user.role,
+            authorName: user.name,
+            text: text,
+            timestamp: DateTime.now(),
+          ),
+        ),
+      );
 }
 
 /// Friendly role label for a journal comment author.
@@ -504,12 +512,18 @@ class _ContextChoice extends StatelessWidget {
   }
 }
 
-class _JournalEntryTile extends StatelessWidget {
-  const _JournalEntryTile({
+/// One journal entry as a calm card: emotion, place, time, the child's note
+/// and any role-labelled comments. Shared by [JournalHistorySection] and the
+/// teacher's cross-student journal feed (which names the student on each card).
+class JournalEntryCard extends StatelessWidget {
+  const JournalEntryCard({
     required this.entry,
     this.currentRole,
+    this.studentName,
     this.onAnnotate,
     this.onDelete,
+    this.onTap,
+    super.key,
   });
 
   final JournalEntry entry;
@@ -517,11 +531,18 @@ class _JournalEntryTile extends StatelessWidget {
   /// Role of the signed-in viewer, so the comment button reads "add" vs "edit"
   /// for their own comment. Null = nobody signed in (read-only).
   final UserRole? currentRole;
+
+  /// Shown above the feeling when the card sits in a mixed feed (the teacher's
+  /// latest-entries view), so it is clear whose feeling this is. Null hides it.
+  final String? studentName;
   final VoidCallback? onAnnotate;
 
   /// Provided only when the viewer may delete this entry (the student's own
   /// journal). Null hides the delete affordance.
   final VoidCallback? onDelete;
+
+  /// Optional tap-through (the teacher's feed opens that student's journal).
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -542,113 +563,125 @@ class _JournalEntryTile extends StatelessWidget {
     // grows to fit its content.
     return Card(
       margin: const EdgeInsets.only(bottom: AppSpacing.sm),
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.md),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            CircleAvatar(
-              backgroundColor: color.withValues(alpha: 0.18),
-              child: Icon(kEmotionIcon[entry.emotionIcon], color: color),
-            ),
-            const SizedBox(width: AppSpacing.md),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    emotionLabel(entry.emotionIcon, l),
-                    style: theme.textTheme.titleMedium,
-                  ),
-                  const SizedBox(height: AppSpacing.xs),
-                  Wrap(
-                    crossAxisAlignment: WrapCrossAlignment.center,
-                    spacing: AppSpacing.sm,
-                    children: [
-                      if (contextIcon != null)
-                        Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              contextIcon,
-                              size: 16,
-                              color: theme.colorScheme.onSurfaceVariant,
-                            ),
-                            const SizedBox(width: AppSpacing.xs),
-                            Text(contextLabel(entry.contextIcon!, l)),
-                          ],
-                        ),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(AppRadii.md),
+        child: Padding(
+          padding: const EdgeInsets.all(AppSpacing.md),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              CircleAvatar(
+                backgroundColor: color.withValues(alpha: 0.18),
+                child: Icon(kEmotionIcon[entry.emotionIcon], color: color),
+              ),
+              const SizedBox(width: AppSpacing.md),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (studentName != null)
                       Text(
-                        _friendlyTime(entry.timestamp, l),
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant,
+                        studentName!,
+                        style: theme.textTheme.labelLarge?.copyWith(
+                          color: theme.colorScheme.primary,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
-                    ],
-                  ),
-                  if (hasNote)
-                    Padding(
-                      padding: const EdgeInsets.only(top: AppSpacing.xs),
-                      child: Text(
-                        entry.note!,
-                        style: theme.textTheme.bodyMedium,
-                      ),
+                    Text(
+                      emotionLabel(entry.emotionIcon, l),
+                      style: theme.textTheme.titleMedium,
                     ),
-                  for (final c in comments)
-                    Padding(
-                      padding: const EdgeInsets.only(top: AppSpacing.xs),
-                      child: RichText(
-                        text: TextSpan(
+                    const SizedBox(height: AppSpacing.xs),
+                    Wrap(
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      spacing: AppSpacing.sm,
+                      children: [
+                        if (contextIcon != null)
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                contextIcon,
+                                size: 16,
+                                color: theme.colorScheme.onSurfaceVariant,
+                              ),
+                              const SizedBox(width: AppSpacing.xs),
+                              Text(contextLabel(entry.contextIcon!, l)),
+                            ],
+                          ),
+                        Text(
+                          _friendlyTime(entry.timestamp, l),
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                      ],
+                    ),
+                    if (hasNote)
+                      Padding(
+                        padding: const EdgeInsets.only(top: AppSpacing.xs),
+                        child: Text(
+                          entry.note!,
                           style: theme.textTheme.bodyMedium,
-                          children: [
-                            TextSpan(
-                              text: '${roleLabel(c.authorRole, l)}: ',
-                              style: theme.textTheme.bodyMedium?.copyWith(
-                                fontWeight: FontWeight.w600,
-                                color: theme.colorScheme.primary,
-                              ),
-                            ),
-                            TextSpan(
-                              text: c.text,
-                              style: theme.textTheme.bodyMedium?.copyWith(
-                                fontStyle: FontStyle.italic,
-                              ),
-                            ),
-                          ],
                         ),
                       ),
-                    ),
-                ],
-              ),
-            ),
-            if (onAnnotate != null || onDelete != null) ...[
-              const SizedBox(width: AppSpacing.sm),
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  if (onAnnotate != null)
-                    IconButton(
-                      tooltip: l.journalCommentTitle,
-                      icon: Icon(
-                        hasOwnComment
-                            ? Icons.edit_note_rounded
-                            : Icons.add_comment_outlined,
+                    for (final c in comments)
+                      Padding(
+                        padding: const EdgeInsets.only(top: AppSpacing.xs),
+                        child: RichText(
+                          text: TextSpan(
+                            style: theme.textTheme.bodyMedium,
+                            children: [
+                              TextSpan(
+                                text: '${roleLabel(c.authorRole, l)}: ',
+                                style: theme.textTheme.bodyMedium?.copyWith(
+                                  fontWeight: FontWeight.w600,
+                                  color: theme.colorScheme.primary,
+                                ),
+                              ),
+                              TextSpan(
+                                text: c.text,
+                                style: theme.textTheme.bodyMedium?.copyWith(
+                                  fontStyle: FontStyle.italic,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                       ),
-                      onPressed: onAnnotate,
-                    ),
-                  if (onDelete != null)
-                    IconButton(
-                      tooltip: l.journalDeleteTitle,
-                      icon: Icon(
-                        Icons.delete_outline_rounded,
-                        color: theme.colorScheme.error,
-                      ),
-                      onPressed: onDelete,
-                    ),
-                ],
+                  ],
+                ),
               ),
+              if (onAnnotate != null || onDelete != null) ...[
+                const SizedBox(width: AppSpacing.sm),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (onAnnotate != null)
+                      IconButton(
+                        tooltip: l.journalCommentTitle,
+                        icon: Icon(
+                          hasOwnComment
+                              ? Icons.edit_note_rounded
+                              : Icons.add_comment_outlined,
+                        ),
+                        onPressed: onAnnotate,
+                      ),
+                    if (onDelete != null)
+                      IconButton(
+                        tooltip: l.journalDeleteTitle,
+                        icon: Icon(
+                          Icons.delete_outline_rounded,
+                          color: theme.colorScheme.error,
+                        ),
+                        onPressed: onDelete,
+                      ),
+                  ],
+                ),
+              ],
             ],
-          ],
+          ),
         ),
       ),
     );

@@ -15,7 +15,6 @@ class Session {
     this.correctCount = 0,
     this.retries = 0,
     this.durationMs = 0,
-    this.note,
     this.syncStatus = SyncStatus.pending,
   });
 
@@ -27,10 +26,6 @@ class Session {
   final int correctCount;
   final int retries;
   final int durationMs;
-
-  /// Optional AI-written observation for the teacher (FR3 teaching rounds,
-  /// e.g. "Mixed up angry with sad on attempt 1, needed the body clue").
-  final String? note;
   final DateTime timestamp;
   final SyncStatus syncStatus;
 
@@ -43,7 +38,6 @@ class Session {
     int? correctCount,
     int? retries,
     int? durationMs,
-    String? note,
     DateTime? timestamp,
     SyncStatus? syncStatus,
   }) {
@@ -56,7 +50,6 @@ class Session {
       correctCount: correctCount ?? this.correctCount,
       retries: retries ?? this.retries,
       durationMs: durationMs ?? this.durationMs,
-      note: note ?? this.note,
       timestamp: timestamp ?? this.timestamp,
       syncStatus: syncStatus ?? this.syncStatus,
     );
@@ -71,7 +64,6 @@ class Session {
     'correctCount': correctCount,
     'retries': retries,
     'durationMs': durationMs,
-    if (note != null) 'note': note,
     'timestamp': dateTimeToJson(timestamp),
     'syncStatus': syncStatus.name,
   };
@@ -92,7 +84,6 @@ class Session {
     correctCount: (json['correctCount'] as num?)?.toInt() ?? 0,
     retries: (json['retries'] as num?)?.toInt() ?? 0,
     durationMs: (json['durationMs'] as num?)?.toInt() ?? 0,
-    note: json['note'] as String?,
     timestamp: dateTimeFromJson(json['timestamp']),
     syncStatus: enumFromName(
       SyncStatus.values,

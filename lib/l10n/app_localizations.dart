@@ -269,12 +269,6 @@ abstract class AppLocalizations {
   /// **'Messages'**
   String get navMessages;
 
-  /// No description provided for @navReports.
-  ///
-  /// In en, this message translates to:
-  /// **'Reports'**
-  String get navReports;
-
   /// No description provided for @navProgress.
   ///
   /// In en, this message translates to:
@@ -569,6 +563,12 @@ abstract class AppLocalizations {
   /// **'Save changes'**
   String get saveProfile;
 
+  /// No description provided for @profileSaveError.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t save. Please try again.'**
+  String get profileSaveError;
+
   /// No description provided for @levelStars.
   ///
   /// In en, this message translates to:
@@ -634,12 +634,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Schedule'**
   String get tabSchedule;
-
-  /// No description provided for @tabJournal.
-  ///
-  /// In en, this message translates to:
-  /// **'Journal'**
-  String get tabJournal;
 
   /// No description provided for @progressReport.
   ///
@@ -1097,6 +1091,30 @@ abstract class AppLocalizations {
   /// **'Schedule unavailable right now'**
   String get scheduleUnavailable;
 
+  /// No description provided for @classScheduleAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Set class schedule'**
+  String get classScheduleAction;
+
+  /// No description provided for @classScheduleTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Class schedule'**
+  String get classScheduleTitle;
+
+  /// No description provided for @classScheduleHint.
+  ///
+  /// In en, this message translates to:
+  /// **'This schedule will replace every student\'s current routine in your class.'**
+  String get classScheduleHint;
+
+  /// No description provided for @classScheduleSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Class schedule saved for every student'**
+  String get classScheduleSaved;
+
   /// No description provided for @journalHowAreYou.
   ///
   /// In en, this message translates to:
@@ -1199,6 +1217,24 @@ abstract class AppLocalizations {
   /// **'A short comment about this feeling (optional)'**
   String get journalCommentHint;
 
+  /// No description provided for @journalSearchStudents.
+  ///
+  /// In en, this message translates to:
+  /// **'Search students'**
+  String get journalSearchStudents;
+
+  /// No description provided for @journalLatestEntries.
+  ///
+  /// In en, this message translates to:
+  /// **'Latest entries'**
+  String get journalLatestEntries;
+
+  /// No description provided for @journalAllStudents.
+  ///
+  /// In en, this message translates to:
+  /// **'All students'**
+  String get journalAllStudents;
+
   /// No description provided for @emotionHappy.
   ///
   /// In en, this message translates to:
@@ -1277,23 +1313,53 @@ abstract class AppLocalizations {
   /// **'Activities'**
   String get homeActivities;
 
-  /// No description provided for @previewDashboard.
+  /// No description provided for @dashStarLeader.
   ///
   /// In en, this message translates to:
-  /// **'Your students\' progress and difficulty areas will appear here.'**
-  String get previewDashboard;
+  /// **'Star leader'**
+  String get dashStarLeader;
+
+  /// No description provided for @dashStarLeaderEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Stars will show up here as your class plays.'**
+  String get dashStarLeaderEmpty;
+
+  /// How many students in the class have earned a badge
+  ///
+  /// In en, this message translates to:
+  /// **'{done} of {total}'**
+  String dashStudentsEarned(int done, int total);
+
+  /// No description provided for @dashBadgeNoOneYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No one has earned this badge yet.'**
+  String get dashBadgeNoOneYet;
+
+  /// No description provided for @dashViewAll.
+  ///
+  /// In en, this message translates to:
+  /// **'View all'**
+  String get dashViewAll;
+
+  /// No description provided for @dashNoTasks.
+  ///
+  /// In en, this message translates to:
+  /// **'No tasks handed out yet.'**
+  String get dashNoTasks;
+
+  /// No description provided for @actionClose.
+  ///
+  /// In en, this message translates to:
+  /// **'Close'**
+  String get actionClose;
 
   /// No description provided for @previewClassroom.
   ///
   /// In en, this message translates to:
   /// **'Project an activity to the whole class from here.'**
   String get previewClassroom;
-
-  /// No description provided for @previewReports.
-  ///
-  /// In en, this message translates to:
-  /// **'Gentle progress reports you can share will appear here.'**
-  String get previewReports;
 
   /// No description provided for @previewRewards.
   ///

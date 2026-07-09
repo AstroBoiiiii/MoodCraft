@@ -98,9 +98,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get navMessages => 'Messages';
 
   @override
-  String get navReports => 'Reports';
-
-  @override
   String get navProgress => 'Progress';
 
   @override
@@ -248,6 +245,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get saveProfile => 'Save changes';
 
   @override
+  String get profileSaveError => 'Couldn\'t save. Please try again.';
+
+  @override
   String levelStars(int level, int stars) {
     return 'Level $level · $stars stars';
   }
@@ -281,9 +281,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get tabSchedule => 'Schedule';
-
-  @override
-  String get tabJournal => 'Journal';
 
   @override
   String get progressReport => 'Progress report';
@@ -530,6 +527,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get scheduleUnavailable => 'Schedule unavailable right now';
 
   @override
+  String get classScheduleAction => 'Set class schedule';
+
+  @override
+  String get classScheduleTitle => 'Class schedule';
+
+  @override
+  String get classScheduleHint => 'This schedule will replace every student\'s current routine in your class.';
+
+  @override
+  String get classScheduleSaved => 'Class schedule saved for every student';
+
+  @override
   String get journalHowAreYou => 'How do you feel today?';
 
   @override
@@ -581,6 +590,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get journalCommentHint => 'A short comment about this feeling (optional)';
 
   @override
+  String get journalSearchStudents => 'Search students';
+
+  @override
+  String get journalLatestEntries => 'Latest entries';
+
+  @override
+  String get journalAllStudents => 'All students';
+
+  @override
   String get emotionHappy => 'Happy';
 
   @override
@@ -620,13 +638,30 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeActivities => 'Activities';
 
   @override
-  String get previewDashboard => 'Your students\' progress and difficulty areas will appear here.';
+  String get dashStarLeader => 'Star leader';
+
+  @override
+  String get dashStarLeaderEmpty => 'Stars will show up here as your class plays.';
+
+  @override
+  String dashStudentsEarned(int done, int total) {
+    return '$done of $total';
+  }
+
+  @override
+  String get dashBadgeNoOneYet => 'No one has earned this badge yet.';
+
+  @override
+  String get dashViewAll => 'View all';
+
+  @override
+  String get dashNoTasks => 'No tasks handed out yet.';
+
+  @override
+  String get actionClose => 'Close';
 
   @override
   String get previewClassroom => 'Project an activity to the whole class from here.';
-
-  @override
-  String get previewReports => 'Gentle progress reports you can share will appear here.';
 
   @override
   String get previewRewards => 'Stars and badges will appear here as you play.';

@@ -7,6 +7,7 @@ import '../../core/widgets/calm_scaffold.dart';
 import '../../core/widgets/constrained_content.dart';
 import '../../core/widgets/empty_state.dart';
 import '../../core/widgets/sensory_settings_sheet.dart';
+import '../journal/journal_section.dart';
 import '../student_detail/student_detail_tabs.dart';
 import '../teacher/messaging_thread_screen.dart';
 
@@ -46,6 +47,45 @@ class ParentMonitoringScreen extends ConsumerWidget {
               parents: const [],
               canEditSchedule: true,
               showHomework: true,
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+/// FR12 — the parent's own Journal tab: their child's logged feelings, newest
+/// first, with the parent's role-labelled comment on any entry (the same
+/// shared journal view the teacher gets on their Journal tab).
+class ParentJournalScreen extends ConsumerWidget {
+  const ParentJournalScreen({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l = AppLocalizations.of(context);
+    final childAsync = ref.watch(activeStudentProvider);
+
+    return CalmScaffold(
+      title: l.navJournal,
+      icon: Icons.book_rounded,
+      body: childAsync.when(
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error:
+            (_, __) => EmptyState(
+              icon: Icons.book_rounded,
+              message: l.journalUnavailable,
+            ),
+        data: (child) {
+          if (child == null) {
+            return EmptyState(
+              icon: Icons.family_restroom_rounded,
+              message: l.noChildLinked,
+            );
+          }
+          return ConstrainedContent(
+            child: ListView(
+              children: [JournalHistorySection(studentId: child.id)],
             ),
           );
         },

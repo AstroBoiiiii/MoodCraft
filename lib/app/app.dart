@@ -4,6 +4,7 @@ import 'package:moodcraft/l10n/app_localizations.dart';
 
 import '../core/constants/app_constants.dart';
 import '../core/providers/auth_provider.dart';
+import '../core/providers/locale_provider.dart';
 import '../core/providers/repository_providers.dart';
 import '../core/providers/sensory_settings_provider.dart';
 import '../core/services/background_music_service.dart';
@@ -20,6 +21,7 @@ class MoodCraftApp extends ConsumerWidget {
     ref.watch(sensoryHydrationProvider);
     final settings = ref.watch(sensorySettingsProvider);
     final router = ref.watch(goRouterProvider);
+    final locale = ref.watch(appLocaleProvider);
 
     ref.listen(sensorySettingsProvider, (prev, next) {
       final music = ref.read(backgroundMusicServiceProvider);
@@ -47,6 +49,7 @@ class MoodCraftApp extends ConsumerWidget {
       debugShowCheckedModeBanner: false,
       theme: buildTheme(settings),
       routerConfig: router,
+      locale: locale,
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
     );

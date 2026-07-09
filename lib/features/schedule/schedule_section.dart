@@ -37,14 +37,9 @@ class StudentScheduleSection extends ConsumerStatefulWidget {
 class _StudentScheduleSectionState
     extends ConsumerState<StudentScheduleSection> {
   bool _editing = false;
-  List<ScheduleItem> _draft = [];
   // The server schedule captured when editing started, so _confirm can rebase
   // this role's add/remove delta onto the latest copy instead of overwriting.
   List<ScheduleItem> _baseline = [];
-  TimeOfDay? _pickedTime;
-  TimeOfDay? _pickedEndTime;
-  String? _pickedIcon; // null = no picture
-  final TextEditingController _labelController = TextEditingController();
   bool _saving = false;
   Timer? _ticker;
 
@@ -60,18 +55,12 @@ class _StudentScheduleSectionState
   @override
   void dispose() {
     _ticker?.cancel();
-    _labelController.dispose();
     super.dispose();
   }
 
   void _startEdit(VisualSchedule? current) {
     setState(() {
       _baseline = List<ScheduleItem>.from(current?.sortedItems ?? const []);
-      _draft = List<ScheduleItem>.from(_baseline);
-      _pickedTime = null;
-      _pickedEndTime = null;
-      _pickedIcon = null;
-      _labelController.clear();
       _editing = true;
     });
   }
@@ -79,10 +68,181 @@ class _StudentScheduleSectionState
   void _cancel() {
     setState(() {
       _editing = false;
-      _draft = [];
       _baseline = [];
-      _labelController.clear();
     });
+  }
+
+  Future<void> _confirm(List<ScheduleItem> draft) async {
+    setState(() => _saving = true);
+    final uid = ref.read(currentUserProvider)?.uid ?? '';
+    try {
+      // Rebase this role's changes onto the latest server schedule (transaction)
+      // so a teacher/parent editing the same child don't overwrite each other,
+      // and a slot taken meanwhile is rejected rather than double-booked.
+      await ref
+          .read(visualScheduleRepositoryProvider)
+          .reconcile(
+            studentId: widget.studentId,
+            createdBy: uid,
+            baseline: _baseline,
+            draft: draft,
+          );
+      if (!mounted) return;
+      setState(() {
+        _saving = false;
+        _editing = false;
+        _baseline = [];
+      });
+    } on ScheduleConflictException {
+      if (!mounted) return;
+      setState(() => _saving = false);
+      // Keep the editor open so the user can adjust the clashing time.
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(AppLocalizations.of(context).scheduleClashError),
+        ),
+      );
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _saving = false);
+      final l = AppLocalizations.of(context);
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l.scheduleSaveError)));
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
+    final theme = Theme.of(context);
+    final scheduleAsync = ref.watch(studentScheduleProvider(widget.studentId));
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: Text(
+                l.scheduleSectionTitle,
+                style: theme.textTheme.titleMedium,
+              ),
+            ),
+            if (widget.canEdit && !_editing)
+              TextButton.icon(
+                onPressed: () => _startEdit(scheduleAsync.value),
+                icon: const Icon(Icons.edit_rounded, size: 20),
+                label: Text(l.editProfile),
+              ),
+          ],
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        if (_editing)
+          ScheduleEditor(
+            initialItems: _baseline,
+            saving: _saving,
+            onCancel: _cancel,
+            onConfirm: _confirm,
+          )
+        else
+          scheduleAsync.when(
+            loading:
+                () => const Padding(
+                  padding: EdgeInsets.all(AppSpacing.md),
+                  child: Center(child: CircularProgressIndicator()),
+                ),
+            // Surface a sync/permission problem instead of masking it as empty.
+            error:
+                (_, __) => Padding(
+                  padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
+                  child: Text(
+                    l.scheduleUnavailable,
+                    style: theme.textTheme.bodyLarge?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ),
+            data: (schedule) => _buildView(schedule, l, theme),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildView(
+    VisualSchedule? schedule,
+    AppLocalizations l,
+    ThemeData theme,
+  ) {
+    final items = schedule?.sortedItems ?? const [];
+    if (items.isEmpty) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
+        child: Text(
+          l.scheduleEmpty,
+          style: theme.textTheme.bodyLarge?.copyWith(
+            color: theme.colorScheme.onSurfaceVariant,
+          ),
+        ),
+      );
+    }
+
+    // Now/next derived from the device clock (shared with [ScheduleNowNextCard]).
+    final nn = resolveNowNext(items);
+    final currentIndex = nn.current;
+    final nextIndex = nn.next;
+
+    return Column(
+      children: [
+        for (var i = 0; i < items.length; i++)
+          _ActivityTile(
+            item: items[i],
+            isNow: i == currentIndex,
+            isNext: i == nextIndex,
+          ),
+      ],
+    );
+  }
+}
+
+/// The draft schedule editor (FR13): the working list of activities, an
+/// add-activity panel (start/end time, label, optional picture; time slots
+/// can never overlap), and Cancel/Confirm buttons. What Confirm *means* is the
+/// caller's business: [StudentScheduleSection] rebases the draft onto one
+/// child's schedule, the teacher's class-schedule screen writes it to every
+/// student. [saving] disables the buttons while the caller commits; the editor
+/// stays open on a failed save so nothing typed is lost.
+class ScheduleEditor extends StatefulWidget {
+  const ScheduleEditor({
+    required this.initialItems,
+    required this.onConfirm,
+    required this.onCancel,
+    this.saving = false,
+    super.key,
+  });
+
+  final List<ScheduleItem> initialItems;
+  final ValueChanged<List<ScheduleItem>> onConfirm;
+  final VoidCallback onCancel;
+  final bool saving;
+
+  @override
+  State<ScheduleEditor> createState() => _ScheduleEditorState();
+}
+
+class _ScheduleEditorState extends State<ScheduleEditor> {
+  late final List<ScheduleItem> _draft = List<ScheduleItem>.from(
+    widget.initialItems,
+  );
+  TimeOfDay? _pickedTime;
+  TimeOfDay? _pickedEndTime;
+  String? _pickedIcon; // null = no picture
+  final TextEditingController _labelController = TextEditingController();
+
+  @override
+  void dispose() {
+    _labelController.dispose();
+    super.dispose();
   }
 
   String _formatTime(TimeOfDay t) =>
@@ -143,132 +303,10 @@ class _StudentScheduleSectionState
     });
   }
 
-  Future<void> _confirm() async {
-    setState(() => _saving = true);
-    final uid = ref.read(currentUserProvider)?.uid ?? '';
-    try {
-      // Rebase this role's changes onto the latest server schedule (transaction)
-      // so a teacher/parent editing the same child don't overwrite each other,
-      // and a slot taken meanwhile is rejected rather than double-booked.
-      await ref
-          .read(visualScheduleRepositoryProvider)
-          .reconcile(
-            studentId: widget.studentId,
-            createdBy: uid,
-            baseline: _baseline,
-            draft: _draft,
-          );
-      if (!mounted) return;
-      setState(() {
-        _saving = false;
-        _editing = false;
-        _draft = [];
-        _baseline = [];
-        _labelController.clear();
-      });
-    } on ScheduleConflictException {
-      if (!mounted) return;
-      setState(() => _saving = false);
-      // Keep the editor open so the user can adjust the clashing time.
-      _showError(AppLocalizations.of(context).scheduleClashError);
-    } catch (_) {
-      if (!mounted) return;
-      setState(() => _saving = false);
-      final l = AppLocalizations.of(context);
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(l.scheduleSaveError)));
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
     final theme = Theme.of(context);
-    final scheduleAsync = ref.watch(studentScheduleProvider(widget.studentId));
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Expanded(
-              child: Text(
-                l.scheduleSectionTitle,
-                style: theme.textTheme.titleMedium,
-              ),
-            ),
-            if (widget.canEdit && !_editing)
-              TextButton.icon(
-                onPressed: () => _startEdit(scheduleAsync.value),
-                icon: const Icon(Icons.edit_rounded, size: 20),
-                label: Text(l.editProfile),
-              ),
-          ],
-        ),
-        const SizedBox(height: AppSpacing.sm),
-        if (_editing)
-          _buildEditor(l, theme)
-        else
-          scheduleAsync.when(
-            loading:
-                () => const Padding(
-                  padding: EdgeInsets.all(AppSpacing.md),
-                  child: Center(child: CircularProgressIndicator()),
-                ),
-            // Surface a sync/permission problem instead of masking it as empty.
-            error:
-                (_, __) => Padding(
-                  padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
-                  child: Text(
-                    l.scheduleUnavailable,
-                    style: theme.textTheme.bodyLarge?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                ),
-            data: (schedule) => _buildView(schedule, l, theme),
-          ),
-      ],
-    );
-  }
-
-  Widget _buildView(
-    VisualSchedule? schedule,
-    AppLocalizations l,
-    ThemeData theme,
-  ) {
-    final items = schedule?.sortedItems ?? const [];
-    if (items.isEmpty) {
-      return Padding(
-        padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
-        child: Text(
-          l.scheduleEmpty,
-          style: theme.textTheme.bodyLarge?.copyWith(
-            color: theme.colorScheme.onSurfaceVariant,
-          ),
-        ),
-      );
-    }
-
-    // Now/next derived from the device clock (shared with [ScheduleNowNextCard]).
-    final nn = resolveNowNext(items);
-    final currentIndex = nn.current;
-    final nextIndex = nn.next;
-
-    return Column(
-      children: [
-        for (var i = 0; i < items.length; i++)
-          _ActivityTile(
-            item: items[i],
-            isNow: i == currentIndex,
-            isNext: i == nextIndex,
-          ),
-      ],
-    );
-  }
-
-  Widget _buildEditor(AppLocalizations l, ThemeData theme) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -385,16 +423,17 @@ class _StudentScheduleSectionState
           children: [
             Expanded(
               child: OutlinedButton(
-                onPressed: _saving ? null : _cancel,
+                onPressed: widget.saving ? null : widget.onCancel,
                 child: Text(l.cancelEdit),
               ),
             ),
             const SizedBox(width: AppSpacing.sm),
             Expanded(
               child: FilledButton(
-                onPressed: _saving ? null : _confirm,
+                onPressed:
+                    widget.saving ? null : () => widget.onConfirm(_draft),
                 child:
-                    _saving
+                    widget.saving
                         ? const SizedBox(
                           height: 20,
                           width: 20,

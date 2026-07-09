@@ -129,11 +129,9 @@ void main() {
       correctCount: 1,
       retries: 2,
       durationMs: 45000,
-      note: 'Identified sad on attempt 2, needed the body clue.',
       timestamp: when,
     );
     expect(Session.fromJson(session.toJson()).toJson(), session.toJson());
-    expect(Session.fromJson(session.toJson()).note, session.note);
   });
 
   test('JournalEntry round-trips (optional fields null)', () {
@@ -159,23 +157,6 @@ void main() {
       read: true,
     );
     expect(Message.fromJson(message.toJson()).toJson(), message.toJson());
-  });
-
-  test('ObservationReport round-trips', () {
-    final report = ObservationReport(
-      id: 'r1',
-      studentId: 's1',
-      generatedText: 'Calm and engaged this week.',
-      basedOnSessionIds: const ['sess1', 'sess2'],
-      rangeStart: when.subtract(const Duration(days: 7)),
-      rangeEnd: when,
-      createdBy: 't1',
-      timestamp: when,
-    );
-    expect(
-      ObservationReport.fromJson(report.toJson()).toJson(),
-      report.toJson(),
-    );
   });
 
   test('EmotionContent round-trips', () {

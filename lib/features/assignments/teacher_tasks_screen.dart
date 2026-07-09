@@ -187,9 +187,9 @@ class _AudienceChip extends StatelessWidget {
   }
 }
 
-/// The create-a-task form: name, optional note, audience (whole class or chosen
-/// students), and the activities to do. Announcements snapshot the current class
-/// roster so the target never shifts after it's handed out.
+/// The create-a-task form: audience (whole class or chosen students) and the
+/// activities to do, no name or note needed. Announcements snapshot the
+/// current class roster so the target never shifts after it's handed out.
 class TeacherCreateTaskScreen extends ConsumerStatefulWidget {
   const TeacherCreateTaskScreen({super.key});
 
@@ -200,19 +200,10 @@ class TeacherCreateTaskScreen extends ConsumerStatefulWidget {
 
 class _TeacherCreateTaskScreenState
     extends ConsumerState<TeacherCreateTaskScreen> {
-  final _titleController = TextEditingController();
-  final _noteController = TextEditingController();
   AssignmentAudience _audience = AssignmentAudience.announcement;
   final Set<ActivityType> _activities = {};
   final Set<String> _studentIds = {};
   bool _saving = false;
-
-  @override
-  void dispose() {
-    _titleController.dispose();
-    _noteController.dispose();
-    super.dispose();
-  }
 
   Future<void> _save(List<Student> roster) async {
     final l = AppLocalizations.of(context);
@@ -248,8 +239,8 @@ class _TeacherCreateTaskScreenState
       teacherId: me.uid,
       classId: _audience == AssignmentAudience.announcement ? classId : null,
       audience: _audience,
-      title: _titleController.text.trim(),
-      note: _noteController.text.trim(),
+      title: '',
+      note: '',
       studentIds: targetIds,
       activities: kAssignableActivities.where(_activities.contains).toList(),
       createdAt: DateTime.now(),
@@ -277,27 +268,6 @@ class _TeacherCreateTaskScreenState
         child: ListView(
           padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
           children: [
-            TextField(
-              controller: _titleController,
-              textCapitalization: TextCapitalization.sentences,
-              decoration: InputDecoration(
-                labelText: l.taskName,
-                hintText: l.taskNameHint,
-                border: const OutlineInputBorder(),
-              ),
-            ),
-            const SizedBox(height: AppSpacing.md),
-            TextField(
-              controller: _noteController,
-              textCapitalization: TextCapitalization.sentences,
-              maxLines: 2,
-              decoration: InputDecoration(
-                labelText: l.taskNoteLabel,
-                hintText: l.taskNoteHint,
-                border: const OutlineInputBorder(),
-              ),
-            ),
-            const SizedBox(height: AppSpacing.lg),
             Text(l.taskAudienceQuestion, style: theme.textTheme.titleSmall),
             const SizedBox(height: AppSpacing.sm),
             SegmentedButton<AssignmentAudience>(

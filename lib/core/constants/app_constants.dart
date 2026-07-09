@@ -535,7 +535,6 @@ class FirestoreCollections {
 
   /// Teacher-set homework tasks handed to a class or specific students.
   static const String assignments = 'assignments';
-  static const String observationReports = 'observationReports';
   static const String emotionContent = 'emotionContent';
   static const String visualSchedules = 'visualSchedules';
 

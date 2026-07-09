@@ -98,31 +98,28 @@ class AppLocalizationsMs extends AppLocalizations {
   String get navMessages => 'Mesej';
 
   @override
-  String get navReports => 'Laporan';
-
-  @override
   String get navProgress => 'Kemajuan';
 
   @override
   String get arMobileOnly => 'AR boleh didapati pada aplikasi mudah alih.';
 
   @override
-  String get companionMobileOnly => 'The companion is available on the mobile app.';
+  String get companionMobileOnly => 'Rakan boleh didapati pada aplikasi mudah alih.';
 
   @override
-  String get arStarting => 'Getting the camera ready.';
+  String get arStarting => 'Sedang menyediakan kamera.';
 
   @override
-  String get arCameraNeeded => 'MoodCraft needs the camera to show AR. Please allow camera access.';
+  String get arCameraNeeded => 'MoodCraft memerlukan kamera untuk menunjukkan AR. Sila benarkan akses kamera.';
 
   @override
-  String get arAllowCamera => 'Allow camera';
+  String get arAllowCamera => 'Benarkan kamera';
 
   @override
   String get signIn => 'Log masuk';
 
   @override
-  String get signInWelcome => 'Welcome back. Sign in to continue.';
+  String get signInWelcome => 'Selamat kembali. Log masuk untuk teruskan.';
 
   @override
   String get registerTitle => 'Cipta akaun';
@@ -137,10 +134,10 @@ class AppLocalizationsMs extends AppLocalizations {
   String get passwordLabel => 'Kata laluan';
 
   @override
-  String get showPassword => 'Show password';
+  String get showPassword => 'Tunjuk kata laluan';
 
   @override
-  String get hidePassword => 'Hide password';
+  String get hidePassword => 'Sembunyikan kata laluan';
 
   @override
   String get languageLabel => 'Bahasa';
@@ -197,7 +194,7 @@ class AppLocalizationsMs extends AppLocalizations {
   String get yourClassCode => 'Kod kelas';
 
   @override
-  String get classLabel => 'Class';
+  String get classLabel => 'Kelas';
 
   @override
   String get showCode => 'Tunjuk';
@@ -221,7 +218,7 @@ class AppLocalizationsMs extends AppLocalizations {
   String get emailOrUsername => 'E-mel atau nama pengguna';
 
   @override
-  String get editProfile => 'Edit';
+  String get editProfile => 'Sunting';
 
   @override
   String get confirmEdit => 'Sahkan';
@@ -246,6 +243,9 @@ class AppLocalizationsMs extends AppLocalizations {
 
   @override
   String get saveProfile => 'Simpan perubahan';
+
+  @override
+  String get profileSaveError => 'Tidak dapat menyimpan. Sila cuba lagi.';
 
   @override
   String levelStars(int level, int stars) {
@@ -277,25 +277,22 @@ class AppLocalizationsMs extends AppLocalizations {
   String get childProfile => 'Profil Anak';
 
   @override
-  String get tabOverview => 'Overview';
+  String get tabOverview => 'Ringkasan';
 
   @override
-  String get tabSchedule => 'Schedule';
+  String get tabSchedule => 'Jadual';
 
   @override
-  String get tabJournal => 'Journal';
+  String get progressReport => 'Laporan kemajuan';
 
   @override
-  String get progressReport => 'Progress report';
+  String get progressReportSoon => 'Laporan kemajuan untuk pelajar ini akan tersedia tidak lama lagi.';
 
   @override
-  String get progressReportSoon => 'A progress report for this student is coming soon.';
+  String get selectStudentHint => 'Pilih seorang pelajar untuk melihat butirannya';
 
   @override
-  String get selectStudentHint => 'Select a student to see their details';
-
-  @override
-  String get homeTodayHeading => 'Today';
+  String get homeTodayHeading => 'Hari ini';
 
   @override
   String get msgNoConversations => 'Belum ada perbualan';
@@ -304,13 +301,13 @@ class AppLocalizationsMs extends AppLocalizations {
   String get msgNoLinkedTeacher => 'Belum ada guru dikaitkan';
 
   @override
-  String get msgNewMessage => 'New message';
+  String get msgNewMessage => 'Mesej baharu';
 
   @override
-  String get msgStartConversation => 'Start a conversation';
+  String get msgStartConversation => 'Mulakan perbualan';
 
   @override
-  String get msgNoParentsToMessage => 'No parents linked to your students yet';
+  String get msgNoParentsToMessage => 'Belum ada ibu bapa dikaitkan dengan pelajar anda';
 
   @override
   String get msgTypeHere => 'Taip mesej…';
@@ -322,13 +319,13 @@ class AppLocalizationsMs extends AppLocalizations {
   String get msgYou => 'Anda';
 
   @override
-  String get msgDeleteMessage => 'Delete message';
+  String get msgDeleteMessage => 'Padam mesej';
 
   @override
-  String get msgDeleteConfirm => 'Delete this message? This can\'t be undone.';
+  String get msgDeleteConfirm => 'Padam mesej ini? Tindakan ini tidak boleh dibatalkan.';
 
   @override
-  String get msgDeleted => 'Message deleted';
+  String get msgDeleted => 'Mesej dipadam';
 
   @override
   String msgAboutChild(String childName) {
@@ -341,115 +338,115 @@ class AppLocalizationsMs extends AppLocalizations {
   }
 
   @override
-  String get navTasks => 'Tasks';
+  String get navTasks => 'Tugasan';
 
   @override
-  String get taskNewTitle => 'New task';
+  String get taskNewTitle => 'Tugasan baharu';
 
   @override
-  String get taskName => 'Task name';
+  String get taskName => 'Nama tugasan';
 
   @override
-  String get taskNameHint => 'e.g. This week\'s practice';
+  String get taskNameHint => 'cth. Latihan minggu ini';
 
   @override
-  String get taskUntitled => 'Homework';
+  String get taskUntitled => 'Kerja rumah';
 
   @override
-  String get taskNoteLabel => 'Note (optional)';
+  String get taskNoteLabel => 'Nota (pilihan)';
 
   @override
-  String get taskNoteHint => 'Anything you want to tell them';
+  String get taskNoteHint => 'Apa sahaja yang anda mahu beritahu mereka';
 
   @override
-  String get taskAudienceQuestion => 'Who is this for?';
+  String get taskAudienceQuestion => 'Untuk siapa tugasan ini?';
 
   @override
-  String get taskAudienceClass => 'Whole class';
+  String get taskAudienceClass => 'Seluruh kelas';
 
   @override
-  String get taskAudienceStudents => 'Chosen students';
+  String get taskAudienceStudents => 'Pelajar terpilih';
 
   @override
-  String get taskActivitiesHeading => 'Activities to do';
+  String get taskActivitiesHeading => 'Aktiviti untuk dilakukan';
 
   @override
-  String get taskStudentsHeading => 'Choose students';
+  String get taskStudentsHeading => 'Pilih pelajar';
 
   @override
-  String get taskHandOut => 'Hand out task';
+  String get taskHandOut => 'Berikan tugasan';
 
   @override
-  String get taskAnnouncement => 'Announcement';
+  String get taskAnnouncement => 'Pengumuman';
 
   @override
-  String get taskPersonal => 'Personal';
+  String get taskPersonal => 'Peribadi';
 
   @override
-  String get taskForClass => 'Whole class';
+  String get taskForClass => 'Seluruh kelas';
 
   @override
   String taskForStudents(int count) {
-    return '$count students';
+    return '$count pelajar';
   }
 
   @override
   String taskDoneOf(int done, int total) {
-    return '$done of $total done';
+    return '$done daripada $total selesai';
   }
 
   @override
   String taskStudentsFinished(int done, int total) {
-    return '$done/$total finished it';
+    return '$done/$total telah selesaikannya';
   }
 
   @override
-  String get taskEmptyTeacher => 'No tasks yet. Hand one out with the button below.';
+  String get taskEmptyTeacher => 'Belum ada tugasan. Berikan satu dengan butang di bawah.';
 
   @override
-  String get taskEmptyParent => 'No tasks from the teacher yet.';
+  String get taskEmptyParent => 'Belum ada tugasan daripada guru.';
 
   @override
-  String get homeworkHeading => 'Homework';
+  String get homeworkHeading => 'Kerja rumah';
 
   @override
-  String get taskProgressHeading => 'Who\'s done it';
+  String get taskProgressHeading => 'Siapa yang telah selesai';
 
   @override
-  String get taskDelete => 'Delete task';
+  String get taskDelete => 'Padam tugasan';
 
   @override
-  String get taskDeleteConfirm => 'Delete this task for everyone? This can\'t be undone.';
+  String get taskDeleteConfirm => 'Padam tugasan ini untuk semua orang? Tindakan ini tidak boleh dibatalkan.';
 
   @override
-  String get taskCreated => 'Task handed out';
+  String get taskCreated => 'Tugasan telah diberikan';
 
   @override
-  String get taskDeleted => 'Task deleted';
+  String get taskDeleted => 'Tugasan dipadam';
 
   @override
-  String get taskNeedActivity => 'Pick at least one activity';
+  String get taskNeedActivity => 'Pilih sekurang-kurangnya satu aktiviti';
 
   @override
-  String get taskNeedStudent => 'Pick at least one student';
+  String get taskNeedStudent => 'Pilih sekurang-kurangnya seorang pelajar';
 
   @override
-  String get taskNoStudentsInClass => 'No students in your class yet';
+  String get taskNoStudentsInClass => 'Belum ada pelajar dalam kelas anda';
 
   @override
-  String get todoHeading => 'Things to do';
+  String get todoHeading => 'Perkara untuk dilakukan';
 
   @override
-  String get todoAllDone => 'All done. Great work!';
+  String get todoAllDone => 'Semua selesai. Syabas!';
 
   @override
-  String get messageParent => 'Message';
+  String get messageParent => 'Mesej';
 
   @override
   String get ageLabel => 'Umur';
 
   @override
-  String get errAge => 'Sila masukkan umur yang sah (3–18)';
+  String get errAge => 'Sila masukkan umur yang sah (3 hingga 18)';
 
   @override
   String ageYearsOld(int age) {
@@ -457,500 +454,538 @@ class AppLocalizationsMs extends AppLocalizations {
   }
 
   @override
-  String get studentDelete => 'Delete student';
+  String get studentDelete => 'Padam pelajar';
 
   @override
   String studentDeleteConfirm(String name) {
-    return 'Remove $name from your class? This can\'t be undone.';
+    return 'Keluarkan $name daripada kelas anda? Tindakan ini tidak boleh dibatalkan.';
   }
 
   @override
-  String get studentDeleted => 'Student removed';
+  String get studentDeleted => 'Pelajar dikeluarkan';
 
   @override
-  String get parentRemove => 'Remove parent';
+  String get parentRemove => 'Keluarkan ibu bapa';
 
   @override
   String parentRemoveConfirm(String name) {
-    return 'Remove $name as a parent of this student?';
+    return 'Keluarkan $name sebagai ibu bapa pelajar ini?';
   }
 
   @override
-  String get actionDelete => 'Delete';
+  String get actionDelete => 'Padam';
 
   @override
-  String get actionRemove => 'Remove';
+  String get actionRemove => 'Keluarkan';
 
   @override
-  String get scheduleTitle => 'Today\'s schedule';
+  String get scheduleTitle => 'Jadual hari ini';
 
   @override
-  String get scheduleSectionTitle => 'Daily routine';
+  String get scheduleSectionTitle => 'Rutin harian';
 
   @override
-  String get scheduleEmpty => 'No routine set yet';
+  String get scheduleEmpty => 'Belum ada rutin ditetapkan';
 
   @override
-  String get scheduleAddActivity => 'Add activity';
+  String get scheduleAddActivity => 'Tambah aktiviti';
 
   @override
-  String get scheduleActivityHint => 'Activity name';
+  String get scheduleActivityHint => 'Nama aktiviti';
 
   @override
-  String get schedulePictureOptional => 'Picture (optional)';
+  String get schedulePictureOptional => 'Gambar (pilihan)';
 
   @override
-  String get schedulePictureNone => 'None';
+  String get schedulePictureNone => 'Tiada';
 
   @override
-  String get scheduleTimeLabel => 'Start';
+  String get scheduleTimeLabel => 'Mula';
 
   @override
-  String get scheduleEndTimeLabel => 'End';
+  String get scheduleEndTimeLabel => 'Tamat';
 
   @override
-  String get scheduleNow => 'Now';
+  String get scheduleNow => 'Sekarang';
 
   @override
-  String get scheduleNext => 'Next';
+  String get scheduleNext => 'Seterusnya';
 
   @override
-  String get scheduleFreeNow => 'You are free right now. Try out one of our activities!';
+  String get scheduleFreeNow => 'Anda bebas sekarang. Cuba salah satu aktiviti kami!';
 
   @override
-  String get scheduleClashError => 'That time overlaps another activity';
+  String get scheduleClashError => 'Masa itu bertindih dengan aktiviti lain';
 
   @override
-  String get scheduleEndError => 'End time must be after the start time';
+  String get scheduleEndError => 'Masa tamat mesti selepas masa mula';
 
   @override
-  String get scheduleSaveError => 'Couldn\'t save — please try again';
+  String get scheduleSaveError => 'Tidak dapat menyimpan. Sila cuba lagi.';
 
   @override
-  String get scheduleUnavailable => 'Schedule unavailable right now';
+  String get scheduleUnavailable => 'Jadual tidak tersedia sekarang';
 
   @override
-  String get journalHowAreYou => 'How do you feel today?';
+  String get classScheduleAction => 'Tetapkan jadual kelas';
 
   @override
-  String get journalContextPrompt => 'Where are you? (optional)';
+  String get classScheduleTitle => 'Jadual kelas';
 
   @override
-  String get journalNotePrompt => 'Want to say more? (optional)';
+  String get classScheduleHint => 'Jadual ini akan menggantikan rutin semasa setiap pelajar dalam kelas anda.';
 
   @override
-  String get journalNoteHint => 'Write a little about how you feel';
+  String get classScheduleSaved => 'Jadual kelas disimpan untuk setiap pelajar';
 
   @override
-  String get journalSave => 'Save how I feel';
+  String get journalHowAreYou => 'Bagaimana perasaan anda hari ini?';
 
   @override
-  String get journalSaved => 'Saved. Thank you for sharing.';
+  String get journalContextPrompt => 'Di mana anda? (pilihan)';
 
   @override
-  String get journalSaveError => 'Couldn\'t save. Please try again.';
+  String get journalNotePrompt => 'Mahu cerita lebih lanjut? (pilihan)';
 
   @override
-  String get journalDeleteTitle => 'Remove this feeling?';
+  String get journalNoteHint => 'Tulis sedikit tentang perasaan anda';
 
   @override
-  String get journalDeleteConfirm => 'This will take it out of your journal.';
+  String get journalSave => 'Simpan perasaan saya';
 
   @override
-  String get journalDeleted => 'Removed from your journal.';
+  String get journalSaved => 'Disimpan. Terima kasih kerana berkongsi.';
 
   @override
-  String get journalEmpty => 'No feelings logged yet';
+  String get journalSaveError => 'Tidak dapat menyimpan. Sila cuba lagi.';
 
   @override
-  String get journalUnavailable => 'Journal unavailable right now';
+  String get journalDeleteTitle => 'Keluarkan perasaan ini?';
 
   @override
-  String get journalSectionTitle => 'Feelings journal';
+  String get journalDeleteConfirm => 'Ini akan mengeluarkannya daripada jurnal anda.';
 
   @override
-  String get journalToday => 'Today';
+  String get journalDeleted => 'Dikeluarkan daripada jurnal anda.';
 
   @override
-  String get journalYesterday => 'Yesterday';
+  String get journalEmpty => 'Belum ada perasaan dicatat';
 
   @override
-  String get journalCommentTitle => 'Add a comment';
+  String get journalUnavailable => 'Jurnal tidak tersedia sekarang';
 
   @override
-  String get journalCommentHint => 'A short comment about this feeling (optional)';
+  String get journalSectionTitle => 'Jurnal perasaan';
 
   @override
-  String get emotionHappy => 'Happy';
+  String get journalToday => 'Hari ini';
 
   @override
-  String get emotionSad => 'Sad';
+  String get journalYesterday => 'Semalam';
 
   @override
-  String get emotionScared => 'Scared';
+  String get journalCommentTitle => 'Tambah komen';
 
   @override
-  String get emotionAngry => 'Angry';
+  String get journalCommentHint => 'Komen ringkas tentang perasaan ini (pilihan)';
 
   @override
-  String get emotionSurprised => 'Surprised';
+  String get journalSearchStudents => 'Cari pelajar';
 
   @override
-  String get emotionOkay => 'Okay';
+  String get journalLatestEntries => 'Catatan terkini';
 
   @override
-  String get journalCtxHome => 'Home';
+  String get journalAllStudents => 'Semua pelajar';
 
   @override
-  String get journalCtxClass => 'Class';
+  String get emotionHappy => 'Gembira';
 
   @override
-  String get journalCtxPlay => 'Play';
+  String get emotionSad => 'Sedih';
 
   @override
-  String get journalCtxOutside => 'Outside';
+  String get emotionScared => 'Takut';
 
   @override
-  String get journalCtxMeal => 'Mealtime';
+  String get emotionAngry => 'Marah';
 
   @override
-  String get journalCtxFriends => 'Friends';
+  String get emotionSurprised => 'Terkejut';
 
   @override
-  String get homeActivities => 'Activities';
+  String get emotionOkay => 'Okey';
 
   @override
-  String get previewDashboard => 'Your students\' progress and difficulty areas will appear here.';
+  String get journalCtxHome => 'Rumah';
 
   @override
-  String get previewClassroom => 'Project an activity to the whole class from here.';
+  String get journalCtxClass => 'Kelas';
 
   @override
-  String get previewReports => 'Gentle progress reports you can share will appear here.';
+  String get journalCtxPlay => 'Bermain';
 
   @override
-  String get previewRewards => 'Stars and badges will appear here as you play.';
+  String get journalCtxOutside => 'Luar';
+
+  @override
+  String get journalCtxMeal => 'Waktu Makan';
+
+  @override
+  String get journalCtxFriends => 'Kawan-kawan';
+
+  @override
+  String get homeActivities => 'Aktiviti';
+
+  @override
+  String get dashStarLeader => 'Peneraju bintang';
+
+  @override
+  String get dashStarLeaderEmpty => 'Bintang akan muncul di sini apabila kelas anda bermain.';
+
+  @override
+  String dashStudentsEarned(int done, int total) {
+    return '$done daripada $total';
+  }
+
+  @override
+  String get dashBadgeNoOneYet => 'Belum ada sesiapa yang memperoleh lencana ini.';
+
+  @override
+  String get dashViewAll => 'Lihat semua';
+
+  @override
+  String get dashNoTasks => 'Belum ada tugasan diberikan.';
+
+  @override
+  String get actionClose => 'Tutup';
+
+  @override
+  String get previewClassroom => 'Paparkan satu aktiviti kepada seluruh kelas dari sini.';
+
+  @override
+  String get previewRewards => 'Bintang dan lencana akan muncul di sini apabila anda bermain.';
 
   @override
   String rewardStarsEarned(int count) {
-    return 'You earned $count stars';
+    return 'Anda memperoleh $count bintang';
   }
 
   @override
-  String get rewardNewBadge => 'New badge!';
+  String get rewardNewBadge => 'Lencana baharu!';
 
   @override
-  String get rewardStarTotal => 'Stars so far';
+  String get rewardStarTotal => 'Jumlah bintang setakat ini';
 
   @override
-  String get rewardBadgesTitle => 'Your badges';
+  String get rewardBadgesTitle => 'Lencana anda';
 
   @override
   String rewardBadgesCount(int earned, int total) {
-    return '$earned of $total badges';
+    return '$earned daripada $total lencana';
   }
 
   @override
-  String get rewardBadgeAllStories => 'All Stories';
+  String get rewardBadgeAllStories => 'Semua Cerita';
 
   @override
-  String get rewardBadgeAllMatched => 'All Matched';
+  String get rewardBadgeAllMatched => 'Semua Dipadan';
 
   @override
-  String get rewardBadgeAllQuizzes => 'All Quizzes';
+  String get rewardBadgeAllQuizzes => 'Semua Kuiz';
 
   @override
-  String get rewardBadgeAllFeelings => 'All Feelings';
+  String get rewardBadgeAllFeelings => 'Semua Perasaan';
 
   @override
-  String get rewardProgressTitle => 'Keep going';
+  String get rewardProgressTitle => 'Teruskan usaha';
 
   @override
   String rewardProgressCount(int done, int total) {
-    return '$done of $total';
+    return '$done daripada $total';
   }
 
   @override
-  String get rewardActivityDone => 'All done!';
+  String get rewardActivityDone => 'Semua selesai!';
 
   @override
-  String get rewardTopBadgeTitle => 'The Grand Badge';
+  String get rewardTopBadgeTitle => 'Lencana Agung';
 
   @override
-  String get rewardGrandBadgeHint => 'Unlock all four badges to earn this mythical badge';
+  String get rewardGrandBadgeHint => 'Buka keempat-empat lencana untuk memperoleh lencana istimewa ini';
 
   @override
-  String get rewardAllBadges => 'You got them all!';
+  String get rewardAllBadges => 'Anda telah memperoleh semuanya!';
 
   @override
   String rewardLevelLabel(int level) {
-    return 'Level $level';
+    return 'Tahap $level';
   }
 
   @override
   String rewardStarsToNext(int count) {
-    return '$count more stars to level up';
+    return '$count lagi bintang untuk naik tahap';
   }
 
   @override
-  String get rewardTopLevel => 'Top level reached!';
+  String get rewardTopLevel => 'Tahap tertinggi dicapai!';
 
   @override
-  String get rewardNewTitle => 'New title!';
+  String get rewardNewTitle => 'Gelaran baharu!';
 
   @override
-  String get rewardTitle1 => 'Sprout';
+  String get rewardTitle1 => 'Tunas';
 
   @override
-  String get rewardTitle2 => 'Buddy';
+  String get rewardTitle2 => 'Kawan';
 
   @override
-  String get rewardTitle3 => 'Explorer';
+  String get rewardTitle3 => 'Peneroka';
 
   @override
-  String get rewardTitle4 => 'Helper';
+  String get rewardTitle4 => 'Pembantu';
 
   @override
-  String get rewardTitle5 => 'Guide';
+  String get rewardTitle5 => 'Pemandu';
 
   @override
-  String get rewardTitle6 => 'Hero';
+  String get rewardTitle6 => 'Wira';
 
   @override
-  String get rewardTitle7 => 'Champion';
+  String get rewardTitle7 => 'Juara';
 
   @override
-  String get rewardTitle8 => 'Legend';
+  String get rewardTitle8 => 'Legenda';
 
   @override
-  String get progressTitle => 'Progress';
+  String get progressTitle => 'Kemajuan';
 
   @override
-  String get progressStarsCaption => 'Stars';
+  String get progressStarsCaption => 'Bintang';
 
   @override
-  String get progressBadgesCaption => 'Badges';
+  String get progressBadgesCaption => 'Lencana';
 
   @override
-  String get progressFeelingsTitle => 'Feelings practiced';
+  String get progressFeelingsTitle => 'Perasaan yang dilatih';
 
   @override
-  String get progressRecentTitle => 'Recent activity';
+  String get progressRecentTitle => 'Aktiviti terkini';
 
   @override
-  String get progressNoActivity => 'No activities yet.';
+  String get progressNoActivity => 'Belum ada aktiviti.';
 
   @override
-  String get previewMatch => 'Match the faces to feelings here.';
+  String get previewMatch => 'Padankan wajah dengan perasaan di sini.';
 
   @override
-  String get companionGreeting => 'Hello! I am Luna. We can learn about feelings together.';
+  String get companionGreeting => 'Hai! Saya Luna. Kita boleh belajar tentang perasaan bersama-sama.';
 
   @override
-  String get companionPickFeeling => 'Which feeling shall we learn?';
+  String get companionPickFeeling => 'Perasaan mana yang kita nak belajar?';
 
   @override
-  String get companionNext => 'Next';
+  String get companionNext => 'Seterusnya';
 
   @override
-  String get companionLessonDone => 'Well done! Now you know all about this feeling. Thank you for telling me.';
+  String get companionLessonDone => 'Syabas! Sekarang anda sudah tahu semua tentang perasaan ini. Terima kasih kerana beritahu saya.';
 
   @override
-  String get companionAwaitingAnswerHint => 'Tell me in the box below, or tap the microphone.';
+  String get companionAwaitingAnswerHint => 'Beritahu saya dalam kotak di bawah, atau ketik mikrofon.';
 
   @override
-  String get companionThinking => 'Let me think.';
+  String get companionThinking => 'Biar saya fikir sebentar.';
 
   @override
-  String get companionRestLine => 'My chat is having a little rest. Let\'s learn a feeling together instead.';
+  String get companionRestLine => 'Sembang saya sedang berehat sekejap. Mari kita belajar tentang perasaan bersama-sama.';
 
   @override
-  String get companionInputHint => 'Ask me about a feeling';
+  String get companionInputHint => 'Tanya saya tentang sesuatu perasaan';
 
   @override
-  String get companionSend => 'Send';
+  String get companionSend => 'Hantar';
 
   @override
-  String get companionHearAgain => 'Hear it again';
+  String get companionHearAgain => 'Dengar sekali lagi';
 
   @override
-  String get companionTalk => 'Talk to me';
+  String get companionTalk => 'Bercakap dengan saya';
 
   @override
-  String get companionListening => 'I am listening';
+  String get companionListening => 'Saya sedang mendengar';
 
   @override
-  String get companionPlayRound => 'Guess my feeling';
+  String get companionPlayRound => 'Teka perasaan saya';
 
   @override
-  String get companionRoundAsk => 'Look at me. How am I feeling?';
+  String get companionRoundAsk => 'Lihat saya. Apakah perasaan saya?';
 
   @override
-  String get companionRoundPick => 'Tap the feeling you see, or tell me';
+  String get companionRoundPick => 'Ketik perasaan yang anda nampak, atau beritahu saya';
 
   @override
-  String get companionStopRound => 'Stop playing';
+  String get companionStopRound => 'Berhenti bermain';
 
   @override
-  String get previewQuiz => 'A calm feelings quiz with no timer and no score.';
+  String get previewQuiz => 'Kuiz perasaan yang tenang tanpa pemasa dan tanpa markah.';
 
   @override
-  String get accountSection => 'Account';
+  String get accountSection => 'Akaun';
 
   @override
-  String get detailsSection => 'Details';
+  String get detailsSection => 'Butiran';
 
   @override
-  String get mixMatchIntro => 'Pick a way to match feelings.';
+  String get mixMatchIntro => 'Pilih satu cara untuk memadankan perasaan.';
 
   @override
-  String get mixMatchBadgeHint => 'Complete all the questions to earn badges';
+  String get mixMatchBadgeHint => 'Selesaikan semua soalan untuk memperoleh lencana';
 
   @override
-  String get mixMatchAllDoneHint => 'All done! You earned your badges';
+  String get mixMatchAllDoneHint => 'Semua selesai! Anda telah memperoleh lencana anda';
 
   @override
-  String get mixMatchTypeFace => 'Faces';
+  String get mixMatchTypeFace => 'Wajah';
 
   @override
-  String get mixMatchTypeBody => 'Bodies';
+  String get mixMatchTypeBody => 'Badan';
 
   @override
-  String get mixMatchTypeSituation => 'Situations';
+  String get mixMatchTypeSituation => 'Situasi';
 
   @override
-  String get mixMatchTypeStory => 'Stories';
+  String get mixMatchTypeStory => 'Cerita';
 
   @override
-  String get mixMatchPrompt => 'Drag it to the right feeling.';
+  String get mixMatchPrompt => 'Seret ke perasaan yang betul.';
 
   @override
-  String get mixMatchTryAgain => 'That\'s okay. Try another feeling.';
+  String get mixMatchTryAgain => 'Tidak mengapa. Cuba perasaan lain.';
 
   @override
-  String get mixMatchDone => 'All done!';
+  String get mixMatchDone => 'Semua selesai!';
 
   @override
-  String get mixMatchDoneBody => 'Great matching. You can play again any time.';
+  String get mixMatchDoneBody => 'Padanan yang bagus. Anda boleh bermain lagi bila-bila masa.';
 
   @override
-  String get mixMatchDoneButton => 'Done';
+  String get mixMatchDoneButton => 'Selesai';
 
   @override
-  String get mixMatchClassroomHint => 'Pick a way to play on the class screen.';
+  String get mixMatchClassroomHint => 'Pilih satu cara untuk bermain pada skrin kelas.';
 
   @override
-  String get mixMatchListen => 'Listen';
+  String get mixMatchListen => 'Dengar';
 
   @override
-  String get mixMatchListening => 'Playing';
+  String get mixMatchListening => 'Sedang dimainkan';
 
   @override
-  String get quizAskLook => 'Who feels this way?';
+  String get quizAskLook => 'Siapa yang berasa begini?';
 
   @override
-  String get quizAskListen => 'How does this feel?';
+  String get quizAskListen => 'Bagaimana perasaan ini?';
 
   @override
-  String get quizAskStory => 'How do they feel?';
+  String get quizAskStory => 'Bagaimana perasaan mereka?';
 
   @override
-  String get quizListen => 'Listen';
+  String get quizListen => 'Dengar';
 
   @override
-  String get quizPlaying => 'Playing';
+  String get quizPlaying => 'Sedang dimainkan';
 
   @override
-  String get quizTryAgain => 'That\'s okay. Look again.';
+  String get quizTryAgain => 'Tidak mengapa. Lihat sekali lagi.';
 
   @override
-  String get quizNext => 'Next';
+  String get quizNext => 'Seterusnya';
 
   @override
-  String get quizFinish => 'Finish';
+  String get quizFinish => 'Selesai';
 
   @override
-  String get quizDone => 'All done!';
+  String get quizDone => 'Semua selesai!';
 
   @override
-  String get quizDoneBody => 'Great feeling spotting. You can play again any time.';
+  String get quizDoneBody => 'Bagus mengecam perasaan. Anda boleh bermain lagi bila-bila masa.';
 
   @override
-  String get quizDoneButton => 'Done';
+  String get quizDoneButton => 'Selesai';
 
   @override
-  String get quizStart => 'Start quiz';
+  String get quizStart => 'Mula kuiz';
 
   @override
-  String get quizClassroomHint => 'Play a calm feelings quiz on the class screen.';
+  String get quizClassroomHint => 'Mainkan kuiz perasaan yang tenang pada skrin kelas.';
 
   @override
-  String get quizPickDay => 'Pick a day to play.';
+  String get quizPickDay => 'Pilih satu hari untuk bermain.';
 
   @override
-  String get quizToday => 'Today';
+  String get quizToday => 'Hari ini';
 
   @override
-  String get quizYesterday => 'Yesterday';
+  String get quizYesterday => 'Semalam';
 
   @override
-  String get quizDayBefore => 'Day before';
+  String get quizDayBefore => 'Hari sebelumnya';
 
   @override
-  String get storyIntro => 'Pick a story to watch.';
+  String get storyIntro => 'Pilih satu cerita untuk ditonton.';
 
   @override
   String storyEpisode(int n) {
-    return 'Episode $n';
+    return 'Episod $n';
   }
 
   @override
-  String get storyTryAgain => 'That\'s okay. Have another look.';
+  String get storyTryAgain => 'Tidak mengapa. Lihat sekali lagi.';
 
   @override
-  String get storyContinue => 'Continue';
+  String get storyContinue => 'Teruskan';
 
   @override
-  String get storyDone => 'The end!';
+  String get storyDone => 'Tamat!';
 
   @override
-  String get storyDoneBody => 'Great watching. The next episode is ready when you are.';
+  String get storyDoneBody => 'Bagus menonton. Episod seterusnya sedia apabila anda bersedia.';
 
   @override
-  String get storyDoneButton => 'Done';
+  String get storyDoneButton => 'Selesai';
 
   @override
-  String get storyNextEpisode => 'Next Episode';
+  String get storyNextEpisode => 'Episod Seterusnya';
 
   @override
-  String get feedbackNarration => 'Speak feedback after answers';
+  String get feedbackNarration => 'Sebut maklum balas selepas jawapan';
 
   @override
-  String get quizMuteVoice => 'Turn off the voice';
+  String get quizMuteVoice => 'Matikan suara';
 
   @override
-  String get quizUnmuteVoice => 'Turn on the voice';
+  String get quizUnmuteVoice => 'Hidupkan suara';
 
   @override
-  String get storyVideoUnavailable => 'This story is getting ready. Please try another one.';
+  String get storyVideoUnavailable => 'Cerita ini sedang disediakan. Sila cuba satu lagi.';
 
   @override
-  String get storyClassroomHint => 'Play a story episode on the class screen.';
+  String get storyClassroomHint => 'Mainkan satu episod cerita pada skrin kelas.';
 
   @override
-  String get weeklyContentThisWeek => 'This week\'s content';
+  String get weeklyContentThisWeek => 'Kandungan minggu ini';
 
   @override
-  String get weeklyContentPastWeeks => 'Past weeks';
+  String get weeklyContentPastWeeks => 'Minggu lepas';
 
   @override
-  String get weeklyContentNoneYetTitle => 'No past weeks yet';
+  String get weeklyContentNoneYetTitle => 'Belum ada minggu lepas';
 
   @override
-  String get weeklyContentNoneYetBody => 'This is the first week. New content arrives every week, so check back soon!';
+  String get weeklyContentNoneYetBody => 'Ini ialah minggu pertama. Kandungan baharu tiba setiap minggu, jadi datang lagi tidak lama lagi!';
 
   @override
   String weeklyContentWeekLabel(int n) {
-    return 'Week $n';
+    return 'Minggu $n';
   }
 }

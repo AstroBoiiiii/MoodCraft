@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:moodcraft/l10n/app_localizations.dart';
@@ -69,31 +68,6 @@ class StudentRewardsScreen extends ConsumerWidget {
               for (final p in progress) ...[
                 _ActivityProgressRow(progress: p),
                 const SizedBox(height: AppSpacing.md),
-              ],
-              // Dev-only: clear stars + badges + progress back to zero for
-              // testing (nothing drops in normal play). Compiled out of demo.
-              if (kDebugMode && student != null) ...[
-                const SizedBox(height: AppSpacing.sm),
-                Center(
-                  child: TextButton.icon(
-                    onPressed:
-                        () => ref
-                            .read(studentRepositoryProvider)
-                            .upsert(
-                              student.copyWith(
-                                stars: 0,
-                                level: 1,
-                                badges: const [],
-                                companionLessonsDone: const [],
-                                mixMatchRounds: const {},
-                                quizRounds: const {},
-                                storyProgress: const {},
-                              ),
-                            ),
-                    icon: const Icon(Icons.restart_alt_rounded),
-                    label: const Text('Reset rewards (dev)'),
-                  ),
-                ),
               ],
             ],
           ),

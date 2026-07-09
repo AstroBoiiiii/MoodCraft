@@ -11,7 +11,6 @@ import '../../core/widgets/profile_header.dart';
 import '../../core/widgets/section_card.dart';
 import '../../core/widgets/sensory_read_only_view.dart';
 import '../assignments/child_homework_section.dart';
-import '../journal/journal_section.dart';
 import '../schedule/schedule_section.dart';
 import 'student_progress_summary.dart';
 
@@ -48,12 +47,14 @@ final studentDetailProvider = StreamProvider.autoDispose
       }
     });
 
-enum _DetailTab { overview, schedule, journal }
+enum _DetailTab { overview, schedule }
 
 /// The tabbed student/child detail body shared by the teacher's detail screen
 /// and the parent's monitoring tab: Overview (profile, sensory settings,
-/// contacts), Schedule and Journal, one concern per tab so nothing is crammed
+/// contacts) and Schedule, one concern per tab so nothing is crammed
 /// into a single scroll (CLAUDE.md section 4.5 — one action per screen).
+/// The emotion journal is not here — it has its own top-level tab for both
+/// the teacher and the parent (FR12).
 /// Switching uses a [SegmentedButton] like the rest of the app: no swipe
 /// gestures, no surprises. Tabs live in an [IndexedStack] so an in-progress
 /// schedule edit survives a tab switch.
@@ -126,11 +127,6 @@ class _StudentDetailTabsState extends State<StudentDetailTabs> {
               label: Text(l.tabSchedule),
               icon: const Icon(Icons.today_rounded),
             ),
-            ButtonSegment(
-              value: _DetailTab.journal,
-              label: Text(l.tabJournal),
-              icon: const Icon(Icons.book_rounded),
-            ),
           ],
           selected: {_tab},
           onSelectionChanged: (s) => setState(() => _tab = s.first),
@@ -148,9 +144,6 @@ class _StudentDetailTabsState extends State<StudentDetailTabs> {
                     canEdit: widget.canEditSchedule,
                   ),
                 ],
-              ),
-              ListView(
-                children: [JournalHistorySection(studentId: widget.student.id)],
               ),
             ],
           ),

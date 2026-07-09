@@ -28,9 +28,13 @@ class TeacherShell extends StatelessWidget {
     final all = <({int branch, IconData icon, String label})>[
       (branch: 0, icon: Icons.dashboard_rounded, label: l.navDashboard),
       (branch: 1, icon: Icons.groups_rounded, label: l.navStudents),
-      (branch: 2, icon: Icons.cast_for_education_rounded, label: l.navClassroom),
-      (branch: 3, icon: Icons.message_rounded, label: l.navMessages),
-      (branch: 4, icon: Icons.assessment_rounded, label: l.navReports),
+      (
+        branch: 2,
+        icon: Icons.cast_for_education_rounded,
+        label: l.navClassroom,
+      ),
+      (branch: 3, icon: Icons.book_rounded, label: l.navJournal),
+      (branch: 4, icon: Icons.message_rounded, label: l.navMessages),
       (branch: 5, icon: Icons.assignment_turned_in_rounded, label: l.navTasks),
     ];
     // Classroom projection (branch 2) is web-only.

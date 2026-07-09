@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -54,21 +53,6 @@ class MixMatchHomeScreen extends ConsumerWidget {
                   );
                 },
               ),
-              // Dev-only: clear all category progress back to 0/5. Hidden in
-              // release/demo builds.
-              if (kDebugMode && student != null) ...[
-                const SizedBox(height: AppSpacing.lg),
-                Center(
-                  child: TextButton.icon(
-                    onPressed:
-                        () => ref
-                            .read(studentRepositoryProvider)
-                            .upsert(student.copyWith(mixMatchRounds: {})),
-                    icon: const Icon(Icons.restart_alt_rounded),
-                    label: const Text('Reset progress (dev)'),
-                  ),
-                ),
-              ],
             ],
           ),
         ),

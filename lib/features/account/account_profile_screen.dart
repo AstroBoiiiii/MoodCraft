@@ -8,6 +8,7 @@ import '../../core/constants/app_constants.dart';
 import '../../core/models/app_user.dart';
 import '../../core/models/enums.dart';
 import '../../core/providers/auth_provider.dart';
+import '../../core/providers/locale_provider.dart';
 import '../../core/providers/repository_providers.dart';
 import '../../core/providers/sensory_settings_provider.dart';
 import '../../core/widgets/big_button.dart';
@@ -88,52 +89,70 @@ class _AccountProfileScreenState extends ConsumerState<AccountProfileScreen> {
     final newUsername = _usernameCtrl.text.trim().toLowerCase();
     final usernameChanged = newUsername != user.username;
 
-    if (usernameChanged) {
-      final db = FirebaseFirestore.instance;
-      final snap =
-          await db
-              .collection(FirestoreCollections.usernameDirectory)
-              .doc(newUsername)
-              .get();
-      if (snap.exists) {
-        if (mounted) {
-          setState(() {
-            _saving = false;
-            _usernameError = 'That username is already taken.';
-          });
+    try {
+      if (usernameChanged) {
+        final db = FirebaseFirestore.instance;
+        final snap =
+            await db
+                .collection(FirestoreCollections.usernameDirectory)
+                .doc(newUsername)
+                .get();
+        if (snap.exists) {
+          if (mounted) {
+            setState(() {
+              _saving = false;
+              _usernameError = 'That username is already taken.';
+            });
+          }
+          return;
         }
-        return;
+        // Swap directory entries atomically via a batch.
+        final batch = db.batch();
+        batch.delete(
+          db
+              .collection(FirestoreCollections.usernameDirectory)
+              .doc(user.username),
+        );
+        batch.set(
+          db
+              .collection(FirestoreCollections.usernameDirectory)
+              .doc(newUsername),
+          {'uid': user.uid, 'email': user.email},
+        );
+        await batch.commit();
       }
-      // Swap directory entries atomically via a batch.
-      final batch = db.batch();
-      batch.delete(
-        db
-            .collection(FirestoreCollections.usernameDirectory)
-            .doc(user.username),
-      );
-      batch.set(
-        db.collection(FirestoreCollections.usernameDirectory).doc(newUsername),
-        {'uid': user.uid, 'email': user.email},
-      );
-      await batch.commit();
-    }
 
-    // Name is fixed (set at registration) — never updated here.
-    final updated = user.copyWith(
-      username: newUsername,
-      phone: _phoneCtrl.text.trim(),
-      language: _language,
-    );
-    await ref.read(userRepositoryProvider).upsert(updated);
-    ref.invalidate(userProfileProvider);
-    if (mounted) {
-      setState(() {
-        _displayUsername = newUsername;
-        _displayPhone = _phoneCtrl.text.trim();
-        _displayLanguage = _language;
-        _saving = false;
-        _editing = false;
-      });
+      // Name is fixed (set at registration) — never updated here.
+      final updated = user.copyWith(
+        username: newUsername,
+        phone: _phoneCtrl.text.trim(),
+        language: _language,
+      );
+      await ref.read(userRepositoryProvider).upsert(updated);
+      ref.invalidate(userProfileProvider);
+      if (_language != user.language) {
+        ref.read(appLocaleProvider.notifier).setFromLanguage(_language);
+      }
+      if (mounted) {
+        setState(() {
+          _displayUsername = newUsername;
+          _displayPhone = _phoneCtrl.text.trim();
+          _displayLanguage = _language;
+          _saving = false;
+          _editing = false;
+        });
+      }
+    } catch (_) {
+      // A save failure (offline, permission hiccup) must never strand the
+      // child/parent/teacher mid-edit with no way to retry or back out.
+      if (mounted) {
+        setState(() => _saving = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(AppLocalizations.of(context).profileSaveError),
+          ),
+        );
+      }
     }
   }
 

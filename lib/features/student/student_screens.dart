@@ -1,4 +1,4 @@
-import 'package:flutter/foundation.dart' show kDebugMode, kIsWeb;
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -181,21 +181,6 @@ class QuizScreen extends ConsumerWidget {
                       extra: (studentId: student?.id, setIndex: setIndex),
                     ),
               ),
-              // Dev-only: clear all quiz progress back to 0/5. Compiled out of
-              // release/demo builds (kDebugMode), so it disappears when done.
-              if (kDebugMode && student != null) ...[
-                const SizedBox(height: AppSpacing.lg),
-                Center(
-                  child: TextButton.icon(
-                    onPressed:
-                        () => ref
-                            .read(studentRepositoryProvider)
-                            .upsert(student.copyWith(quizRounds: {})),
-                    icon: const Icon(Icons.restart_alt_rounded),
-                    label: const Text('Reset progress (dev)'),
-                  ),
-                ),
-              ],
             ],
           ),
         ),

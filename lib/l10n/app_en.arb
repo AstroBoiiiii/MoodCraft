@@ -34,7 +34,6 @@
   "navStudents": "Students",
   "navClassroom": "Classroom",
   "navMessages": "Messages",
-  "navReports": "Reports",
   "navProgress": "Progress",
   "arMobileOnly": "AR is available on the mobile app.",
   "companionMobileOnly": "The companion is available on the mobile app.",
@@ -84,6 +83,7 @@
   "profileTitle": "My Profile",
   "roleLabel": "Role",
   "saveProfile": "Save changes",
+  "profileSaveError": "Couldn't save. Please try again.",
   "levelStars": "Level {level} · {stars} stars",
   "@levelStars": {
     "placeholders": {
@@ -101,7 +101,6 @@
   "childProfile": "Child Profile",
   "tabOverview": "Overview",
   "tabSchedule": "Schedule",
-  "tabJournal": "Journal",
   "progressReport": "Progress report",
   "progressReportSoon": "A progress report for this student is coming soon.",
   "selectStudentHint": "Select a student to see their details",
@@ -221,6 +220,10 @@
   "scheduleEndError": "End time must be after the start time",
   "scheduleSaveError": "Couldn't save. Please try again.",
   "scheduleUnavailable": "Schedule unavailable right now",
+  "classScheduleAction": "Set class schedule",
+  "classScheduleTitle": "Class schedule",
+  "classScheduleHint": "This schedule will replace every student's current routine in your class.",
+  "classScheduleSaved": "Class schedule saved for every student",
   "journalHowAreYou": "How do you feel today?",
   "journalContextPrompt": "Where are you? (optional)",
   "journalNotePrompt": "Want to say more? (optional)",
@@ -238,6 +241,9 @@
   "journalYesterday": "Yesterday",
   "journalCommentTitle": "Add a comment",
   "journalCommentHint": "A short comment about this feeling (optional)",
+  "journalSearchStudents": "Search students",
+  "journalLatestEntries": "Latest entries",
+  "journalAllStudents": "All students",
   "emotionHappy": "Happy",
   "emotionSad": "Sad",
   "emotionScared": "Scared",
@@ -251,9 +257,21 @@
   "journalCtxMeal": "Mealtime",
   "journalCtxFriends": "Friends",
   "homeActivities": "Activities",
-  "previewDashboard": "Your students' progress and difficulty areas will appear here.",
+  "dashStarLeader": "Star leader",
+  "dashStarLeaderEmpty": "Stars will show up here as your class plays.",
+  "dashStudentsEarned": "{done} of {total}",
+  "@dashStudentsEarned": {
+    "description": "How many students in the class have earned a badge",
+    "placeholders": {
+      "done": { "type": "int" },
+      "total": { "type": "int" }
+    }
+  },
+  "dashBadgeNoOneYet": "No one has earned this badge yet.",
+  "dashViewAll": "View all",
+  "dashNoTasks": "No tasks handed out yet.",
+  "actionClose": "Close",
   "previewClassroom": "Project an activity to the whole class from here.",
-  "previewReports": "Gentle progress reports you can share will appear here.",
   "previewRewards": "Stars and badges will appear here as you play.",
   "rewardStarsEarned": "You earned {count} stars",
   "@rewardStarsEarned": {

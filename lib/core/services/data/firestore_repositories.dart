@@ -290,4 +290,27 @@ class FirestoreVisualScheduleRepository implements VisualScheduleRepository {
       );
     });
   }
+
+  @override
+  Future<void> overwriteForStudents({
+    required List<String> studentIds,
+    required String createdBy,
+    required List<ScheduleItem> items,
+  }) {
+    final batch = _db.batch();
+    for (final studentId in studentIds) {
+      batch.set(
+        _col.doc(studentId),
+        _encode(
+          VisualSchedule(
+            id: studentId,
+            studentId: studentId,
+            createdBy: createdBy,
+            items: items,
+          ).toJson(),
+        ),
+      );
+    }
+    return batch.commit();
+  }
 }

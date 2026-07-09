@@ -2,9 +2,9 @@
 /// given the feeling the avatar is demonstrating and the child's answer
 /// (a tapped feeling or their spoken words), Gemini returns structured JSON
 /// that drives everything the character does next — what it says, the face it
-/// makes, the body clip it plays, and a short observation note for the
-/// teacher's log. This is the literal wiring between the AI's mind and the
-/// character's body.
+/// makes, and the body clip it plays. This is the literal wiring between the
+/// AI's mind and the character's body. The AI reports nothing to anyone:
+/// no observation notes, no session logs for teachers or parents.
 ///
 /// Never blocks and never turns negative: any failure (offline, quota,
 /// malformed reply) falls back to [CompanionJudgment.offline], a deterministic
@@ -23,22 +23,20 @@ import 'companion_data.dart';
 
 /// What the brain decided for one answer. Every field maps onto a character
 /// action: [spokenResponse] is voiced with lip-sync, [characterEmotion] sets
-/// the face, [bodyAnimation] plays the matching pose clip (null = stay as-is),
-/// and [observationNote] goes to the round's log entry.
+/// the face, and [bodyAnimation] plays the matching pose clip (null = stay
+/// as-is).
 class CompanionJudgment {
   const CompanionJudgment({
     required this.isCorrect,
     required this.spokenResponse,
     required this.characterEmotion,
     required this.bodyAnimation,
-    required this.observationNote,
   });
 
   final bool isCorrect;
   final String spokenResponse;
   final app.Emotion characterEmotion;
   final app.Emotion? bodyAnimation;
-  final String observationNote;
 
   /// Defensive parse of the model's JSON (already decoded to a map).
   /// Returns null when anything essential is missing or malformed.
@@ -60,8 +58,6 @@ class CompanionJudgment {
           body == null || body == 'none'
               ? null
               : app.enumFromName(app.Emotion.values, body, app.Emotion.neutral),
-      observationNote:
-          (decoded['observationNote'] as String?)?.trim() ?? 'No note.',
     );
   }
 
@@ -72,7 +68,6 @@ class CompanionJudgment {
   factory CompanionJudgment.offline({
     required app.Emotion target,
     required String answer,
-    required int attempt,
   }) {
     final said = answer.toLowerCase();
     final words = kCompanionSynonyms[target] ?? [target.name];
@@ -83,8 +78,6 @@ class CompanionJudgment {
         spokenResponse: 'Yes! I am feeling ${target.name}. You saw it!',
         characterEmotion: app.Emotion.happy,
         bodyAnimation: app.Emotion.happy,
-        observationNote:
-            'Identified ${target.name} on attempt $attempt (offline check).',
       );
     }
     return CompanionJudgment(
@@ -93,9 +86,6 @@ class CompanionJudgment {
           'Good try! ${kCompanionRedirectClue[target] ?? ''} How am I feeling?',
       characterEmotion: target,
       bodyAnimation: target,
-      observationNote:
-          'Did not identify ${target.name} on attempt $attempt '
-          '(offline check).',
     );
   }
 }
@@ -109,13 +99,11 @@ Rules:
 - If correct: give warm, short praise that names the feeling. Your body celebrates gently.
 - If not correct: NEVER say wrong, no, or anything negative. Warmly point at ONE clue in your body language (for sad: head hanging down; for happy: arms open wide; for scared: holding myself small and tight; for angry: crossed arms; for surprised: leaning back quickly) and ask again. Talk about the body, not the face. You keep acting out the target feeling, so characterEmotion and bodyAnimation must both stay the target feeling.
 - At most two short sentences a six year old can follow. No emoji.
-- observationNote is for the teacher, not the child: one short factual note like "Identified sad on the first try" or "Mixed up angry with sad on attempt 1, needed the body clue".
 Respond as JSON:
 - "isCorrect": whether the child identified the feeling.
 - "spokenResponse": what you say to the child.
 - "characterEmotion": the feeling your own face shows while saying it (happy, sad, scared, angry, surprised, neutral).
 - "bodyAnimation": the body clip you play (happy, sad, scared, angry, surprised, or none).
-- "observationNote": the short teacher note.
 ''';
 
 /// One-shot judge (no chat history — each round stands alone). Returns null
@@ -141,7 +129,6 @@ class CompanionBrain {
             'bodyAnimation': Schema.enumString(
               enumValues: [...app.Emotion.values.map((e) => e.name), 'none'],
             ),
-            'observationNote': Schema.string(),
           },
         ),
         temperature: 0.4,
@@ -178,11 +165,7 @@ class CompanionBrain {
         }
       }
     }
-    return CompanionJudgment.offline(
-      target: target,
-      answer: answer,
-      attempt: attempt,
-    );
+    return CompanionJudgment.offline(target: target, answer: answer);
   }
 
   static Object? _decode(String raw) {

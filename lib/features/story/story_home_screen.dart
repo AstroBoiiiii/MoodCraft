@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -51,21 +50,6 @@ class StoryHomeScreen extends ConsumerWidget {
                       ),
                     ),
               ),
-              // Dev-only: clear all story progress back to episode one. Compiled
-              // out of release/demo builds (kDebugMode).
-              if (kDebugMode && student != null) ...[
-                const SizedBox(height: AppSpacing.lg),
-                Center(
-                  child: TextButton.icon(
-                    onPressed:
-                        () => ref
-                            .read(studentRepositoryProvider)
-                            .upsert(student.copyWith(storyProgress: {})),
-                    icon: const Icon(Icons.restart_alt_rounded),
-                    label: const Text('Reset progress (dev)'),
-                  ),
-                ),
-              ],
             ],
           ),
         ),

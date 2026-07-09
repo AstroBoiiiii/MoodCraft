@@ -27,6 +27,9 @@ import '../features/student/student_screens.dart';
 import '../features/student/student_shell.dart';
 import '../features/teacher/messaging_thread_screen.dart';
 import '../features/teacher/student_profile_detail_screen.dart';
+import '../features/teacher/teacher_class_schedule_screen.dart';
+import '../features/teacher/teacher_dashboard_screen.dart';
+import '../features/teacher/teacher_journal_screen.dart';
 import '../features/teacher/teacher_screens.dart';
 import '../features/teacher/teacher_shell.dart';
 
@@ -325,6 +328,11 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                           studentId: state.pathParameters['id']!,
                         ),
                   ),
+                  GoRoute(
+                    path: 'class-schedule',
+                    builder:
+                        (context, state) => const TeacherClassScheduleScreen(),
+                  ),
                 ],
               ),
             ],
@@ -340,16 +348,16 @@ final goRouterProvider = Provider<GoRouter>((ref) {
           StatefulShellBranch(
             routes: [
               GoRoute(
-                path: '/teacher/messages',
-                builder: (context, state) => const TeacherMessagesScreen(),
+                path: '/teacher/journal',
+                builder: (context, state) => const TeacherJournalScreen(),
               ),
             ],
           ),
           StatefulShellBranch(
             routes: [
               GoRoute(
-                path: '/teacher/reports',
-                builder: (context, state) => const TeacherReportsScreen(),
+                path: '/teacher/messages',
+                builder: (context, state) => const TeacherMessagesScreen(),
               ),
             ],
           ),
@@ -364,7 +372,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         ],
       ),
 
-      // ---- Parent (bottom nav: Progress / Messages) ----
+      // ---- Parent (bottom nav: Progress / Journal / Messages) ----
       // The child's homework is viewed inside the Progress tab (read-only);
       // parents are never handed tasks of their own, so there is no Tasks tab.
       StatefulShellRoute.indexedStack(
@@ -375,6 +383,14 @@ final goRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: '/parent/progress',
                 builder: (context, state) => const ParentMonitoringScreen(),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/parent/journal',
+                builder: (context, state) => const ParentJournalScreen(),
               ),
             ],
           ),

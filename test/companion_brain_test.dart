@@ -11,23 +11,20 @@ void main() {
       final j = CompanionJudgment.fromModelJson(
         jsonDecode('''
         {"isCorrect": true, "spokenResponse": "Yes! I am sad.",
-         "characterEmotion": "happy", "bodyAnimation": "happy",
-         "observationNote": "Identified sad on the first try."}
+         "characterEmotion": "happy", "bodyAnimation": "happy"}
         '''),
       );
       expect(j, isNotNull);
       expect(j!.isCorrect, isTrue);
       expect(j.characterEmotion, Emotion.happy);
       expect(j.bodyAnimation, Emotion.happy);
-      expect(j.observationNote, contains('first try'));
     });
 
     test('bodyAnimation "none" becomes null', () {
       final j = CompanionJudgment.fromModelJson(
         jsonDecode('''
         {"isCorrect": false, "spokenResponse": "Good try! Look again.",
-         "characterEmotion": "sad", "bodyAnimation": "none",
-         "observationNote": "n"}
+         "characterEmotion": "sad", "bodyAnimation": "none"}
         '''),
       );
       expect(j!.bodyAnimation, isNull);
@@ -58,8 +55,7 @@ void main() {
       final j = CompanionJudgment.fromModelJson(
         jsonDecode('''
         {"isCorrect": true, "spokenResponse": "Yes!",
-         "characterEmotion": "ecstatic", "bodyAnimation": "wiggle",
-         "observationNote": "n"}
+         "characterEmotion": "ecstatic", "bodyAnimation": "wiggle"}
         '''),
       );
       expect(j!.characterEmotion, Emotion.happy);
@@ -69,11 +65,7 @@ void main() {
 
   group('CompanionJudgment.offline', () {
     test('accepts the exact feeling word from a tap', () {
-      final j = CompanionJudgment.offline(
-        target: Emotion.sad,
-        answer: 'sad',
-        attempt: 1,
-      );
+      final j = CompanionJudgment.offline(target: Emotion.sad, answer: 'sad');
       expect(j.isCorrect, isTrue);
       expect(j.characterEmotion, Emotion.happy);
     });
@@ -82,17 +74,15 @@ void main() {
       final j = CompanionJudgment.offline(
         target: Emotion.angry,
         answer: 'I think you are really mad right now',
-        attempt: 2,
       );
       expect(j.isCorrect, isTrue);
-      expect(j.observationNote, contains('attempt 2'));
+      expect(j.characterEmotion, Emotion.happy);
     });
 
     test('a miss keeps demonstrating the target and stays gentle', () {
       final j = CompanionJudgment.offline(
         target: Emotion.scared,
         answer: 'happy',
-        attempt: 1,
       );
       expect(j.isCorrect, isFalse);
       expect(j.characterEmotion, Emotion.scared);

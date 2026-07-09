@@ -11,30 +11,12 @@ import '../../core/widgets/calm_scaffold.dart';
 import '../../core/widgets/constrained_content.dart';
 import '../../core/widgets/empty_state.dart';
 import '../../core/widgets/initial_avatar.dart';
-import '../../core/widgets/placeholder_screen.dart';
 import '../../core/widgets/section_card.dart';
-import '../../core/widgets/sensory_settings_sheet.dart';
 import '../../core/widgets/weekly_content_banner.dart';
 import '../mix_match/mix_match_screen.dart';
 import '../quiz/quiz_home_screen.dart';
 import '../story/story_home_screen.dart';
 import 'student_profile_detail_screen.dart';
-
-/// Teacher dashboard — the landing screen for the web portal. Carries the
-/// account actions (sensory settings + sign out).
-class TeacherDashboardScreen extends ConsumerWidget {
-  const TeacherDashboardScreen({super.key});
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final l = AppLocalizations.of(context);
-    return PlaceholderScreen(
-      title: l.navDashboard,
-      icon: Icons.dashboard_rounded,
-      message: l.previewDashboard,
-      actions: accountActions(context, ref),
-    );
-  }
-}
 
 /// The teacher's classroom-projection layer (**web only** — hidden from teacher
 /// mobile, which is for managing students and messaging parents). Launches an
@@ -296,12 +278,26 @@ class _TeacherClassroomScreenState
             );
           },
         ),
+        // ── Class schedule ────────────────────────────────────────────────
+        Padding(
+          padding: const EdgeInsets.only(bottom: AppSpacing.lg),
+          child: OutlinedButton.icon(
+            onPressed: () => context.push('/teacher/students/class-schedule'),
+            icon: const Icon(Icons.view_agenda_rounded),
+            label: Text(l.classScheduleAction),
+          ),
+        ),
         // ── Students ──────────────────────────────────────────────────────
         Text(l.navStudents, style: theme.textTheme.titleMedium),
         const SizedBox(height: AppSpacing.sm),
         studentsAsync.when(
           loading: () => const Center(child: CircularProgressIndicator()),
-          error: (_, __) => EmptyState(message: l.comingSoon, compact: true),
+          error: (e, _) {
+            // Surface the real failure in the run console (rules denials
+            // otherwise hide behind the calm fallback below).
+            debugPrint('classStudentsStreamProvider error: $e');
+            return EmptyState(message: l.comingSoon, compact: true);
+          },
           data: (students) {
             if (students.isEmpty) {
               return EmptyState(
@@ -629,19 +625,6 @@ class _ConversationTile extends StatelessWidget {
         ],
       ),
       onTap: onTap,
-    );
-  }
-}
-
-class TeacherReportsScreen extends StatelessWidget {
-  const TeacherReportsScreen({super.key});
-  @override
-  Widget build(BuildContext context) {
-    final l = AppLocalizations.of(context);
-    return PlaceholderScreen(
-      title: l.navReports,
-      icon: Icons.assessment_rounded,
-      message: l.previewReports,
     );
   }
 }
